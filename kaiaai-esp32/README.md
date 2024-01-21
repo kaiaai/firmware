@@ -3,6 +3,10 @@
 - TODO link to board files
 - TODO link to setup, configuration video
 
+<a href="http://www.youtube.com/watch?feature=player_embedded&v=XOc5kCE3MC0" target="_blank">
+ <img src="http://img.youtube.com/vi/XOc5kCE3MC0/maxresdefault.jpg" alt="Watch the one-time PC setup, firmware upload instructions video" width="720" height="405" border="10" />
+</a>
+
 ## Release notes
 
 1/21/2024
