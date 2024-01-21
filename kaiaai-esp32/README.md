@@ -1,4 +1,9 @@
-# Release notes
+# Kaia.ai platform robot firmware for ESP32 master board
+- TODO description, list of supported sensors, motors, LDS
+- TODO link to board files
+- TODO link to setup, configuration video
+
+## Release notes
 
 1/21/2024
 - updated to match PID_Timed v1.1.0 library
