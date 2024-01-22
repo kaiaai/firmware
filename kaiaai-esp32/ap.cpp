@@ -91,7 +91,7 @@ void writeFile(fs::FS &fs, const char * path, const char * message){
   if(file.print(message)){
     Serial.println(" - file written");
   } else {
-    Serial.println(" - frite failed");
+    Serial.println(" - write failed");
   }
 }
 
@@ -110,7 +110,8 @@ void ObtainWiFiCreds(void (*callback)(), const char * SSID_AP) {
 
   // Web Server Root URL
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send(SPIFFS, "/wifimanager.html", "text/html");
+//    request->send(SPIFFS, "/index.html", "text/html");
+    request->send(SPIFFS, "/index.html", "utf-8");
   });
   
   server.serveStatic("/", SPIFFS, "/");
