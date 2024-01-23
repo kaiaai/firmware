@@ -17,12 +17,6 @@
 #include <arduino.h>
 #include "robot_config.h"
 
-const float WHEEL_PERIM_LEN_DIV60 = PI * WHEEL_DIA / 60;
-const float WHEEL_PERIM_LEN_DIV60_RECIP = 1/WHEEL_PERIM_LEN_DIV60;
-#define SPEED_TO_RPM(SPEED_MS) (SPEED_MS*WHEEL_PERIM_LEN_DIV60_RECIP)
-#define RPM_TO_SPEED(RPM) (RPM*WHEEL_PERIM_LEN_DIV60)
-
-
 void blink(unsigned int delay_ms, unsigned int count);
 float absMin(float a, float b_abs);
 void printCurrentTime();

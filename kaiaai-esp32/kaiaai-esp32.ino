@@ -52,9 +52,7 @@
 #define RCSOFTCHECK(fn) { rcl_ret_t temp_rc = fn; \
   if((temp_rc != RCL_RET_OK)){Serial.println("RCSOFTCHECK failed");}}
 
-const float SPEED_DIFF_TO_US = 1e6/MAX_WHEEL_ACCEL;
-const float WHEEL_BASE_RECIP = 1/WHEEL_BASE;
-const float WHEEL_RADIUS = WHEEL_DIA / 2;
+CONFIG cfg;
 
 rcl_publisher_t telem_pub;
 rcl_publisher_t log_pub;
@@ -69,15 +67,15 @@ rclc_parameter_server_t param_server;
 
 HardwareSerial LdSerial(2); // TX 17, RX 16
 
-float joint_pos[JOINTS_LEN] = {0};
-float joint_vel[JOINTS_LEN] = {0};
-float joint_prev_pos[JOINTS_LEN] = {0};
-uint8_t lds_buf[LDS_BUF_LEN] = {0};
+float joint_pos[cfg.JOINTS_LEN] = {0};
+float joint_vel[cfg.JOINTS_LEN] = {0};
+float joint_prev_pos[cfg.JOINTS_LEN] = {0};
+uint8_t lds_buf[cfg.LDS_BUF_LEN] = {0};
 
 unsigned long telem_prev_pub_time_us = 0;
 unsigned long ping_prev_pub_time_us = 0;
-unsigned long telem_pub_period_us = UROS_TELEM_PUB_PERIOD_MS*1000;
-unsigned long ping_pub_period_us = UROS_PING_PUB_PERIOD_MS*1000;
+unsigned long telem_pub_period_us = cfg.UROS_TELEM_PUB_PERIOD_MS*1000;
+unsigned long ping_pub_period_us = cfg.UROS_PING_PUB_PERIOD_MS*1000;
 
 unsigned long ramp_duration_us = 0;
 unsigned long ramp_start_time_us = 0;
@@ -88,10 +86,8 @@ float ramp_target_rpm_left = 0;
 
 bool ramp_enabled = true;
 
-#ifdef SPIN_TELEM_STATS
 unsigned long stat_sum_spin_telem_period_us = 0;
 unsigned long stat_max_spin_telem_period_us = 0;
-#endif
 
 size_t lds_serial_write_callback(const uint8_t * buffer, size_t length) {
   return LdSerial.write(buffer, length);
@@ -117,14 +113,14 @@ void twist_sub_callback(const void *msgin) {
   float twist_target_speed_right = 0;
   float twist_target_speed_left = 0;
 
-  twistToWheelSpeeds(target_speed_lin_x, target_speed_ang_z,
+  cfg.twistToWheelSpeeds(target_speed_lin_x, target_speed_ang_z,
     &twist_target_speed_right, &twist_target_speed_left);
 
   twist_target_speed_left = -twist_target_speed_left;
 
   // Wheel speeds to RPM
-  float twist_target_rpm_right = SPEED_TO_RPM(twist_target_speed_right);
-  float twist_target_rpm_left = SPEED_TO_RPM(twist_target_speed_left);
+  float twist_target_rpm_right = cfg.speed_to_rpm(twist_target_speed_right);
+  float twist_target_rpm_left = cfg.speed_to_rpm(twist_target_speed_left);
 
   // Limit target RPM
   float limited_target_rpm_right =
@@ -176,11 +172,11 @@ void twist_sub_callback(const void *msgin) {
   ramp_start_rpm_right = drive.getTargetRPM(MOTOR_RIGHT);
   ramp_start_rpm_left = drive.getTargetRPM(MOTOR_LEFT);
   
-  float ramp_start_speed_right = RPM_TO_SPEED(ramp_start_rpm_right);
-  float ramp_start_speed_left = RPM_TO_SPEED(ramp_start_rpm_left);
+  float ramp_start_speed_right = cfg.rpm_to_speed(ramp_start_rpm_right);
+  float ramp_start_speed_left = cfg.rpm_to_speed(ramp_start_rpm_left);
 
-  float ramp_target_speed_right = RPM_TO_SPEED(ramp_target_rpm_right);
-  float ramp_target_speed_left = RPM_TO_SPEED(ramp_target_rpm_left);
+  float ramp_target_speed_right = cfg.rpm_to_speed(ramp_target_rpm_right);
+  float ramp_target_speed_left = cfg.rpm_to_speed(ramp_target_rpm_left);
 
   float ramp_speed_diff_right = ramp_target_speed_right - ramp_start_speed_right;
   float ramp_speed_diff_left = ramp_target_speed_left - ramp_start_speed_left;
@@ -190,7 +186,7 @@ void twist_sub_callback(const void *msgin) {
   float abs_speed_diff_left = abs(ramp_speed_diff_left);
   float max_abs_speed_diff = max(abs_speed_diff_right, abs_speed_diff_left);
 
-  ramp_duration_us = max_abs_speed_diff * SPEED_DIFF_TO_US;
+  ramp_duration_us = max_abs_speed_diff * cfg.speed_diff_to_us;
   ramp_start_time_us = esp_timer_get_time(); // Start speed ramp
 
   updateSpeedRamp();
@@ -248,17 +244,17 @@ void delaySpin(unsigned long msec) {
 void setup() {
   Serial.begin(115200);
 
-  pinMode(CONFIG::LED_PIN, OUTPUT);
-  digitalWrite(CONFIG::LED_PIN, HIGH);  
+  pinMode(cfg.LED_PIN, OUTPUT);
+  digitalWrite(cfg.LED_PIN, HIGH);  
 
   setupLDS();
 
   if (!initSPIFFS())
-    blink_error_code(ERR_SPIFFS_INIT);
+    blink_error_code(cfg.ERR_SPIFFS_INIT);
 
   if (!initWiFi(getSSID(), getPassw())) {
-    digitalWrite(CONFIG::LED_PIN, HIGH);
-    ObtainWiFiCreds(spinResetSettings, UROS_ROBOT_MODEL);
+    digitalWrite(cfg.LED_PIN, HIGH);
+    ObtainWiFiCreds(spinResetSettings, cfg.robot_model_name.c_str());
     return;
   }
 
@@ -270,8 +266,8 @@ void setup() {
   logMsgInfo((char*)"Micro-ROS initialized");
   
   if (startLDS() != LDS::RESULT_OK)
-    blink_error_code(ERR_LDS_START);
-    //error_loop(ERR_LDS_START);
+    blink_error_code(cfg.ERR_LDS_START);
+    //error_loop(cfg.ERR_LDS_START);
   
   drive.initOnce(logInfo);
   drive.resetEncoders();
@@ -283,7 +279,7 @@ static inline void initRos() {
   allocator = rcl_get_default_allocator();
 
   rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
-  RCCHECK(rcl_init_options_init(&init_options, allocator), ERR_UROS_INIT);
+  RCCHECK(rcl_init_options_init(&init_options, allocator), cfg.ERR_UROS_INIT);
 
   rmw_init_options_t* rmw_options = rcl_init_options_get_rmw_init_options(&init_options);
 
@@ -301,18 +297,18 @@ static inline void initRos() {
   //}
   //Serial.print("found");
 
-  RCCHECK(rmw_uros_options_set_client_key(UROS_CLIENT_KEY, rmw_options),
-    ERR_UROS_INIT); // TODO multiple bots
+  RCCHECK(rmw_uros_options_set_client_key(cfg.UROS_CLIENT_KEY, rmw_options),
+    cfg.ERR_UROS_INIT); // TODO multiple bots
 
   Serial.print(F("Connecting to Micro-ROS agent ... "));
-  //RCCHECK(rclc_support_init(&support, 0, NULL, &allocator), ERR_UROS_AGENT_CONN);
+  //RCCHECK(rclc_support_init(&support, 0, NULL, &allocator), cfg.ERR_UROS_AGENT_CONN);
   //RCCHECK(rclc_support_init_with_options(&support, 0, NULL,
-  //  &init_options, &allocator), ERR_UROS_AGENT_CONN);
+  //  &init_options, &allocator), cfg.ERR_UROS_AGENT_CONN);
   rcl_ret_t temp_rc = rclc_support_init_with_options(&support, 0, NULL,
     &init_options, &allocator);
   if (temp_rc != RCL_RET_OK) {
     Serial.println("failed");
-    error_loop(ERR_UROS_AGENT_CONN);
+    error_loop(cfg.ERR_UROS_AGENT_CONN);
   }
   Serial.println("success");
 
@@ -320,20 +316,20 @@ static inline void initRos() {
   printCurrentTime();
 
   // https://micro.ros.org/docs/tutorials/programming_rcl_rclc/node/
-  RCCHECK(rclc_node_init_default(&node, UROS_NODE_NAME, "", &support),
-    ERR_UROS_NODE);
+  RCCHECK(rclc_node_init_default(&node, cfg.robot_model_name.c_str(), "", &support),
+    cfg.ERR_UROS_NODE);
 
   RCCHECK(rclc_subscription_init_default(&twist_sub, &node,
     ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist),
-    UROS_CMD_VEL_TOPIC_NAME), ERR_UROS_PUBSUB);
+    cfg.UROS_CMD_VEL_TOPIC_NAME.c_str()), cfg.ERR_UROS_PUBSUB);
 
   RCCHECK(rclc_publisher_init_best_effort(&telem_pub, &node,
     ROSIDL_GET_MSG_TYPE_SUPPORT(kaiaai_msgs, msg, KaiaaiTelemetry),
-    UROS_TELEM_TOPIC_NAME), ERR_UROS_PUBSUB);
+    cfg.UROS_TELEM_TOPIC_NAME.c_str()), cfg.ERR_UROS_PUBSUB);
 
   RCCHECK(rclc_publisher_init_default(&log_pub, &node,
     ROSIDL_GET_MSG_TYPE_SUPPORT(rcl_interfaces, msg, Log),
-    UROS_LOG_TOPIC_NAME), ERR_UROS_PUBSUB);
+    cfg.UROS_LOG_TOPIC_NAME.c_str()), cfg.ERR_UROS_PUBSUB);
 
   // https://github.com/ros2/rclc/blob/humble/rclc_examples/src/example_parameter_server.c
   // Request size limited to one parameter on Set, Get, Get types and Describe services.
@@ -346,46 +342,49 @@ static inline void initRos() {
       .allow_undeclared_parameters = false,
       .low_mem_mode = true };
   
-  //RCCHECK(rclc_parameter_server_init_default(&param_server, &node), ERR_UROS_PARAM);
+  //RCCHECK(rclc_parameter_server_init_default(&param_server, &node), cfg.ERR_UROS_PARAM);
   temp_rc = rclc_parameter_server_init_with_option(&param_server, &node, &rclc_param_options);
   if (temp_rc != RCL_RET_OK) {
     Serial.print("Micro-ROS parameter server init failed.");
     Serial.println("Make sure micro_ros_kaia library version is latest.");
-    error_loop(ERR_UROS_PARAM);
+    error_loop(cfg.ERR_UROS_PARAM);
   }
 
   RCCHECK(rclc_executor_init(&executor, &support.context,
-    RCLC_EXECUTOR_PARAMETER_SERVER_HANDLES + 1, &allocator), ERR_UROS_EXEC);
+    RCLC_EXECUTOR_PARAMETER_SERVER_HANDLES + 1, &allocator), cfg.ERR_UROS_EXEC);
 
   RCCHECK(rclc_executor_add_subscription(&executor, &twist_sub,
-    &twist_msg, &twist_sub_callback, ON_NEW_DATA), ERR_UROS_EXEC);
+    &twist_msg, &twist_sub_callback, ON_NEW_DATA), cfg.ERR_UROS_EXEC);
 
   RCCHECK(rclc_executor_add_parameter_server(&executor, &param_server,
-    on_param_changed), ERR_UROS_EXEC);;
+    on_param_changed), cfg.ERR_UROS_EXEC);;
 
-  //RCCHECK(rclc_add_parameter(&param_server, "param_bool", RCLC_PARAMETER_BOOL), ERR_UROS_PARAM);
-  //RCCHECK(rclc_add_parameter(&param_server, "param_int", RCLC_PARAMETER_INT), ERR_UROS_PARAM);
-  RCCHECK(rclc_add_parameter(&param_server, UROS_PARAM_LDS_MOTOR_SPEED, RCLC_PARAMETER_DOUBLE), ERR_UROS_PARAM);
+  //RCCHECK(rclc_add_parameter(&param_server, "param_bool", RCLC_PARAMETER_BOOL), cfg.ERR_UROS_PARAM);
+  //RCCHECK(rclc_add_parameter(&param_server, "param_int", RCLC_PARAMETER_INT), cfg.ERR_UROS_PARAM);
+  RCCHECK(rclc_add_parameter(&param_server, cfg.UROS_PARAM_LDS_MOTOR_SPEED.c_str(),
+    RCLC_PARAMETER_DOUBLE), cfg.ERR_UROS_PARAM);
 
-  //RCCHECK(rclc_parameter_set_bool(&param_server, "param_bool", false), ERR_UROS_PARAM);
-  //RCCHECK(rclc_parameter_set_int(&param_server, "param_int", 10), ERR_UROS_PARAM);
-  RCCHECK(rclc_parameter_set_double(&param_server, UROS_PARAM_LDS_MOTOR_SPEED, LDS_MOTOR_SPEED_DEFAULT), ERR_UROS_PARAM);
+  //RCCHECK(rclc_parameter_set_bool(&param_server, "param_bool", false), cfg.ERR_UROS_PARAM);
+  //RCCHECK(rclc_parameter_set_int(&param_server, "param_int", 10), cfg.ERR_UROS_PARAM);
+  RCCHECK(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_LDS_MOTOR_SPEED.c_str(),
+    cfg.LDS_MOTOR_SPEED_DEFAULT), cfg.ERR_UROS_PARAM);
 
   //rclc_add_parameter_description(&param_server, "param_int", "Second parameter", "Only even numbers");
-  //RCCHECK(rclc_add_parameter_constraint_integer(&param_server, "param_int", -10, 120, 2), ERR_UROS_PARAM);
+  //RCCHECK(rclc_add_parameter_constraint_integer(&param_server, "param_int", -10, 120, 2), cfg.ERR_UROS_PARAM);
 
   //rclc_add_parameter_description(&param_server, "param_double", "Third parameter", "");
-  //RCCHECK(rclc_set_parameter_read_only(&param_server, "param_double", true), ERR_UROS_PARAM);
+  //RCCHECK(rclc_set_parameter_read_only(&param_server, "param_double", true), cfg.ERR_UROS_PARAM);
 
-  RCCHECK(rclc_add_parameter_constraint_double(&param_server, UROS_PARAM_LDS_MOTOR_SPEED, -1.0, 1.0, 0), ERR_UROS_PARAM);
+  RCCHECK(rclc_add_parameter_constraint_double(&param_server, cfg.UROS_PARAM_LDS_MOTOR_SPEED.c_str(),
+    -1.0, 1.0, 0), cfg.ERR_UROS_PARAM);
 
   //bool param_bool;
   //int64_t param_int;
   //double param_double;
 
-  //RCCHECK(rclc_parameter_get_bool(&param_server, "param_bool", &param_bool), ERR_UROS_PARAM);
-  //RCCHECK(rclc_parameter_get_int(&param_server, "param_int", &param_int), ERR_UROS_PARAM);
-  //RCCHECK(rclc_parameter_get_double(&param_server, "param_double", &param_double), ERR_UROS_PARAM);
+  //RCCHECK(rclc_parameter_get_bool(&param_server, "param_bool", &param_bool), cfg.ERR_UROS_PARAM);
+  //RCCHECK(rclc_parameter_get_int(&param_server, "param_int", &param_int), cfg.ERR_UROS_PARAM);
+  //RCCHECK(rclc_parameter_get_double(&param_server, "param_double", &param_double), cfg.ERR_UROS_PARAM);
 
   resetTelemMsg();
 }
@@ -421,7 +420,7 @@ bool on_param_changed(const Parameter * old_param, const Parameter * new_param, 
       Serial.print(" to ");
       Serial.println(new_param->value.double_value);
 
-      if (strcmp(old_param->name.data, UROS_PARAM_LDS_MOTOR_SPEED) == 0) {
+      if (strcmp(old_param->name.data, cfg.UROS_PARAM_LDS_MOTOR_SPEED.c_str()) == 0) {
         //int16_t speed_int = round((float)(new_param->value.double_value) * 255);
 //        lds.setScanTargetFreqHz(new_param->value.double_value);
       }
@@ -458,20 +457,20 @@ static inline bool initWiFi(String ssid, String passw) {
   unsigned long startMillis = millis();
 
   while (WiFi.status() != WL_CONNECTED) {
-    if (millis() - startMillis >= WIFI_CONN_TIMEOUT_SEC*1000) {
+    if (millis() - startMillis >= cfg.WIFI_CONN_TIMEOUT_SEC*1000) {
       Serial.println(" timed out");
       return false;
     }
 
-    digitalWrite(CONFIG::LED_PIN, HIGH);
+    digitalWrite(cfg.LED_PIN, HIGH);
     delay(250);
-    digitalWrite(CONFIG::LED_PIN, LOW);
+    digitalWrite(cfg.LED_PIN, LOW);
     Serial.print('.'); // Don't use F('.'), it crashes code!!
     delay(250);
     spinResetSettings();
   }
 
-  digitalWrite(CONFIG::LED_PIN, LOW);
+  digitalWrite(cfg.LED_PIN, LOW);
   Serial.println(F(" connected"));
   Serial.print(F("IP "));
   Serial.println(WiFi.localIP());
@@ -489,7 +488,7 @@ void spinTelem(bool force_pub) {
   publishTelem(step_time_us);
   telem_prev_pub_time_us = time_now_us;
 
-  digitalWrite(CONFIG::LED_PIN, !digitalRead(CONFIG::LED_PIN));
+  digitalWrite(cfg.LED_PIN, !digitalRead(cfg.LED_PIN));
   //if (++telem_pub_count % 5 == 0) {
     //Serial.print("RPM L ");
     //Serial.print(drive.getCurrentRPM(MOTOR_LEFT));
@@ -497,15 +496,14 @@ void spinTelem(bool force_pub) {
     //Serial.println(drive.getCurrentRPM(MOTOR_RIGHT));
   //}
 
-  #ifdef SPIN_TELEM_STATS
   stat_sum_spin_telem_period_us += step_time_us;
   stat_max_spin_telem_period_us = stat_max_spin_telem_period_us <= step_time_us ?
     step_time_us : stat_max_spin_telem_period_us;
   
   // How often telemetry gets published
-  if (++telem_pub_count % SPIN_TELEM_STATS == 0) {
+  if (++telem_pub_count % cfg.SPIN_TELEM_STATS == 0) {
     Serial.print("spinTelem() period avg ");
-    Serial.print(stat_sum_spin_telem_period_us / (1000*SPIN_TELEM_STATS));
+    Serial.print(stat_sum_spin_telem_period_us / (1000*cfg.SPIN_TELEM_STATS));
     Serial.print(" max ");
     Serial.print(stat_max_spin_telem_period_us / 1000);
     Serial.print("ms");
@@ -520,7 +518,6 @@ void spinTelem(bool force_pub) {
     stat_sum_spin_telem_period_us = 0;
     stat_max_spin_telem_period_us = 0;
   }
-  #endif
 }
 
 void publishTelem(unsigned long step_time_us) {
@@ -529,7 +526,7 @@ void publishTelem(unsigned long step_time_us) {
   telem_msg.stamp.sec = tv.tv_sec;
   telem_msg.stamp.nanosec = tv.tv_nsec;
 
-  float joint_pos_delta[JOINTS_LEN];
+  float joint_pos_delta[cfg.JOINTS_LEN];
   float step_time = 1e-6 * (float)step_time_us;
 
   for (unsigned char i = 0; i < MOTOR_COUNT; i++) {
@@ -553,12 +550,12 @@ void calcOdometry(unsigned long step_time_us, float joint_pos_delta_right,
   if (step_time_us == 0)
     return;
   // https://automaticaddison.com/how-to-publish-wheel-odometry-information-over-ros/
-  float distance_right = -joint_pos_delta_right * WHEEL_RADIUS;
-  float distance_left = joint_pos_delta_left * WHEEL_RADIUS;
+  float distance_right = -joint_pos_delta_right * cfg.wheel_radius;
+  float distance_left = joint_pos_delta_left * cfg.wheel_radius;
 
   // TODO use Runge-Kutta integration for better accuracy
   float average_distance = (distance_right + distance_left) * 0.5;
-  float d_yaw = asin((distance_left - distance_right)*WHEEL_BASE_RECIP);
+  float d_yaw = asin((distance_left - distance_right)*cfg.wheel_base_recip);
 
   // Average angle during the motion
   float average_angle = d_yaw*0.5 + telem_msg.odom_pos_yaw;
@@ -635,14 +632,14 @@ void lds_motor_pin_callback(float value, LDS::lds_pin_t lds_pin) {
   */
   
   int pin = (lds_pin == LDS::LDS_MOTOR_EN_PIN) ?
-    CONFIG::LDS_MOTOR_EN_PIN : CONFIG::LDS_MOTOR_PWM_PIN;
+    cfg.LDS_MOTOR_EN_PIN : cfg.LDS_MOTOR_PWM_PIN;
 
   if (value <= LDS::DIR_INPUT) {
     // Configure pin direction
     if (value == LDS::DIR_OUTPUT_PWM) {
       pinMode(pin, OUTPUT);
-      ledcSetup(LDS_MOTOR_PWM_CHANNEL, LDS_MOTOR_PWM_FREQ, LDS_MOTOR_PWM_BITS);
-      ledcAttachPin(pin, LDS_MOTOR_PWM_CHANNEL);
+      ledcSetup(cfg.LDS_MOTOR_PWM_CHANNEL, cfg.LDS_MOTOR_PWM_FREQ, cfg.LDS_MOTOR_PWM_BITS);
+      ledcAttachPin(pin, cfg.LDS_MOTOR_PWM_CHANNEL);
     } else
       pinMode(pin, (value == LDS::DIR_INPUT) ? INPUT : OUTPUT);
     return;
@@ -651,8 +648,8 @@ void lds_motor_pin_callback(float value, LDS::lds_pin_t lds_pin) {
   if (value < LDS::VALUE_PWM) // set constant output
     digitalWrite(pin, (value == LDS::VALUE_HIGH) ? HIGH : LOW);
   else { // set PWM duty cycle
-    int pwm_value = ((1<<LDS_MOTOR_PWM_BITS)-1)*value;
-    ledcWrite(LDS_MOTOR_PWM_CHANNEL, pwm_value);
+    int pwm_value = ((1<<cfg.LDS_MOTOR_PWM_BITS)-1)*value;
+    ledcWrite(cfg.LDS_MOTOR_PWM_CHANNEL, pwm_value);
   }
 }
 
@@ -663,7 +660,7 @@ void spinPing() {
   if (step_time_us >= ping_pub_period_us) {
     // timeout_ms, attempts
     rmw_ret_t rc = rmw_uros_ping_agent(1, 1);
-    //int battery_level = analogRead(CONFIG::BAT_ADC_PIN);
+    //int battery_level = analogRead(cfg.BAT_ADC_PIN);
     //Serial.print("Battery level ");
     //Serial.println(battery_level);
     ping_prev_pub_time_us = time_now_us;
@@ -682,7 +679,7 @@ void loop() {
   lds.loop();
   
   // Process micro-ROS callbacks
-  RCCHECK(rclc_executor_spin_some(&executor, RCL_MS_TO_NS(1)), ERR_UROS_SPIN);
+  RCCHECK(rclc_executor_spin_some(&executor, RCL_MS_TO_NS(1)), cfg.ERR_UROS_SPIN);
 
   spinTelem(false);
   spinPing();
@@ -698,7 +695,7 @@ unsigned long reset_settings_prev_check_time_ms = 0;
 void resetSettings() {
   Serial.println("** Resetting settings **");
   resetWiFiSettings();
-  blink(LONG_BLINK_MS, 5);
+  blink(cfg.LONG_BLINK_MS, 5);
   Serial.flush();
 
   ESP.restart();
@@ -711,7 +708,7 @@ void spinResetSettings() {
   if (step_time_ms >= reset_settings_check_period_ms) {
 
     bool button_pressed = !digitalRead(0);
-    if (button_pressed && button_pressed_seconds > CONFIG::RESET_SETTINGS_HOLD_SEC)
+    if (button_pressed && button_pressed_seconds > cfg.RESET_SETTINGS_HOLD_SEC)
       resetSettings();
 
     button_pressed_seconds = button_pressed ? button_pressed_seconds + 1 : 0;
@@ -728,18 +725,18 @@ void resetTelemMsg() {
   telem_msg.odom_vel_yaw = 0;
   
   telem_msg.joint_pos.data = joint_pos;
-  telem_msg.joint_pos.capacity = JOINTS_LEN;
-  telem_msg.joint_pos.size = JOINTS_LEN;
+  telem_msg.joint_pos.capacity = cfg.JOINTS_LEN;
+  telem_msg.joint_pos.size = cfg.JOINTS_LEN;
 
   telem_msg.joint_vel.data = joint_vel;
-  telem_msg.joint_vel.capacity = JOINTS_LEN;
-  telem_msg.joint_vel.size = JOINTS_LEN;
+  telem_msg.joint_vel.capacity = cfg.JOINTS_LEN;
+  telem_msg.joint_vel.size = cfg.JOINTS_LEN;
 
   telem_msg.lds.data = lds_buf;
-  telem_msg.lds.capacity = LDS_BUF_LEN;
+  telem_msg.lds.capacity = cfg.LDS_BUF_LEN;
   telem_msg.lds.size = 0;
 
-  for (int i = 0; i < JOINTS_LEN; i++) {
+  for (int i = 0; i < cfg.JOINTS_LEN; i++) {
     joint_pos[i] = 0;
     joint_vel[i] = 0; 
     joint_prev_pos[i] = 0;
@@ -747,10 +744,10 @@ void resetTelemMsg() {
 }
 
 void syncRosTime() {
-  const int timeout_ms = UROS_TIME_SYNC_TIMEOUT_MS;
+  const int timeout_ms = cfg.UROS_TIME_SYNC_TIMEOUT_MS;
 
   Serial.print("Syncing time ... ");
-  RCCHECK(rmw_uros_sync_session(timeout_ms), ERR_UROS_TIME_SYNC);
+  RCCHECK(rmw_uros_sync_session(timeout_ms), cfg.ERR_UROS_TIME_SYNC);
   // https://micro.ros.org/docs/api/rmw/
   int64_t time_ms = rmw_uros_epoch_millis();
   
@@ -789,7 +786,7 @@ void logMsg(char* msg, uint8_t severity_level) {
     msgLog.stamp.nanosec = tv.tv_nsec;
     
     msgLog.level = severity_level;
-    msgLog.name.data = (char*)UROS_NODE_NAME; // Logger name
+    msgLog.name.data = (char *)cfg.robot_model_name.c_str(); // Hack; logger name
     msgLog.name.size = strlen(msgLog.name.data);
     msgLog.msg.data = msg;
     msgLog.msg.size = strlen(msgLog.msg.data);
@@ -876,12 +873,12 @@ LDS::result_t startLDS() {
 
 void blink_error_code(int n_blinks) {
   unsigned int i = 0;
-  while(i++ < ERR_REBOOT_BLINK_CYCLES){
-    blink(LONG_BLINK_MS, 1);
-    digitalWrite(CONFIG::LED_PIN, LOW);
-    delay(SHORT_BLINK_PAUSE_MS);
-    blink(SHORT_BLINK_MS, n_blinks);
-    delay(LONG_BLINK_PAUSE_MS);
+  while(i++ < cfg.ERR_REBOOT_BLINK_CYCLES){
+    blink(cfg.LONG_BLINK_MS, 1);
+    digitalWrite(cfg.LED_PIN, LOW);
+    delay(cfg.SHORT_BLINK_PAUSE_MS);
+    blink(cfg.SHORT_BLINK_MS, n_blinks);
+    delay(cfg.LONG_BLINK_PAUSE_MS);
 
     while(!digitalRead(0)) {
       spinResetSettings();

@@ -141,12 +141,12 @@ button {
 	  const robot_model_name = ["MAKERSPET_LOKI", "MAKERSPET_FIDO", "MAKERSPET_SNOOPY", "CUSTOM_MODEL"];
       const base_dia = [204.2, 254.2, 300.0];
       const wheel_base = [159.063, 214.322, 262.794];
-	  const max_accel = [2.0, 2.0, 2.0];
+	  const max_wheel_accel = [2.0, 2.0, 2.0];
 	  
 	  document.getElementById('robot_model_name').value = robot_model_name[idx];
 	  document.getElementById('base_dia').value = base_dia[idx];
 	  document.getElementById('wheel_base').value = wheel_base[idx];
-	  document.getElementById('max_accel').value = max_accel[idx];
+	  document.getElementById('max_wheel_accel').value = max_wheel_accel[idx];
 	} else if (id === 'motor_model_div' && !is_custom) {
       const motor_max_rpm = [200, 260, 450, 245, 408];
       const wheel_ppr = [270, 204, 120, 630, 127.8];
@@ -201,8 +201,8 @@ button {
             <label for="wheel_dia">Wheel dia., mm</label>
 			<input type="text" id="wheel_dia" name="wheel_dia" value="67" pattern="([0-9]+\.)?[0-9]+" title="Wheel diameter in millimeters" required maxlength="8" minlength="1" inputmode="decimal"><br>
 
-            <label for="max_accel">Max acceleration</label>
-			<input type="text" id="max_accel" name="max_accel" value="2.0" pattern="([0-9]+\.)?[0-9]+" title="Maximum robot acceleration, m2/s" required maxlength="8" minlength="1" inputmode="decimal">
+            <label for="max_wheel_accel">Max acceleration</label>
+			<input type="text" id="max_wheel_accel" name="max_wheel_accel" value="2.0" pattern="([0-9]+\.)?[0-9]+" title="Maximum wheel-vs-floor acceleration, m2/s" required maxlength="8" minlength="1" inputmode="decimal">
 			</div>
 			<br>
 			<label for="lds_model">Laser sensor</label>

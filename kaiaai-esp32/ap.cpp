@@ -102,7 +102,7 @@ void ObtainWiFiCreds(void (*callback)(), const char * SSID_AP) {
   Serial.print("Setting up Access Point ");
   Serial.println(SSID_AP);
   // NULL sets an open Access Point
-  WiFi.softAP(SSID_AP, NULL);
+  WiFi.softAP(SSID_AP);
 
   IPAddress IP = WiFi.softAPIP();
   Serial.print("AP IP address: ");

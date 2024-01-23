@@ -51,28 +51,6 @@ void printCurrentTime() {
   //Serial.println(strftime_buf);
 }
 
-//void setLdsMotorSpeed(int16_t speed) {
-//  Serial.print(F("LDS motor speed "));
-//  if (speed < 0) {
-//    pinMode(LDS_MOTOR_PWM_PIN, INPUT);
-//    Serial.println(F("default"));
-//    return;
-//  }
-//
-//  pinMode(LDS_MOTOR_PWM_PIN, OUTPUT);
-//  speed = speed > 255 ? 255 : speed;
-//  ledcWrite(LDS_MOTOR_PWM_CHANNEL, speed);
-//  Serial.println(speed);
-//}
-
-void twistToWheelSpeeds(float speed_lin_x, float speed_ang_z,
-  float *speed_right, float *speed_left)
-{
-  float ang_component = speed_ang_z*WHEEL_BASE*0.5;
-  *speed_right = speed_lin_x + ang_component;
-  *speed_left  = speed_lin_x - ang_component;
-}
-
 void delayYield(unsigned long msec) {
     unsigned long time_msec = millis();
     while(millis() - time_msec < msec)
@@ -81,8 +59,7 @@ void delayYield(unsigned long msec) {
 
 String reset_reason_to_string(int reason, bool verbose) {
   if (verbose) {
-    switch ( reason)
-    {
+    switch (reason) {
       case 1  : return ("Vbat power on reset");
       case 3  : return ("Software reset digital core");
       case 4  : return ("Legacy watch dog reset digital core");
@@ -101,8 +78,7 @@ String reset_reason_to_string(int reason, bool verbose) {
       default : return ("NO_MEAN");
     }
   } else {
-    switch ( reason)
-    {
+    switch (reason) {
       case 1 : return ("POWERON_RESET");
       case 3 : return ("SW_RESET");
       case 4 : return ("OWDT_RESET");
