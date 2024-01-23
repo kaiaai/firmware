@@ -34,17 +34,13 @@ void IRAM_ATTR encRightIsr() {
 
 float DriveController::getShaftAngle(unsigned char motorID) {
   if (motorID < MOTOR_COUNT)
-    return TWO_PI * encoder[motorID] / encoderTPR[motorID];
+    return TWO_PI * encoder[motorID] / encoderTPR;
   return 0;
 }
 
-void DriveController::setPIDUpdatePeriod(unsigned char motorID, float period) {
-  if (motorID >= MOTOR_COUNT)
-    return;
-
-  // same period for all motors for now
+void DriveController::setPIDUpdatePeriod(float period) {
   pidUpdatePeriodUs = (unsigned int) round(period * 1e6);
-//  pid[motorID]->SetReferenceSampleTime(period);  // unnecessary in PID library
+  //  pid[motorID]->SetReferenceSampleTime(period);  // unnecessary in PID library
 }
 
 void DriveController::enablePID(unsigned char motorID, bool en) {
@@ -52,51 +48,58 @@ void DriveController::enablePID(unsigned char motorID, bool en) {
     pid[motorID]->enable(en);
 }
 
-void DriveController::setMaxRPM(unsigned char motorID, float rpm) {
-  if (motorID >= MOTOR_COUNT || rpm <= 0)
+void DriveController::setMaxRPM(float rpm) {
+  if (rpm <= 0)
     return;
-  maxRPM[motorID] = rpm;
+  maxRPM = rpm;
 }
 
-void DriveController::setEncoderTPR(unsigned char motorID, float tpr) {
-  if (motorID >= MOTOR_COUNT || tpr <= 0)
+void DriveController::setEncoderPPR(float ppr) {
+  if (ppr <= 0)
     return;
-  encoderTPR[motorID] = tpr;
-  ticksPerMicroSecToRPM[motorID] = 1e6 * 60.0 / tpr;
+  float tpr = 2*ppr; // two edges per pulse
+  encoderTPR = tpr;
+  ticksPerMicroSecToRPM = 1e6 * 60.0 / tpr;
 }
 
-void DriveController::setKp(unsigned char motorID, float k) {
-  if (motorID < MOTOR_COUNT) {
-    kp[motorID] = k;
-    pid[motorID]->SetTunings(kp[motorID], ki[motorID], kd[motorID]);
+void DriveController::setKp(float kp) {
+  for (uint8_t motorID = 0; motorID < MOTOR_COUNT; motorID++) {
+    PID * pid_ = pid[motorID];
+    pid_->SetTunings(kp, pid_->GetKi(), pid_->GetKd());
   }
 }
 
-void DriveController::setKi(unsigned char motorID, float k) {
-  if (motorID < MOTOR_COUNT) {
-    ki[motorID] = k;
-
-    pid[motorID]->SetTunings(kp[motorID], ki[motorID], kd[motorID]);
+void DriveController::setKi(float ki) {
+  for (uint8_t motorID = 0; motorID < MOTOR_COUNT; motorID++) {
+    PID * pid_ = pid[motorID];
+    pid_->SetTunings(pid_->GetKp(), ki, pid_->GetKd());
   }
 }
 
-void DriveController::setKd(unsigned char motorID, float k) {
-  if (motorID < MOTOR_COUNT) {
-    kd[motorID] = k;
-    pid[motorID]->SetTunings(kp[motorID], ki[motorID], kd[motorID]);
+void DriveController::setKd(float kd) {
+  for (uint8_t motorID = 0; motorID < MOTOR_COUNT; motorID++) {
+    PID * pid_ = pid[motorID];
+    pid_->SetTunings(pid_->GetKp(), pid_->GetKi(), kd);
   }
 }
 
-void DriveController::setProportionalMode(unsigned char motorID, bool onMeasurement) {
-  if (motorID < MOTOR_COUNT)
-    pid[motorID]->SetTunings(kp[motorID], ki[motorID], kd[motorID], onMeasurement ? PID::P_ON_M : PID::P_ON_E);
+void DriveController::setProportionalMode(bool onMeasurement) {
+  for (uint8_t motorID = 0; motorID < MOTOR_COUNT; motorID++) {    
+    PID * pid_ = pid[motorID];
+    pid_->SetTunings(pid_->GetKp(), pid_->GetKi(), pid_->GetKd(),
+      onMeasurement ? PID::P_ON_M : PID::P_ON_E);
+  }
 }
 
 void DriveController::initOnce(logFuncT logFunc) {
   logDebug = logFunc;
   tickSampleTimePrev = 0;
 
-  for (unsigned char motorID = 0; motorID < MOTOR_COUNT; motorID++) {
+  setMaxRPM(DEFAULT_MOTOR_MAX_RPM);
+  setEncoderPPR(DEFAULT_WHEEL_ENCODER_TPR);
+  setPWMFreq(DEFAULT_PWM_FREQ);
+
+  for (uint8_t motorID = 0; motorID < MOTOR_COUNT; motorID++) {
     pinMode(cwPin[motorID], OUTPUT);
     targetRPM[motorID] = 0;
     measuredRPM[motorID] = 0;
@@ -105,49 +108,43 @@ void DriveController::initOnce(logFuncT logFunc) {
     //brakingEnabled[motorID] = false;
     setPointHasChanged[motorID] = false;
     switchingCw[motorID] = false;
-    kp[motorID] = PID_KP_WHEEL;
-    ki[motorID] = PID_KI_WHEEL;
-    kd[motorID] = PID_KD_WHEEL;
-    pwmFreq[motorID] = 1; // force update
-    setPWMFreq(motorID, PWM_FREQ);
     
     // https://playground.arduino.cc/Code/PIDLibrary/
     pid[motorID] = new PID(&measuredRPM[motorID], &pidPWM[motorID], &targetRPM[motorID],
-      kp[motorID], ki[motorID], kd[motorID], PID_UPDATE_PERIOD, PID_MODE, PID::DIRECT);
+      DEFAULT_PID_KP_WHEEL, DEFAULT_PID_KI_WHEEL, DEFAULT_PID_KD_WHEEL,
+      DEFAULT_PID_UPDATE_PERIOD, DEFAULT_PID_MODE, PID::DIRECT);
     pid[motorID]->SetOutputLimits(-1, 1);
 
-    setMaxRPM(motorID, MOTOR_WHEEL_MAX_RPM);
-    setEncoderTPR(motorID, WHEEL_ENCODER_TPR);
-    setPIDUpdatePeriod(motorID, PID_UPDATE_PERIOD);
     enablePID(motorID, true);
 
     PWM[motorID] = 1; // force update
     setPWM(motorID, 0);
     ledcAttachPin(pwmPin[motorID], motorID);
   }
+
+  setPIDUpdatePeriod(DEFAULT_PID_UPDATE_PERIOD);
 }
 
 bool DriveController::setRPM(unsigned char motorID, float rpm) {
   if (motorID >= MOTOR_COUNT) // TODO print log error
     return false;
 
-  if (targetRPM[motorID] == rpm)
+  if (targetRPM[motorID] == rpm || rpm < 0)
     return false;
+
+  bool within_limit = (rpm <= maxRPM);
+  rpm = within_limit ? rpm : maxRPM;
 
   targetRPM[motorID] = rpm;
   setPointHasChanged[motorID] = true;
-  return true;
+  return within_limit;
 }
 
-void DriveController::setPWMFreq(unsigned char motorID, unsigned short int freq) {
-  if (motorID >= MOTOR_COUNT || pwmFreq[motorID] == freq)
-    return;
-
-  // channels 0-15, resolution 1-16 bits, freq limits depend on resolution
-  //ledcSetup(pwmMotChannel[motorID], freq, PWM_BITS);
-  ledcSetup(motorID, freq, PWM_BITS);
-
-  pwmFreq[motorID] = freq;
+void DriveController::setPWMFreq(uint16_t freq) {
+  for (uint8_t motorID = 0; motorID < MOTOR_COUNT; motorID++)
+    // channels 0-15, resolution 1-16 bits, freq limits depend on resolution
+    //ledcSetup(pwmMotChannel[motorID], freq, PWM_BITS);
+    ledcSetup(motorID, freq, PWM_BITS);
 }
 
 void DriveController::setPWM(unsigned char motorID, float value) {
@@ -233,7 +230,7 @@ void DriveController::update() {
     encDelta[motorID] = encNow - encPrev[motorID];    
     encPrev[motorID] = encNow;
     double ticksPerMicroSec = ((double) encDelta[motorID]) / ((double) tickSampleTimeDelta);
-    measuredRPM[motorID] = ticksPerMicroSec * ticksPerMicroSecToRPM[motorID];
+    measuredRPM[motorID] = ticksPerMicroSec * ticksPerMicroSecToRPM;
 
 //    if (brakingEnabled[motorID] && targetRPM[motorID] == 0)
 
@@ -287,8 +284,6 @@ float DriveController::getCurrentPWM(unsigned char motorID) {
   return float(PWM[motorID]) / PWM_MAX;
 }
 
-float DriveController::getMaxRPM(unsigned char motorID) {
-  if (motorID >= MOTOR_COUNT)
-    return 0;
-  return maxRPM[motorID];
+float DriveController::getMaxRPM() {
+  return maxRPM;
 }

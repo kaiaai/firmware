@@ -127,9 +127,9 @@ void twist_sub_callback(const void *msgin) {
 
   // Limit target RPM
   float limited_target_rpm_right =
-    absMin(twist_target_rpm_right, drive.getMaxRPM(drive.MOTOR_RIGHT));
+    absMin(twist_target_rpm_right, drive.getMaxRPM());
   float limited_target_rpm_left =
-    absMin(twist_target_rpm_left, drive.getMaxRPM(drive.MOTOR_LEFT));
+    absMin(twist_target_rpm_left, drive.getMaxRPM());
 
   // Scale down both target RPMs to within limits
   if (twist_target_rpm_right != limited_target_rpm_right ||

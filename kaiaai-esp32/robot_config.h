@@ -32,10 +32,39 @@ public:
   static const uint8_t MOT_CW_RIGHT_PIN = 25;
   static const uint8_t MOT_FG_RIGHT_PIN = 35; // was 27
 
-  static const uint8_t LDS_MOTOR_PWM_CHANNEL = 2; // ESP32 PWM channel for LDS motor speed control
   static const uint8_t RESET_SETTINGS_HOLD_SEC = 10; // Hold BOOT button to reset WiFi
-  // Motors config
   static const int LDS_MOTOR_SPEED_DEFAULT = -1; // tristate YDLidar X4 SCTP pin for default motor speed
+  static const uint8_t LDS_MOTOR_PWM_CHANNEL = 2; // ESP32 PWM channel for LDS motor speed control
+
+// Chihai Motor CHR-GM25-BL2418 24V 200RPM max
+//#define MOTOR_MAX_RPM              200  // no-load
+//#define MOTOR_RATED_RPM            145
+//#define MOTOR_GEAR_RATIO           45.0 // gearbox reduction ratio
+//#define MOTOR_ENCODER_PPR          6    // pulses per revolution
+
+// Chihai Motor CHR-GM25-BL2418 24V 260RPM max
+//#define MOTOR_MAX_RPM              200  // no-load
+//#define MOTOR_RATED_RPM            190
+//#define MOTOR_GEAR_RATIO           34.0 // gearbox reduction ratio
+//#define MOTOR_ENCODER_PPR          6    // pulses per revolution
+
+// Chihai Motor CHR-GM25-BL2418 24V 450 RPM max
+//#define MOTOR_MAX_RPM              450  // no-load
+//#define MOTOR_RATED_RPM            325
+//#define MOTOR_GEAR_RATIO           20.0 // gearbox reduction ratio
+//#define MOTOR_ENCODER_PPR          6    // pulses per revolution
+
+// Far Along JGA25-BL2418 24V 245RPM max
+//#define MOTOR_MAX_RPM              245  // no-load
+//#define MOTOR_RATED_RPM            185
+//#define MOTOR_GEAR_RATIO           35.0 // gearbox reduction ratio
+//#define MOTOR_ENCODER_PPR          18   // pulses per revolution
+
+// AliExpress China motor store JGA25-BL2418 24V 408RPM max
+//#define MOTOR_MAX_RPM              408  // no-load
+//#define MOTOR_RATED_RPM            308
+//#define MOTOR_GEAR_RATIO           21.3 // gearbox reduction ratio
+//#define MOTOR_ENCODER_PPR          6    // pulses per revolution; TODO check  
 
 
 public: // properties set using browser GUI
@@ -92,11 +121,8 @@ public:
   float speed_diff_to_us;
   float wheel_base_recip;
   float wheel_radius;
-
   float wheel_perim_len_div60;
   float wheel_perim_len_div60_recip;
-#define SPEED_TO_RPM(SPEED_MS) (SPEED_MS*WHEEL_PERIM_LEN_DIV60_RECIP)
-#define RPM_TO_SPEED(RPM) (RPM*WHEEL_PERIM_LEN_DIV60)
 
 public:
   CONFIG() {
