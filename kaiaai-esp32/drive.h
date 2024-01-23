@@ -37,17 +37,11 @@ class DriveController {
     static const uint8_t PWM_BITS = 10;
     static const uint16_t PWM_MAX = (1<<PWM_BITS);  // 1024; TODO 1023?
 
-    // Chihai Motor CHR-GM25-BL2418 24V 200RPM max
+    // Chihai Motor CHR-GM25-BL2418 24V 200RPM max, 145RPM rated, 45 gear ratio, 6 PPR
     static const uint16_t DEFAULT_MOTOR_MAX_RPM = 200*0.9;  // no-load, derated
-    //#define MOTOR_RATED_RPM            145
-    //#define MOTOR_GEAR_RATIO           45.0 // gearbox reduction ratio
-    //#define MOTOR_ENCODER_PPR          6    // pulses per revolution
     // encoder pulses per gearbox shaft revolution
-    // WHEEL_ENCODER_TPR = (MOTOR_GEAR_RATIO*MOTOR_ENCODER_PPR)
-
-    //static constexpr float DEFAULT_MOTOR_WHEEL_MAX_RPM = (0.9*MOTOR_MAX_RPM);
-    //static constexpr float WHEEL_RPM_DERATE = 0.9; // 0.9*MOTOR_MAX_RPM
-    static constexpr float DEFAULT_WHEEL_ENCODER_TPR = 45.0*6;
+    // WHEEL_ENCODER_PPR = (MOTOR_GEAR_RATIO*MOTOR_ENCODER_PPR)
+    static constexpr float DEFAULT_WHEEL_ENCODER_PPR = 45.0*6;
 
   public:
     DriveController(uint8_t pwm_left_pin, uint8_t pwm_right_pin,
@@ -60,7 +54,7 @@ class DriveController {
     float getShaftAngle(unsigned char motorID);
     void setPIDUpdatePeriod(float period);
     void setPWM(unsigned char motorID, float pwm);
-    void enablePID(unsigned char motorID, bool en);
+    void enablePID(bool en);
     void setMaxRPM(float rpm);
     void setEncoderPPR(float ppr);
 
@@ -99,5 +93,3 @@ class DriveController {
     bool switchingCw[MOTOR_COUNT];
     logFuncT logDebug;
 };
-
-//extern DriveController drive;

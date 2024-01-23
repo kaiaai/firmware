@@ -57,7 +57,7 @@ void delayYield(unsigned long msec) {
       yield();
 }
 
-String reset_reason_to_string(int reason, bool verbose) {
+const String reset_reason_to_string(int reason, bool verbose) {
   if (verbose) {
     switch (reason) {
       case 1  : return ("Vbat power on reset");
@@ -99,7 +99,7 @@ String reset_reason_to_string(int reason, bool verbose) {
   }
 }
 
-String micro_ros_error_string(int err) {
+const String micro_ros_error_string(int err) {
   String errCode = String(err);
   switch (err)
   {

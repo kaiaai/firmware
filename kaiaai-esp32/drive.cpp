@@ -43,8 +43,8 @@ void DriveController::setPIDUpdatePeriod(float period) {
   //  pid[motorID]->SetReferenceSampleTime(period);  // unnecessary in PID library
 }
 
-void DriveController::enablePID(unsigned char motorID, bool en) {
-  if (motorID < MOTOR_COUNT)
+void DriveController::enablePID(bool en) {
+  for (uint8_t motorID = 0; motorID < MOTOR_COUNT; motorID++)
     pid[motorID]->enable(en);
 }
 
@@ -96,11 +96,13 @@ void DriveController::initOnce(logFuncT logFunc) {
   tickSampleTimePrev = 0;
 
   setMaxRPM(DEFAULT_MOTOR_MAX_RPM);
-  setEncoderPPR(DEFAULT_WHEEL_ENCODER_TPR);
+  setEncoderPPR(DEFAULT_WHEEL_ENCODER_PPR);
   setPWMFreq(DEFAULT_PWM_FREQ);
 
   for (uint8_t motorID = 0; motorID < MOTOR_COUNT; motorID++) {
     pinMode(cwPin[motorID], OUTPUT);
+    ledcAttachPin(pwmPin[motorID], motorID);
+
     targetRPM[motorID] = 0;
     measuredRPM[motorID] = 0;
     pidPWM[motorID] = 0;
@@ -115,14 +117,12 @@ void DriveController::initOnce(logFuncT logFunc) {
       DEFAULT_PID_UPDATE_PERIOD, DEFAULT_PID_MODE, PID::DIRECT);
     pid[motorID]->SetOutputLimits(-1, 1);
 
-    enablePID(motorID, true);
-
     PWM[motorID] = 1; // force update
     setPWM(motorID, 0);
-    ledcAttachPin(pwmPin[motorID], motorID);
   }
 
   setPIDUpdatePeriod(DEFAULT_PID_UPDATE_PERIOD);
+  enablePID(true);
 }
 
 bool DriveController::setRPM(unsigned char motorID, float rpm) {
