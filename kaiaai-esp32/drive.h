@@ -17,30 +17,6 @@
 #include <math.h>
 #include <Arduino.h>
 #include <PID_Timed.h>
-//#include "robot_config.h"
-
-#define PID_UPDATE_PERIOD          0.03 // default in seconds
-#define PID_KP_WHEEL               0.001 // 0.003 P_ON_E
-#define PID_KI_WHEEL               0.001 // 0.0002
-#define PID_KD_WHEEL               0
-#define PID_MODE                   (PID::P_ON_M) // P_ON_E
-
-#define PWM_FREQ                   20000 // 15..25KHz
-#define PWM_BITS                   10
-#define PWM_MAX                    (1<<10)  // 1024
-
-#define MOTOR_LEFT                 0
-#define MOTOR_RIGHT                1
-#define MOTOR_COUNT                (MOTOR_RIGHT+1)
-
-#define MOT_PWM_LEFT_PIN           33
-#define MOT_CW_LEFT_PIN            23 // was 32
-#define MOT_FG_LEFT_PIN            34
-
-#define MOT_PWM_RIGHT_PIN          13 
-#define MOT_CW_RIGHT_PIN           25
-#define MOT_FG_RIGHT_PIN           35 // was 27
-
 
 // Chihai Motor CHR-GM25-BL2418 24V 200RPM max
 #define MOTOR_MAX_RPM              200  // no-load
@@ -72,18 +48,33 @@
 //#define MOTOR_GEAR_RATIO           21.3 // gearbox reduction ratio
 //#define MOTOR_ENCODER_PPR          6    // pulses per revolution; TODO check
 
-
 #define MOTOR_WHEEL_MAX_RPM        (0.9*MOTOR_MAX_RPM)
 #define WHEEL_ENCODER_TPR          (MOTOR_GEAR_RATIO*MOTOR_ENCODER_PPR*2)
                                    // ticks per revolution, 2 edges per pulse
-#define FLIP_ROTATION              true
 
 typedef void (*logFuncT)(char*);
 
-class DriveController
-{
+class DriveController {
   public:
-    DriveController();
+    enum motors {
+      MOTOR_LEFT = 0,
+      MOTOR_RIGHT = 1,
+      MOTOR_COUNT = 2,
+    };
+    static constexpr float PID_UPDATE_PERIOD = 0.03; // default in seconds
+    static constexpr float PID_KP_WHEEL = 0.001; // default; 0.003 P_ON_E
+    static constexpr float PID_KI_WHEEL = 0.001; // default; 0.0002
+    static constexpr float PID_KD_WHEEL = 0; // default
+    static const int8_t PID_MODE = PID::P_ON_M; // default; P_ON_E
+    static const bool FLIP_ROTATION = true;
+    static const uint16_t PWM_FREQ = 20000; // 15..25KHz
+    static const uint8_t PWM_BITS = 10;
+    static const uint16_t PWM_MAX = (1<<PWM_BITS);  // 1024; TODO 1023?
+
+  public:
+    DriveController(uint8_t pwm_left_pin, uint8_t pwm_right_pin,
+      uint8_t cw_left_pin, uint8_t cw_right_pin,
+      uint8_t fg_left_pin, uint8_t fg_right_pin);
     void initOnce(logFuncT logFunc);
     bool setRPM(unsigned char motorID, float rpm);
     void resetEncoders();
@@ -127,12 +118,12 @@ class DriveController
     long int encPrev[MOTOR_COUNT];
     bool setPointHasChanged[MOTOR_COUNT];
 
-    unsigned short int pwmFreq[MOTOR_COUNT];
-    unsigned char pwmPin[MOTOR_COUNT];
-    unsigned char cwPin[MOTOR_COUNT];
+    uint16_t pwmFreq[MOTOR_COUNT];
+    uint8_t pwmPin[MOTOR_COUNT];
+    uint8_t cwPin[MOTOR_COUNT];
 
     bool switchingCw[MOTOR_COUNT];
     logFuncT logDebug;
 };
 
-extern DriveController drive;
+//extern DriveController drive;

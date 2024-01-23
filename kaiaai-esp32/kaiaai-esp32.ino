@@ -53,6 +53,9 @@
   if((temp_rc != RCL_RET_OK)){Serial.println("RCSOFTCHECK failed");}}
 
 CONFIG cfg;
+DriveController drive(cfg.MOT_PWM_LEFT_PIN, cfg.MOT_PWM_RIGHT_PIN,
+  cfg.MOT_CW_LEFT_PIN, cfg.MOT_CW_RIGHT_PIN,
+  cfg.MOT_FG_LEFT_PIN, cfg.MOT_FG_RIGHT_PIN);
 
 rcl_publisher_t telem_pub;
 rcl_publisher_t log_pub;
@@ -124,9 +127,9 @@ void twist_sub_callback(const void *msgin) {
 
   // Limit target RPM
   float limited_target_rpm_right =
-    absMin(twist_target_rpm_right, drive.getMaxRPM(MOTOR_RIGHT));
+    absMin(twist_target_rpm_right, drive.getMaxRPM(drive.MOTOR_RIGHT));
   float limited_target_rpm_left =
-    absMin(twist_target_rpm_left, drive.getMaxRPM(MOTOR_LEFT));
+    absMin(twist_target_rpm_left, drive.getMaxRPM(drive.MOTOR_LEFT));
 
   // Scale down both target RPMs to within limits
   if (twist_target_rpm_right != limited_target_rpm_right ||
@@ -169,8 +172,8 @@ void twist_sub_callback(const void *msgin) {
   }
 
   // Calculate change in speeds
-  ramp_start_rpm_right = drive.getTargetRPM(MOTOR_RIGHT);
-  ramp_start_rpm_left = drive.getTargetRPM(MOTOR_LEFT);
+  ramp_start_rpm_right = drive.getTargetRPM(drive.MOTOR_RIGHT);
+  ramp_start_rpm_left = drive.getTargetRPM(drive.MOTOR_LEFT);
   
   float ramp_start_speed_right = cfg.rpm_to_speed(ramp_start_rpm_right);
   float ramp_start_speed_left = cfg.rpm_to_speed(ramp_start_rpm_left);
@@ -198,13 +201,13 @@ void setMotorSpeeds(float ramp_target_rpm_right, float ramp_target_rpm_left) {
   //Serial.print(" ");
   //Serial.println(ramp_target_rpm_left);
 
-  drive.setRPM(MOTOR_RIGHT, ramp_target_rpm_right);
-  drive.setRPM(MOTOR_LEFT, ramp_target_rpm_left);
+  drive.setRPM(drive.MOTOR_RIGHT, ramp_target_rpm_right);
+  drive.setRPM(drive.MOTOR_LEFT, ramp_target_rpm_left);
 }
 
 void updateSpeedRamp() {
-  if (ramp_target_rpm_right == drive.getTargetRPM(MOTOR_RIGHT) &&
-    ramp_target_rpm_left == drive.getTargetRPM(MOTOR_LEFT)) {
+  if (ramp_target_rpm_right == drive.getTargetRPM(drive.MOTOR_RIGHT) &&
+    ramp_target_rpm_left == drive.getTargetRPM(drive.MOTOR_LEFT)) {
     return;
   }
 
@@ -491,9 +494,9 @@ void spinTelem(bool force_pub) {
   digitalWrite(cfg.LED_PIN, !digitalRead(cfg.LED_PIN));
   //if (++telem_pub_count % 5 == 0) {
     //Serial.print("RPM L ");
-    //Serial.print(drive.getCurrentRPM(MOTOR_LEFT));
+    //Serial.print(drive.getCurrentRPM(drive.MOTOR_LEFT));
     //Serial.print(" R ");
-    //Serial.println(drive.getCurrentRPM(MOTOR_RIGHT));
+    //Serial.println(drive.getCurrentRPM(drive.MOTOR_RIGHT));
   //}
 
   stat_sum_spin_telem_period_us += step_time_us;
@@ -529,15 +532,15 @@ void publishTelem(unsigned long step_time_us) {
   float joint_pos_delta[cfg.JOINTS_LEN];
   float step_time = 1e-6 * (float)step_time_us;
 
-  for (unsigned char i = 0; i < MOTOR_COUNT; i++) {
+  for (unsigned char i = 0; i < drive.MOTOR_COUNT; i++) {
     joint_pos[i]  = drive.getShaftAngle(i);
     joint_pos_delta[i] = joint_pos[i] - joint_prev_pos[i];
     joint_vel[i]  = joint_pos_delta[i] / step_time; 
     joint_prev_pos[i] = joint_pos[i];
   }
 
-  calcOdometry(step_time_us, joint_pos_delta[MOTOR_LEFT],
-    joint_pos_delta[MOTOR_RIGHT]);
+  calcOdometry(step_time_us, joint_pos_delta[drive.MOTOR_LEFT],
+    joint_pos_delta[drive.MOTOR_RIGHT]);
 
   RCSOFTCHECK(rcl_publish(&telem_pub, &telem_msg, NULL));
   telem_msg.lds.size = 0;
@@ -671,8 +674,8 @@ void spinPing() {
 void loop() {
   if (WiFi.status() != WL_CONNECTED) {
     lds.stop();
-    drive.setRPM(MOTOR_RIGHT, 0);
-    drive.setRPM(MOTOR_LEFT, 0);
+    drive.setRPM(drive.MOTOR_RIGHT, 0);
+    drive.setRPM(drive.MOTOR_LEFT, 0);
     return;
   }
 

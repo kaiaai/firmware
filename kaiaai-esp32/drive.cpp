@@ -15,23 +15,21 @@
 #include "drive.h"
 
 #define DEBUG true
-volatile long int encoder[MOTOR_COUNT] = {0, 0};
-volatile bool CW[MOTOR_COUNT] = {true, true};
-
-DriveController drive;
+volatile long int encoder[DriveController::MOTOR_COUNT] = {0, 0};
+volatile bool CW[DriveController::MOTOR_COUNT] = {true, true};
 
 void IRAM_ATTR encLeftIsr() {
-  if (CW[MOTOR_LEFT] ^ FLIP_ROTATION)
-    encoder[MOTOR_LEFT]++;
+  if (CW[DriveController::MOTOR_LEFT] ^ DriveController::FLIP_ROTATION)
+    encoder[DriveController::MOTOR_LEFT]++;
   else
-    encoder[MOTOR_LEFT]--;
+    encoder[DriveController::MOTOR_LEFT]--;
 }
 
 void IRAM_ATTR encRightIsr() {
-  if (CW[MOTOR_RIGHT] ^ FLIP_ROTATION)
-    encoder[MOTOR_RIGHT]++;
+  if (CW[DriveController::MOTOR_RIGHT] ^ DriveController::FLIP_ROTATION)
+    encoder[DriveController::MOTOR_RIGHT]++;
   else
-    encoder[MOTOR_RIGHT]--;
+    encoder[DriveController::MOTOR_RIGHT]--;
 }
 
 float DriveController::getShaftAngle(unsigned char motorID) {
@@ -97,13 +95,6 @@ void DriveController::setProportionalMode(unsigned char motorID, bool onMeasurem
 void DriveController::initOnce(logFuncT logFunc) {
   logDebug = logFunc;
   tickSampleTimePrev = 0;
-
-  // Encoders
-  pinMode(MOT_FG_LEFT_PIN, INPUT); // INPUT_PULLUP
-  attachInterrupt(MOT_FG_LEFT_PIN, encLeftIsr, CHANGE);
-
-  pinMode(MOT_FG_RIGHT_PIN, INPUT);
-  attachInterrupt(MOT_FG_RIGHT_PIN, encRightIsr, CHANGE);
 
   for (unsigned char motorID = 0; motorID < MOTOR_COUNT; motorID++) {
     pinMode(cwPin[motorID], OUTPUT);
@@ -202,12 +193,21 @@ void DriveController::resetEncoders() {
     encoder[motorID] = 0;
 }
 
-DriveController::DriveController() {
-  pwmPin[MOTOR_LEFT] = MOT_PWM_LEFT_PIN;
-  pwmPin[MOTOR_RIGHT] = MOT_PWM_RIGHT_PIN;
+DriveController::DriveController(uint8_t pwm_left_pin,
+  uint8_t pwm_right_pin, uint8_t cw_left_pin, uint8_t cw_right_pin,
+  uint8_t fg_left_pin, uint8_t fg_right_pin) {
+  pwmPin[MOTOR_LEFT] = pwm_left_pin;
+  pwmPin[MOTOR_RIGHT] = pwm_right_pin;
 
-  cwPin[MOTOR_LEFT] = MOT_CW_LEFT_PIN;
-  cwPin[MOTOR_RIGHT] = MOT_CW_RIGHT_PIN;
+  cwPin[MOTOR_LEFT] = cw_left_pin;
+  cwPin[MOTOR_RIGHT] = cw_right_pin;
+
+  // Encoders
+  pinMode(fg_left_pin, INPUT); // INPUT_PULLUP
+  attachInterrupt(fg_left_pin, encLeftIsr, CHANGE);
+
+  pinMode(fg_right_pin, INPUT);
+  attachInterrupt(fg_right_pin, encRightIsr, CHANGE);
 }
 
 // TODO detect stuck (stalled) motor, limit current, let robot know
