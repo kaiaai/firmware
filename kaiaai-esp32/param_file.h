@@ -21,7 +21,7 @@ protected:
   String * param_value;
   uint16_t len;
 
-  static constexpr char * FILE_PATH = "/config.txt";
+  static constexpr char * FILE_PATH = (char *)"/config.txt";
 
 public:
   PARAM_FILE(char* const* param_names, String * param_values, uint16_t len) {

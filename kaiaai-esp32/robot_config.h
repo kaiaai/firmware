@@ -101,9 +101,10 @@ public: // Misc constants
 
 protected:
   String param_value[PARAM_COUNT];
-  char* PARAM_NAME[PARAM_COUNT] = {"ssid", "pass", "dest_ip", "dest_port",
-    "robot_model_name", "lds_model", "base_dia", "wheel_base",
-    "max_wheel_accel", "motor_max_rpm", "wheel_ppr"};
+  char* PARAM_NAME[PARAM_COUNT] = {(char *)"ssid", (char *)"pass",
+    (char *)"dest_ip", (char *)"dest_port", (char *)"robot_model_name",
+    (char *)"lds_model", (char *)"base_dia", (char *)"wheel_base",
+    (char *)"max_wheel_accel", (char *)"motor_max_rpm", (char *)"wheel_ppr"};
 
 public:
   static const uint8_t ERR_REBOOT_BLINK_CYCLES = 3; // Blink out an error a few times, then reboot
@@ -116,14 +117,14 @@ public:
 
   // Micro-ROS config
   static const uint32_t UROS_CLIENT_KEY = 0xCA1AA100;
-  static constexpr char * UROS_TELEM_TOPIC_NAME = "telemetry";
-  static constexpr char * UROS_LOG_TOPIC_NAME = "rosout";
-  static constexpr char * UROS_CMD_VEL_TOPIC_NAME = "cmd_vel";
+  static constexpr char * UROS_TELEM_TOPIC_NAME = (char *)"telemetry";
+  static constexpr char * UROS_LOG_TOPIC_NAME = (char *)"rosout";
+  static constexpr char * UROS_CMD_VEL_TOPIC_NAME = (char *)"cmd_vel";
   //#define UROS_NODE_NAME UROS_ROBOT_MODEL
   static const uint32_t UROS_PING_PUB_PERIOD_MS = 10000;
   static const uint32_t UROS_TELEM_PUB_PERIOD_MS = 50;
   static const uint32_t UROS_TIME_SYNC_TIMEOUT_MS = 1000;
-  static constexpr char * UROS_PARAM_LDS_MOTOR_SPEED = "lds.motor_speed";
+  static constexpr char * UROS_PARAM_LDS_MOTOR_SPEED = (char *)"lds.motor_speed";
 
   static const uint16_t LDS_BUF_LEN = 400;
   static const uint32_t LDS_MOTOR_PWM_FREQ = 10000;

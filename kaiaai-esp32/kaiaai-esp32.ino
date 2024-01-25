@@ -552,7 +552,7 @@ void spinTelem(bool force_pub) {
 }
 
 void publishTelem(unsigned long step_time_us) {
-  struct timespec tv = {0};
+  struct timespec tv = {0, 0};
   clock_gettime(CLOCK_REALTIME, &tv);
   telem_msg.stamp.sec = tv.tv_sec;
   telem_msg.stamp.nanosec = tv.tv_nsec;
@@ -811,7 +811,7 @@ void logMsg(char* msg, uint8_t severity_level) {
     rcl_interfaces__msg__Log msgLog;
     // https://docs.ros2.org/foxy/api/rcl_interfaces/msg/Log.html
     // builtin_interfaces__msg__Time stamp;
-    struct timespec tv = {0};
+    struct timespec tv = {0, 0};
     clock_gettime(CLOCK_REALTIME, &tv);
     msgLog.stamp.sec = tv.tv_sec;
     msgLog.stamp.nanosec = tv.tv_nsec;
