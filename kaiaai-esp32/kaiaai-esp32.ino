@@ -254,11 +254,8 @@ void setup() {
     digitalWrite(cfg.LED_PIN, HIGH);
 
     AP ap;
-    ap.obtainConfig(spinResetSettings,
+    ap.obtainConfig(spinResetSettings, // does not return
       params.get(cfg.PARAM_ROBOT_MODEL_NAME), set_param_callback);
-
-    params.save();
-    ESP.restart();
     return;
   }
 
@@ -292,7 +289,12 @@ void setup() {
 }
 
 bool set_param_callback(const char * param_name, const char * param_value) {
-  return params.setByName(param_name, param_value);
+  if (param_name != NULL)
+    return params.setByName(param_name, param_value);
+
+  params.save();
+  ESP.restart();
+  return false;
 }
 
 static inline void initRos() {

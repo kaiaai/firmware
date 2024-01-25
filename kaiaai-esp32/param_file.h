@@ -107,12 +107,15 @@ public:
       Serial.print("NULL pointer in setByName()");
       return false;
     }
+
     int16_t idx = nameToIndex(pname);
     if (idx < 0) {
-      Serial.print("Parameter name not found in setByName()");
+      Serial.print("Parameter ");
+      Serial.print(pname);
+      Serial.println(" not found in setByName()");
       return false;
     }
-    return set(idx, pvalue);  
+    return set(idx, pvalue);
   }
   
   bool set(const uint16_t param_idx, const char * pvalue) {
@@ -120,12 +123,14 @@ public:
       Serial.print("NULL pointer or invalid index in set()");
       return false;
     }
-    param_value[param_idx] = pvalue;
-  
+    //Serial.print(param_idx);
+    //Serial.print(" ");
     Serial.print(param_name[param_idx]);
     Serial.print("=");
     Serial.println(pvalue);
-    
+
+    param_value[param_idx] = String(pvalue);
+      
     return true;
   }
   
@@ -149,9 +154,10 @@ public:
       return -1;
   
     // Hack
-    for (int16_t i = 0; i < len; i++)
-      if (!strcmp(pname, param_name[i]))
+    for (int16_t i = 0; i < len; i++) {
+      if (strcmp(pname, param_name[i]) == 0)
         return i;
+    }
   
     return -1;
   }

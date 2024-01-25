@@ -101,11 +101,12 @@ public: // Misc constants
 
 protected:
   String param_value[PARAM_COUNT] = {"", "", "", "8888",
-    "MAKERSPET", "YDLIDAR X4", "204.2", "159.063", "2.0", "200", "270"};
+    "MAKERSPET", "YDLIDAR X4", "204.2", "159.063", "67", "2.0", "200", "270"};
   char* PARAM_NAME[PARAM_COUNT] = {(char *)"ssid", (char *)"pass",
     (char *)"dest_ip", (char *)"dest_port", (char *)"robot_model_name",
     (char *)"lds_model", (char *)"base_dia", (char *)"wheel_base",
-    (char *)"max_wheel_accel", (char *)"motor_max_rpm", (char *)"wheel_ppr"};
+    (char *)"wheel_dia", (char *)"max_wheel_accel",
+    (char *)"motor_max_rpm", (char *)"wheel_ppr"};
 
 public:
   static const uint8_t ERR_REBOOT_BLINK_CYCLES = 3; // Blink out an error a few times, then reboot

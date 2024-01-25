@@ -19,6 +19,10 @@
 
 void AP::obtainConfig(void (*callback)(), const char * SSID_AP,
   set_param_t set_param_callback) {
+  if (set_param_callback == NULL) {
+    Serial.println("AP::obtainConfig() set_param_callback == NULL");
+    return;
+  }
 
   static set_param_t param_callback = set_param_callback; // hack
   AsyncWebServer server(80);  // Create AsyncWebServer object on port 80
@@ -42,30 +46,31 @@ void AP::obtainConfig(void (*callback)(), const char * SSID_AP,
   server.serveStatic("/", SPIFFS, "/");
   
   server.on("/", HTTP_POST, [](AsyncWebServerRequest *request) {
-    String resp = CHAR_ENCODING; // "text/html; charset=utf-8"
-    resp += "<HTML><BODY>";
-    resp += "<center><h1><br>Connecting to your router...</h1>";
+    String resp = "<HTML><BODY>"
+      "<center><h1><br>Connecting to your router...</h1>";
 
     int params = request->params();
     for (int i=0; i < params; i++) {
       AsyncWebParameter* p = request->getParam(i);
-      if (p->isPost() && param_callback != NULL) {
-        param_callback(p->name().c_str(), p->value().c_str());
+      if (p->isPost()) {
         //Serial.printf("POST[%s]: %s\n", p->name().c_str(), p->value().c_str());
+        param_callback(p->name().c_str(), p->value().c_str());
         resp += "<p>";
-        resp += p->name().c_str();
+        resp += p->name();
         resp += ": ";
-        resp += p->value().c_str();
+        resp += p->value();
         resp += "</p>";
       }
     }
 
     resp += "</center></BODY></HTML>";
-    request->send(200, resp);
+    Serial.println(resp);
+    request->send(200, CHAR_ENCODING, resp);
 
     unsigned long ms = millis();
     while(millis() - ms < 3000)
       yield();
+    param_callback(NULL, NULL);
   });
 
   server.begin();
