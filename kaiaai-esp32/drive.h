@@ -18,10 +18,9 @@
 #include <Arduino.h>
 #include <PID_Timed.h>
 
-typedef void (*logFuncT)(char*);
-
 class DriveController {
   public:
+    typedef void (*logFuncT)(char*);
     enum motors {
       MOTOR_LEFT = 0,
       MOTOR_RIGHT = 1,

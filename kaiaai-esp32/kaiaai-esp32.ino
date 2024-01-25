@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// TODO make ROS2 properties
+
 #ifndef ESP32
   #error This code runs on ESP32
 #endif
@@ -34,14 +36,9 @@
 #include <rclc_parameter/rclc_parameter.h>
 #include "drive.h"
 #include "ap.h"
-
-#if defined LDS_YDLIDAR_X4_
-  #include "LDS_YDLIDAR_X4.h"
-  LDS_YDLIDAR_X4 lds;
-#elif defined LDS_LDS02RR_
-  #include "LDS_LDS02RR.h"
-  LDS_LDS02RR lds;
-#endif
+#include "param_file.h"
+#include "LDS_YDLIDAR_X4.h"
+#include "LDS_LDS02RR.h"
 
 #if !defined(IS_MICRO_ROS_KAIA_MIN_VERSION) || !IS_MICRO_ROS_KAIA_MIN_VERSION(2,0,7,3)
 #error "Please upgrade micro_ros_kaia library version"
@@ -53,9 +50,11 @@
   if((temp_rc != RCL_RET_OK)){Serial.println("RCSOFTCHECK failed");}}
 
 CONFIG cfg;
+PARAM_FILE params(cfg.getParamNames(), cfg.getParamValues(), cfg.PARAM_COUNT); // temp hack
 DriveController drive(cfg.MOT_PWM_LEFT_PIN, cfg.MOT_PWM_RIGHT_PIN,
   cfg.MOT_CW_LEFT_PIN, cfg.MOT_CW_RIGHT_PIN,
   cfg.MOT_FG_LEFT_PIN, cfg.MOT_FG_RIGHT_PIN);
+LDS *lds = NULL;
 
 rcl_publisher_t telem_pub;
 rcl_publisher_t log_pub;
@@ -70,9 +69,9 @@ rclc_parameter_server_t param_server;
 
 HardwareSerial LdSerial(2); // TX 17, RX 16
 
-float joint_pos[cfg.JOINTS_LEN] = {0};
-float joint_vel[cfg.JOINTS_LEN] = {0};
-float joint_prev_pos[cfg.JOINTS_LEN] = {0};
+float joint_pos[drive.MOTOR_COUNT] = {0};
+float joint_vel[drive.MOTOR_COUNT] = {0};
+float joint_prev_pos[drive.MOTOR_COUNT] = {0};
 uint8_t lds_buf[cfg.LDS_BUF_LEN] = {0};
 
 unsigned long telem_prev_pub_time_us = 0;
@@ -86,7 +85,6 @@ float ramp_start_rpm_right = 0;
 float ramp_start_rpm_left = 0;
 float ramp_target_rpm_right = 0;
 float ramp_target_rpm_left = 0;
-
 bool ramp_enabled = true;
 
 unsigned long stat_sum_spin_telem_period_us = 0;
@@ -248,20 +246,34 @@ void setup() {
   Serial.begin(115200);
 
   pinMode(cfg.LED_PIN, OUTPUT);
-  digitalWrite(cfg.LED_PIN, HIGH);  
-
-  setupLDS();
-
-  if (!initSPIFFS())
+  digitalWrite(cfg.LED_PIN, HIGH);
+  
+  if (!params.init())
     blink_error_code(cfg.ERR_SPIFFS_INIT);
 
-  if (!initWiFi(getSSID(), getPassw())) {
+  if (!params.load() || !initWiFi(params.get(cfg.PARAM_SSID),
+    params.get(cfg.PARAM_PASS))) {
     digitalWrite(cfg.LED_PIN, HIGH);
-    ObtainWiFiCreds(spinResetSettings, cfg.robot_model_name.c_str());
+
+    AP ap;
+    ap.obtainConfig(spinResetSettings, params.get(cfg.PARAM_ROBOT_MODEL_NAME), set_param_callback);
+
+    params.save();
+    ESP.restart();
     return;
   }
 
-  set_microros_wifi_transports(getDestIP().c_str(), getDestPort().toInt());
+  setupLDS();
+
+  drive.setMaxRPM(String(params.get(cfg.PARAM_MOTOR_MAX_RPM)).toFloat());
+  drive.setEncoderPPR(String(params.get(cfg.PARAM_WHEEL_PPR)).toFloat());
+
+  cfg.setWheelDia(params.get(cfg.PARAM_WHEEL_DIA_MM));  
+  cfg.setMaxWheelAccel(params.get(cfg.PARAM_MAX_WHEEL_ACCEL));  
+  cfg.setWheelBase(params.get(cfg.PARAM_WHEEL_BASE_MM));
+
+  set_microros_wifi_transports(params.get(cfg.PARAM_DEST_IP),
+    String(params.get(cfg.PARAM_DEST_PORT)).toInt());
 
   delay(2000);
   
@@ -276,6 +288,10 @@ void setup() {
   drive.resetEncoders();
 
   //telem_prev_pub_time_us = esp_timer_get_time();
+}
+
+bool set_param_callback(const char * param_name, const char * param_value) {
+  return params.setByName(param_name, param_value);
 }
 
 static inline void initRos() {
@@ -319,20 +335,20 @@ static inline void initRos() {
   printCurrentTime();
 
   // https://micro.ros.org/docs/tutorials/programming_rcl_rclc/node/
-  RCCHECK(rclc_node_init_default(&node, cfg.robot_model_name.c_str(), "", &support),
-    cfg.ERR_UROS_NODE);
+  RCCHECK(rclc_node_init_default(&node, params.get(cfg.PARAM_ROBOT_MODEL_NAME),
+    "", &support), cfg.ERR_UROS_NODE);
 
   RCCHECK(rclc_subscription_init_default(&twist_sub, &node,
     ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist),
-    cfg.UROS_CMD_VEL_TOPIC_NAME.c_str()), cfg.ERR_UROS_PUBSUB);
+    cfg.UROS_CMD_VEL_TOPIC_NAME), cfg.ERR_UROS_PUBSUB);
 
   RCCHECK(rclc_publisher_init_best_effort(&telem_pub, &node,
     ROSIDL_GET_MSG_TYPE_SUPPORT(kaiaai_msgs, msg, KaiaaiTelemetry),
-    cfg.UROS_TELEM_TOPIC_NAME.c_str()), cfg.ERR_UROS_PUBSUB);
+    cfg.UROS_TELEM_TOPIC_NAME), cfg.ERR_UROS_PUBSUB);
 
   RCCHECK(rclc_publisher_init_default(&log_pub, &node,
     ROSIDL_GET_MSG_TYPE_SUPPORT(rcl_interfaces, msg, Log),
-    cfg.UROS_LOG_TOPIC_NAME.c_str()), cfg.ERR_UROS_PUBSUB);
+    cfg.UROS_LOG_TOPIC_NAME), cfg.ERR_UROS_PUBSUB);
 
   // https://github.com/ros2/rclc/blob/humble/rclc_examples/src/example_parameter_server.c
   // Request size limited to one parameter on Set, Get, Get types and Describe services.
@@ -362,14 +378,22 @@ static inline void initRos() {
   RCCHECK(rclc_executor_add_parameter_server(&executor, &param_server,
     on_param_changed), cfg.ERR_UROS_EXEC);;
 
+
+  
+  
+  // TODO change to LDS scan frequency
   //RCCHECK(rclc_add_parameter(&param_server, "param_bool", RCLC_PARAMETER_BOOL), cfg.ERR_UROS_PARAM);
   //RCCHECK(rclc_add_parameter(&param_server, "param_int", RCLC_PARAMETER_INT), cfg.ERR_UROS_PARAM);
-  RCCHECK(rclc_add_parameter(&param_server, cfg.UROS_PARAM_LDS_MOTOR_SPEED.c_str(),
+  RCCHECK(rclc_add_parameter(&param_server, cfg.UROS_PARAM_LDS_MOTOR_SPEED,
     RCLC_PARAMETER_DOUBLE), cfg.ERR_UROS_PARAM);
 
+
+  
+  
+  // TODO change to LDS scan frequency
   //RCCHECK(rclc_parameter_set_bool(&param_server, "param_bool", false), cfg.ERR_UROS_PARAM);
   //RCCHECK(rclc_parameter_set_int(&param_server, "param_int", 10), cfg.ERR_UROS_PARAM);
-  RCCHECK(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_LDS_MOTOR_SPEED.c_str(),
+  RCCHECK(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_LDS_MOTOR_SPEED,
     cfg.LDS_MOTOR_SPEED_DEFAULT), cfg.ERR_UROS_PARAM);
 
   //rclc_add_parameter_description(&param_server, "param_int", "Second parameter", "Only even numbers");
@@ -378,7 +402,11 @@ static inline void initRos() {
   //rclc_add_parameter_description(&param_server, "param_double", "Third parameter", "");
   //RCCHECK(rclc_set_parameter_read_only(&param_server, "param_double", true), cfg.ERR_UROS_PARAM);
 
-  RCCHECK(rclc_add_parameter_constraint_double(&param_server, cfg.UROS_PARAM_LDS_MOTOR_SPEED.c_str(),
+
+
+  
+  // TODO change to LDS scan frequency
+  RCCHECK(rclc_add_parameter_constraint_double(&param_server, cfg.UROS_PARAM_LDS_MOTOR_SPEED,
     -1.0, 1.0, 0), cfg.ERR_UROS_PARAM);
 
   //bool param_bool;
@@ -423,9 +451,9 @@ bool on_param_changed(const Parameter * old_param, const Parameter * new_param, 
       Serial.print(" to ");
       Serial.println(new_param->value.double_value);
 
-      if (strcmp(old_param->name.data, cfg.UROS_PARAM_LDS_MOTOR_SPEED.c_str()) == 0) {
+      if (strcmp(old_param->name.data, cfg.UROS_PARAM_LDS_MOTOR_SPEED) == 0) {
         //int16_t speed_int = round((float)(new_param->value.double_value) * 255);
-//        lds.setScanTargetFreqHz(new_param->value.double_value);
+//        lds->setScanTargetFreqHz(new_param->value.double_value);
       }
       break;
     default:
@@ -511,7 +539,7 @@ void spinTelem(bool force_pub) {
     Serial.print(stat_max_spin_telem_period_us / 1000);
     Serial.print("ms");
 
-    float rpm = lds.getCurrentScanFreqHz();
+    float rpm = lds->getCurrentScanFreqHz();
     if (rpm >= 0) {
       Serial.print(", LDS RPM ");
       Serial.print(rpm);
@@ -529,7 +557,7 @@ void publishTelem(unsigned long step_time_us) {
   telem_msg.stamp.sec = tv.tv_sec;
   telem_msg.stamp.nanosec = tv.tv_nsec;
 
-  float joint_pos_delta[cfg.JOINTS_LEN];
+  float joint_pos_delta[drive.MOTOR_COUNT];
   float step_time = 1e-6 * (float)step_time_us;
 
   for (unsigned char i = 0; i < drive.MOTOR_COUNT; i++) {
@@ -624,14 +652,14 @@ void lds_packet_callback(uint8_t * packet, uint16_t packet_length, bool scan_com
 void lds_motor_pin_callback(float value, LDS::lds_pin_t lds_pin) {
   /*
   Serial.print("LDS pin ");
-  Serial.print(lds.pinIDToString(lds_pin));
+  Serial.print(lds->pinIDToString(lds_pin));
   Serial.print(" set ");
   if (lds_pin > 0)
     Serial.print(value); // PWM value
   else
-    Serial.print(lds.pinStateToString((LDS::lds_pin_state_t)value));
+    Serial.print(lds->pinStateToString((LDS::lds_pin_state_t)value));
   Serial.print(", RPM ");
-  Serial.println(lds.getCurrentScanFreqHz());
+  Serial.println(lds->getCurrentScanFreqHz());
   */
   
   int pin = (lds_pin == LDS::LDS_MOTOR_EN_PIN) ?
@@ -673,13 +701,13 @@ void spinPing() {
 
 void loop() {
   if (WiFi.status() != WL_CONNECTED) {
-    lds.stop();
+    lds->stop();
     drive.setRPM(drive.MOTOR_RIGHT, 0);
     drive.setRPM(drive.MOTOR_LEFT, 0);
     return;
   }
 
-  lds.loop();
+  lds->loop();
   
   // Process micro-ROS callbacks
   RCCHECK(rclc_executor_spin_some(&executor, RCL_MS_TO_NS(1)), cfg.ERR_UROS_SPIN);
@@ -697,7 +725,7 @@ unsigned long reset_settings_prev_check_time_ms = 0;
 
 void resetSettings() {
   Serial.println("** Resetting settings **");
-  resetWiFiSettings();
+  params.purge();
   blink(cfg.LONG_BLINK_MS, 5);
   Serial.flush();
 
@@ -728,18 +756,18 @@ void resetTelemMsg() {
   telem_msg.odom_vel_yaw = 0;
   
   telem_msg.joint_pos.data = joint_pos;
-  telem_msg.joint_pos.capacity = cfg.JOINTS_LEN;
-  telem_msg.joint_pos.size = cfg.JOINTS_LEN;
+  telem_msg.joint_pos.capacity = drive.MOTOR_COUNT;
+  telem_msg.joint_pos.size = drive.MOTOR_COUNT;
 
   telem_msg.joint_vel.data = joint_vel;
-  telem_msg.joint_vel.capacity = cfg.JOINTS_LEN;
-  telem_msg.joint_vel.size = cfg.JOINTS_LEN;
+  telem_msg.joint_vel.capacity = drive.MOTOR_COUNT;
+  telem_msg.joint_vel.size = drive.MOTOR_COUNT;
 
   telem_msg.lds.data = lds_buf;
   telem_msg.lds.capacity = cfg.LDS_BUF_LEN;
   telem_msg.lds.size = 0;
 
-  for (int i = 0; i < cfg.JOINTS_LEN; i++) {
+  for (int i = 0; i < drive.MOTOR_COUNT; i++) {
     joint_pos[i] = 0;
     joint_vel[i] = 0; 
     joint_prev_pos[i] = 0;
@@ -755,7 +783,7 @@ void syncRosTime() {
   int64_t time_ms = rmw_uros_epoch_millis();
   
   if (time_ms > 0) {
-    time_t time_seconds = time_ms/1000;
+    time_t time_seconds = time_ms*0.001;
     time_t time_micro_seconds = (time_ms - time_seconds*1000)*1000; 
     
     // https://gist.github.com/igrr/d7db8a78170bf6981f2e606b42c4361c
@@ -789,7 +817,7 @@ void logMsg(char* msg, uint8_t severity_level) {
     msgLog.stamp.nanosec = tv.tv_nsec;
     
     msgLog.level = severity_level;
-    msgLog.name.data = (char *)cfg.robot_model_name.c_str(); // Hack; logger name
+    msgLog.name.data = (char *)params.get(cfg.PARAM_ROBOT_MODEL_NAME);
     msgLog.name.size = strlen(msgLog.name.data);
     msgLog.msg.data = msg;
     msgLog.msg.size = strlen(msgLog.msg.data);
@@ -828,7 +856,7 @@ void logMsg(char* msg, uint8_t severity_level) {
 
 void lds_info_callback(LDS::info_t code, String info) {
   Serial.print("LDS info ");
-  Serial.print(lds.infoCodeToString(code));
+  Serial.print(lds->infoCodeToString(code));
   Serial.print(": ");
   Serial.println(info);
 }
@@ -836,37 +864,48 @@ void lds_info_callback(LDS::info_t code, String info) {
 void lds_error_callback(LDS::result_t code, String aux_info) {
   if (code != LDS::ERROR_NOT_READY) {
     Serial.print("LDS error ");
-    Serial.print(lds.resultCodeToString(code));
+    Serial.print(lds->resultCodeToString(code));
     Serial.print(": ");
     Serial.println(aux_info);
   }
 }
 
-void setupLDS() {
-  lds.setScanPointCallback(lds_scan_point_callback);
-  lds.setPacketCallback(lds_packet_callback);
-  lds.setSerialWriteCallback(lds_serial_write_callback);
-  lds.setSerialReadCallback(lds_serial_read_callback);
-  lds.setMotorPinCallback(lds_motor_pin_callback);
-  lds.setInfoCallback(lds_info_callback);
-  lds.setErrorCallback(lds_error_callback);
+bool setupLDS() {
+  const char * model = params.get(cfg.PARAM_LDS_MODEL);
+  if (strcmp(model, "YDLIDAR X4") == 0)
+    lds = new LDS_YDLIDAR_X4();
+  else if (strcmp(model, "LDS02RR") == 0)
+    lds = new LDS_YDLIDAR_X4();
+  else {
+    Serial.println("setupLDS() invalid LDS model name");
+    return false;
+  }
+  
+  lds->setScanPointCallback(lds_scan_point_callback);
+  lds->setPacketCallback(lds_packet_callback);
+  lds->setSerialWriteCallback(lds_serial_write_callback);
+  lds->setSerialReadCallback(lds_serial_read_callback);
+  lds->setMotorPinCallback(lds_motor_pin_callback);
+  lds->setInfoCallback(lds_info_callback);
+  lds->setErrorCallback(lds_error_callback);
 
   Serial.print("LDS RX buffer size "); // default 128 hw + 256 sw
   Serial.print(LdSerial.setRxBufferSize(1024)); // must be before .begin()
-  uint32_t baud_rate = lds.getSerialBaudRate();
+  uint32_t baud_rate = lds->getSerialBaudRate();
   Serial.print(", baud rate ");
   Serial.println(baud_rate);
 
   LdSerial.begin(baud_rate);
   while (LdSerial.read() >= 0);  
 
-  lds.stop();
+  lds->stop();
+  return true;
 }
 
 LDS::result_t startLDS() {  
-  LDS::result_t result = lds.start();
+  LDS::result_t result = lds->start();
   Serial.print("startLDS() result: ");
-  Serial.println(lds.resultCodeToString(result));
+  Serial.println(lds->resultCodeToString(result));
 
   if (result < 0)
     Serial.println("WARNING: is LDS connected to ESP32?");
@@ -890,7 +929,7 @@ void blink_error_code(int n_blinks) {
 }
 
 void error_loop(int n_blinks){
-  lds.stop();
+  lds->stop();
 
   char buffer[40];
   sprintf(buffer, "Error code %d", n_blinks);  

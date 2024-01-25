@@ -208,6 +208,7 @@ DriveController::DriveController(uint8_t pwm_left_pin,
 }
 
 // TODO detect stuck (stalled) motor, limit current, let robot know
+// NB BLDC motor has a built-in feature that shuts motor off after stall timeout
 void DriveController::update() {
   bool anySetPointHasChanged = false;
   for (unsigned char motorID = 0; motorID < MOTOR_COUNT; motorID++)

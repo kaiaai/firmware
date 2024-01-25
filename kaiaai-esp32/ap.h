@@ -21,21 +21,12 @@
 #include <WiFi.h>
 #include <ESPAsyncWebSrv.h>
 #include <AsyncTCP.h>
-#include "SPIFFS.h"
+#include <SPIFFS.h>
 
-// Search for parameter in HTTP POST request
-#define PARAM_INPUT_SSID "ssid"
-#define PARAM_INPUT_PASS "pass"
-#define PARAM_INPUT_DEST_IP "dest_ip"
-#define PARAM_INPUT_DEST_PORT "dest_port"
-
-bool initSPIFFS();
-void ObtainWiFiCreds(void (*callback)(), const char * SSID_AP);
-String getSSID();
-String getPassw();
-String getDestIP();
-String getDestPort();
-
-//String readFile(fs::FS &fs, const char * path);
-//void writeFile(fs::FS &fs, const char * path, const char * message);
-void resetWiFiSettings();
+class AP {
+public:
+  typedef bool (*set_param_t)(const char*, const char*);
+  void obtainConfig(void (*callback)(), const char * SSID_AP, set_param_t set_param_callback);
+protected:
+  static constexpr char * CHAR_ENCODING = "text/html; charset=utf-8";
+};

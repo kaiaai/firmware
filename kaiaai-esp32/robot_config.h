@@ -13,10 +13,11 @@
 // limitations under the License.
 
 #pragma once
+#include <SPIFFS.h>
 
-// Choose your LDS
-//#define LDS_YDLIDAR_X4_
-#define LDS_LDS02RR_
+#if !defined(ESP32)
+  #error This code builds on ESP32
+#endif
 
 class CONFIG {
 public:
@@ -66,12 +67,21 @@ public:
 //#define MOTOR_GEAR_RATIO           21.3 // gearbox reduction ratio
 //#define MOTOR_ENCODER_PPR          6    // pulses per revolution; TODO check  
 
-
-public: // properties set using browser GUI
-  static inline float wheel_dia = 67.0; // meters
-  static inline float wheel_base = 159.063; // meters
-  static inline float max_wheel_accel = 2.0; // m2/sec
-  static inline String robot_model_name = "MAKERSPET_LOKI";
+  enum param_name_index {
+    PARAM_SSID = 0,
+    PARAM_PASS = 1,
+    PARAM_DEST_IP = 2,
+    PARAM_DEST_PORT = 3,
+    PARAM_ROBOT_MODEL_NAME = 4,
+    PARAM_LDS_MODEL = 5,
+    PARAM_BASE_DIA_MM = 6,
+    PARAM_WHEEL_BASE_MM = 7,
+    PARAM_WHEEL_DIA_MM = 8,
+    PARAM_MAX_WHEEL_ACCEL = 9,
+    PARAM_MOTOR_MAX_RPM = 10,
+    PARAM_WHEEL_PPR = 11,
+    PARAM_COUNT = 12,
+  };
 
 public: // Misc constants
     enum error_blink_count { // ESP32 blinks when firmware init fails
@@ -89,6 +99,13 @@ public: // Misc constants
     ERR_SPIFFS_INIT = 12,
   };
 
+protected:
+  String param_value[PARAM_COUNT];
+  char* PARAM_NAME[PARAM_COUNT] = {"ssid", "pass", "dest_ip", "dest_port",
+    "robot_model_name", "lds_model", "base_dia", "wheel_base",
+    "max_wheel_accel", "motor_max_rpm", "wheel_ppr"};
+
+public:
   static const uint8_t ERR_REBOOT_BLINK_CYCLES = 3; // Blink out an error a few times, then reboot
   static const uint32_t LONG_BLINK_MS = 1000;
   static const uint32_t LONG_BLINK_PAUSE_MS = 2000;
@@ -99,25 +116,24 @@ public: // Misc constants
 
   // Micro-ROS config
   static const uint32_t UROS_CLIENT_KEY = 0xCA1AA100;
-  static inline const String UROS_TELEM_TOPIC_NAME = "telemetry";
-  static inline const String UROS_LOG_TOPIC_NAME = "rosout";
-  static inline const String UROS_CMD_VEL_TOPIC_NAME = "cmd_vel";
+  static constexpr char * UROS_TELEM_TOPIC_NAME = "telemetry";
+  static constexpr char * UROS_LOG_TOPIC_NAME = "rosout";
+  static constexpr char * UROS_CMD_VEL_TOPIC_NAME = "cmd_vel";
   //#define UROS_NODE_NAME UROS_ROBOT_MODEL
   static const uint32_t UROS_PING_PUB_PERIOD_MS = 10000;
   static const uint32_t UROS_TELEM_PUB_PERIOD_MS = 50;
   static const uint32_t UROS_TIME_SYNC_TIMEOUT_MS = 1000;
-  static inline const String UROS_PARAM_LDS_MOTOR_SPEED = "lds.motor_speed";
+  static constexpr char * UROS_PARAM_LDS_MOTOR_SPEED = "lds.motor_speed";
 
   static const uint16_t LDS_BUF_LEN = 400;
   static const uint32_t LDS_MOTOR_PWM_FREQ = 10000;
   static const uint8_t LDS_MOTOR_PWM_BITS = 11; // was 8
-  static const uint8_t JOINTS_LEN = 2; // (MOTOR_COUNT)
 
-  // WiFi config
   static const uint32_t WIFI_CONN_TIMEOUT_SEC = 30;
 
 public:
-  // Cache divisions; there is no hardware divider in ESP32
+  // Hack  
+  // Cache divisions
   float speed_diff_to_us;
   float wheel_base_recip;
   float wheel_radius;
@@ -125,37 +141,46 @@ public:
   float wheel_perim_len_div60_recip;
 
 public:
-  CONFIG() {
-    recalculate();
-  }
-  void recalculate() {
-    speed_diff_to_us = 1e6/max_wheel_accel;
-    wheel_base_recip = 1/wheel_base;
-    wheel_radius = wheel_dia / 2;
 
+  char* const* getParamNames() {
+    return PARAM_NAME;
+  }
+
+  String * getParamValues() {
+    return param_value;
+  }
+  
+  void setWheelDia(const char * wheel_dia_mm_str) {
+    float wheel_dia = String(wheel_dia_mm_str).toFloat()*0.001;
+    
+    wheel_radius = wheel_dia * 0.5;
     wheel_perim_len_div60 = PI * wheel_dia / 60;
     wheel_perim_len_div60_recip = 1/wheel_perim_len_div60;
   }
-
+  
+  void setMaxWheelAccel(const char * max_wheel_accel_str) {
+    float max_wheel_accel = String(max_wheel_accel_str).toFloat();
+    speed_diff_to_us = 1e6/max_wheel_accel;
+  }
+  
+  void setWheelBase(const char * wheel_base_mm_str) {
+    float wheel_base = String(wheel_base_mm_str).toFloat()*0.001;
+    wheel_base_recip = 1/wheel_base;
+  }
+  
   // Hack
-  //#define SPEED_TO_RPM(SPEED_MS) (SPEED_MS*WHEEL_PERIM_LEN_DIV60_RECIP);
   float speed_to_rpm(float speed_ms) {
     return speed_ms*wheel_perim_len_div60_recip;
   }
   
-  //#define RPM_TO_SPEED(RPM) (RPM*WHEEL_PERIM_LEN_DIV60);
   float rpm_to_speed(float rpm) {
     return rpm*wheel_perim_len_div60;
   }
   
   void twistToWheelSpeeds(float speed_lin_x, float speed_ang_z,
     float *speed_right, float *speed_left) {
-    float ang_component = speed_ang_z*wheel_base*0.5f;
+    float ang_component = speed_ang_z*wheel_radius; //wheel_base*0.5f;
     *speed_right = speed_lin_x + ang_component;
     *speed_left  = speed_lin_x - ang_component;
   }
 };
-
-#if !defined(ESP32)
-  #error This code builds on ESP32 Dev module only
-#endif
