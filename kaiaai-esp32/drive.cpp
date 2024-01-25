@@ -91,8 +91,26 @@ void DriveController::setProportionalMode(bool onMeasurement) {
   }
 }
 
-void DriveController::initOnce(logFuncT logFunc) {
+//void DriveController::initOnce(logFuncT logFunc) {
+void DriveController::initOnce(logFuncT logFunc, uint8_t pwm_left_pin,
+  uint8_t pwm_right_pin, uint8_t cw_left_pin, uint8_t cw_right_pin,
+  uint8_t fg_left_pin, uint8_t fg_right_pin) {
+
   logDebug = logFunc;
+
+  pwmPin[MOTOR_LEFT] = pwm_left_pin;
+  pwmPin[MOTOR_RIGHT] = pwm_right_pin;
+
+  cwPin[MOTOR_LEFT] = cw_left_pin;
+  cwPin[MOTOR_RIGHT] = cw_right_pin;
+
+  // Encoders
+  pinMode(fg_left_pin, INPUT); // INPUT_PULLUP
+  attachInterrupt(fg_left_pin, encLeftIsr, CHANGE);
+
+  pinMode(fg_right_pin, INPUT);
+  attachInterrupt(fg_right_pin, encRightIsr, CHANGE);
+    
   tickSampleTimePrev = 0;
 
   setMaxRPM(DEFAULT_MOTOR_MAX_RPM);
@@ -189,10 +207,8 @@ void DriveController::resetEncoders() {
   for (unsigned char motorID = 0; motorID < MOTOR_COUNT; motorID++)
     encoder[motorID] = 0;
 }
-
-DriveController::DriveController(uint8_t pwm_left_pin,
-  uint8_t pwm_right_pin, uint8_t cw_left_pin, uint8_t cw_right_pin,
-  uint8_t fg_left_pin, uint8_t fg_right_pin) {
+/*
+DriveController::DriveController() {
   pwmPin[MOTOR_LEFT] = pwm_left_pin;
   pwmPin[MOTOR_RIGHT] = pwm_right_pin;
 
@@ -206,6 +222,7 @@ DriveController::DriveController(uint8_t pwm_left_pin,
   pinMode(fg_right_pin, INPUT);
   attachInterrupt(fg_right_pin, encRightIsr, CHANGE);
 }
+*/
 
 // TODO detect stuck (stalled) motor, limit current, let robot know
 // NB BLDC motor has a built-in feature that shuts motor off after stall timeout

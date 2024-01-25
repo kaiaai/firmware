@@ -43,10 +43,12 @@ class DriveController {
     static constexpr float DEFAULT_WHEEL_ENCODER_PPR = 45.0*6;
 
   public:
-    DriveController(uint8_t pwm_left_pin, uint8_t pwm_right_pin,
-      uint8_t cw_left_pin, uint8_t cw_right_pin,
+    //DriveController(uint8_t pwm_left_pin, uint8_t pwm_right_pin,
+    //  uint8_t cw_left_pin, uint8_t cw_right_pin,
+    //  uint8_t fg_left_pin, uint8_t fg_right_pin);
+    void initOnce(logFuncT logFunc, uint8_t pwm_left_pin,
+      uint8_t pwm_right_pin, uint8_t cw_left_pin, uint8_t cw_right_pin,
       uint8_t fg_left_pin, uint8_t fg_right_pin);
-    void initOnce(logFuncT logFunc);
     bool setRPM(unsigned char motorID, float rpm);
     void resetEncoders();
     void update();

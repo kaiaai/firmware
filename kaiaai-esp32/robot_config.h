@@ -100,7 +100,8 @@ public: // Misc constants
   };
 
 protected:
-  String param_value[PARAM_COUNT];
+  String param_value[PARAM_COUNT] = {"", "", "", "8888",
+    "MAKERSPET", "YDLIDAR X4", "204.2", "159.063", "2.0", "200", "270"};
   char* PARAM_NAME[PARAM_COUNT] = {(char *)"ssid", (char *)"pass",
     (char *)"dest_ip", (char *)"dest_port", (char *)"robot_model_name",
     (char *)"lds_model", (char *)"base_dia", (char *)"wheel_base",
@@ -142,7 +143,6 @@ public:
   float wheel_perim_len_div60_recip;
 
 public:
-
   char* const* getParamNames() {
     return PARAM_NAME;
   }

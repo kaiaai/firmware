@@ -51,9 +51,7 @@
 
 CONFIG cfg;
 PARAM_FILE params(cfg.getParamNames(), cfg.getParamValues(), cfg.PARAM_COUNT); // temp hack
-DriveController drive(cfg.MOT_PWM_LEFT_PIN, cfg.MOT_PWM_RIGHT_PIN,
-  cfg.MOT_CW_LEFT_PIN, cfg.MOT_CW_RIGHT_PIN,
-  cfg.MOT_FG_LEFT_PIN, cfg.MOT_FG_RIGHT_PIN);
+DriveController drive;
 LDS *lds = NULL;
 
 rcl_publisher_t telem_pub;
@@ -251,12 +249,13 @@ void setup() {
   if (!params.init())
     blink_error_code(cfg.ERR_SPIFFS_INIT);
 
-  if (!params.load() || !initWiFi(params.get(cfg.PARAM_SSID),
-    params.get(cfg.PARAM_PASS))) {
+  if (!params.load() ||
+    !initWiFi(params.get(cfg.PARAM_SSID), params.get(cfg.PARAM_PASS))) {
     digitalWrite(cfg.LED_PIN, HIGH);
 
     AP ap;
-    ap.obtainConfig(spinResetSettings, params.get(cfg.PARAM_ROBOT_MODEL_NAME), set_param_callback);
+    ap.obtainConfig(spinResetSettings,
+      params.get(cfg.PARAM_ROBOT_MODEL_NAME), set_param_callback);
 
     params.save();
     ESP.restart();
@@ -284,7 +283,9 @@ void setup() {
     blink_error_code(cfg.ERR_LDS_START);
     //error_loop(cfg.ERR_LDS_START);
   
-  drive.initOnce(logInfo);
+  drive.initOnce(logInfo, cfg.MOT_PWM_LEFT_PIN, cfg.MOT_PWM_RIGHT_PIN,
+    cfg.MOT_CW_LEFT_PIN, cfg.MOT_CW_RIGHT_PIN,
+    cfg.MOT_FG_LEFT_PIN, cfg.MOT_FG_RIGHT_PIN);
   drive.resetEncoders();
 
   //telem_prev_pub_time_us = esp_timer_get_time();
@@ -870,15 +871,16 @@ void lds_error_callback(LDS::result_t code, String aux_info) {
   }
 }
 
-bool setupLDS() {
+void setupLDS() {
   const char * model = params.get(cfg.PARAM_LDS_MODEL);
   if (strcmp(model, "YDLIDAR X4") == 0)
     lds = new LDS_YDLIDAR_X4();
   else if (strcmp(model, "LDS02RR") == 0)
-    lds = new LDS_YDLIDAR_X4();
+    lds = new LDS_LDS02RR();
   else {
-    Serial.println("setupLDS() invalid LDS model name");
-    return false;
+    Serial.print("setupLDS() invalid LDS model name ");
+    Serial.println(model);
+    lds = new LDS_YDLIDAR_X4();
   }
   
   lds->setScanPointCallback(lds_scan_point_callback);
@@ -899,7 +901,6 @@ bool setupLDS() {
   while (LdSerial.read() >= 0);  
 
   lds->stop();
-  return true;
 }
 
 LDS::result_t startLDS() {  

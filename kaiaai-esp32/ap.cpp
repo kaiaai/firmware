@@ -19,6 +19,7 @@
 
 void AP::obtainConfig(void (*callback)(), const char * SSID_AP,
   set_param_t set_param_callback) {
+
   static set_param_t param_callback = set_param_callback; // hack
   AsyncWebServer server(80);  // Create AsyncWebServer object on port 80
 
