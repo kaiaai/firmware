@@ -64,7 +64,6 @@ void AP::obtainConfig(void (*callback)(), const char * SSID_AP,
     }
 
     resp += "</center></BODY></HTML>";
-    Serial.println(resp);
     request->send(200, CHAR_ENCODING, resp);
 
     unsigned long ms = millis();

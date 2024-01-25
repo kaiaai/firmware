@@ -47,7 +47,6 @@ public:
       switch (i & 0x1) {
         case 0:
           name_str = file.readStringUntil('\n');
-          continue;
           break;
         case 1:
           String value_str = file.readStringUntil('\n');
@@ -69,23 +68,24 @@ public:
       return false;
     } else
       Serial.println();
-    
+
+    bool success = true;
     for (uint16_t i = 0; i < len; i++) {
       Serial.print(param_name[i]);
       Serial.print("=");
-      Serial.println(param_value[i].c_str());
-      bool success = file.println(param_name[i]);
-      success = success && file.println(param_value[i].c_str());
+      Serial.println(param_value[i]);
+      success = success && file.print(param_name[i]);
+      success = success && file.print('\n');
+      success = success && file.print(param_value[i]);
+      success = success && file.print('\n');
       if (!success) {
         Serial.println("Write failed ");
-        file.close();
-        return false;
+        break;
       }
     }
     
     file.close();
-    Serial.println("File written");
-    return true;
+    return success;
   }
   
   bool init() {
