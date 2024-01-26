@@ -259,29 +259,29 @@ void setup() {
     digitalWrite(cfg.LED_PIN, HIGH);
 
     AP ap;
-    ap.obtainConfig(params.get(cfg.PARAM_ROBOT_MODEL_NAME), set_param_callback);
+    ap.obtainConfig(params.get(cfg.PARAM_AP_WIFI_SSID), set_param_callback);
     return;
   }
-  Serial.println("Before setupLDS()");
-  delay(20);
+  //Serial.println("Before setupLDS()");
+  //delay(20);
   setupLDS();
-  Serial.println("After setupLDS()");
-  delay(20);
+  //Serial.println("After setupLDS()");
+  //delay(20);
 
   drive.setMaxRPM(String(params.get(cfg.PARAM_MOTOR_MAX_RPM)).toFloat());
   drive.setEncoderPPR(String(params.get(cfg.PARAM_WHEEL_PPR)).toFloat());
-  Serial.println("After drive.set*()");
-  delay(20);
+  //Serial.println("After drive.set*()");
+  //delay(20);
 
   cfg.setWheelDia(params.get(cfg.PARAM_WHEEL_DIA_MM));  
   cfg.setMaxWheelAccel(params.get(cfg.PARAM_MAX_WHEEL_ACCEL));  
   cfg.setWheelBase(params.get(cfg.PARAM_WHEEL_BASE_MM));
-  Serial.println("After cfg.set*()");
-  delay(20);
+  //Serial.println("After cfg.set*()");
+  //delay(20);
 
   set_microros_wifi_transports(params.get(cfg.PARAM_DEST_IP),
     String(params.get(cfg.PARAM_DEST_PORT)).toInt());
-  Serial.println("After set_microros_wifi_transports()");
+  //Serial.println("After set_microros_wifi_transports()");
 
   delay(2000);
 
@@ -886,24 +886,25 @@ void lds_error_callback(LDS::result_t code, String aux_info) {
 }
 
 void setupLDS() {
-  Serial.println("setupLDS()");
-  delay(20);
+  //Serial.println("setupLDS()");
+  //delay(20);
   const char * model = params.get(cfg.PARAM_LDS_MODEL);
-  Serial.println(model);
-  delay(20);
+  Serial.print("LDS model ");
+  Serial.print(model);
+  //delay(20);
   if (strcmp(model, "YDLIDAR X4") == 0) {
-    Serial.println("new LDS_YDLIDAR_X4");
-    delay(20);
+    //Serial.println("new LDS_YDLIDAR_X4");
+    //delay(20);
     lds = new LDS_YDLIDAR_X4();
-  } else if (strcmp(model, "LDS02RR") == 0)
-    Serial.println("new LDS02RR");
-    delay(20);
+  } else if (strcmp(model, "LDS02RR") == 0) {
+    //Serial.println("new LDS02RR");
+    //delay(20);
     lds = new LDS_LDS02RR();
-  else {
-    Serial.print("setupLDS() invalid LDS model name ");
-    Serial.println(model);
+  } else {
+    Serial.print(" unrecognized model name");
     lds = new LDS_YDLIDAR_X4();
   }
+  Serial.println();
   
   lds->setScanPointCallback(lds_scan_point_callback);
   lds->setPacketCallback(lds_packet_callback);
