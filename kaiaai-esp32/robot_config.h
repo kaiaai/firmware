@@ -114,7 +114,6 @@ public:
   static const uint32_t LONG_BLINK_PAUSE_MS = 2000;
   static const uint32_t SHORT_BLINK_MS = 200;
   static const uint32_t SHORT_BLINK_PAUSE_MS = 500;
-
   static const uint32_t SPIN_TELEM_STATS = 100;
 
   // Micro-ROS config
@@ -131,6 +130,7 @@ public:
   static const uint16_t LDS_BUF_LEN = 400;
   static const uint32_t LDS_MOTOR_PWM_FREQ = 10000;
   static const uint8_t LDS_MOTOR_PWM_BITS = 11; // was 8
+  static const uint16_t LDS_SERIAL_RX_BUF_LEN = 1024;
 
   static const uint32_t WIFI_CONN_TIMEOUT_MS = 30000;
   static constexpr char * PARAM_AP_WIFI_SSID = (char *) "MAKERSPET";

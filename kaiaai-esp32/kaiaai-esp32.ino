@@ -52,7 +52,9 @@
 CONFIG cfg;
 PARAM_FILE params(cfg.getParamNames(), cfg.getParamValues(), cfg.PARAM_COUNT); // temp hack
 DriveController drive;
-LDS *lds = NULL;
+LDS_LDS02RR lds02rr;
+LDS_YDLIDAR_X4 ydlidar_x4;
+LDS *lds;
 
 rcl_publisher_t telem_pub;
 rcl_publisher_t log_pub;
@@ -259,31 +261,17 @@ void setup() {
     digitalWrite(cfg.LED_PIN, HIGH);
 
     AP ap;
-    ap.obtainConfig(params.get(cfg.PARAM_AP_WIFI_SSID), set_param_callback);
+    ap.obtainConfig(cfg.PARAM_AP_WIFI_SSID, set_param_callback);
     return;
   }
-  //Serial.println("Before setupLDS()");
-  //delay(20);
-  setupLDS();
-  //Serial.println("After setupLDS()");
-  //delay(20);
-
-  drive.setMaxRPM(String(params.get(cfg.PARAM_MOTOR_MAX_RPM)).toFloat());
-  drive.setEncoderPPR(String(params.get(cfg.PARAM_WHEEL_PPR)).toFloat());
-  //Serial.println("After drive.set*()");
-  //delay(20);
-
-  cfg.setWheelDia(params.get(cfg.PARAM_WHEEL_DIA_MM));  
-  cfg.setMaxWheelAccel(params.get(cfg.PARAM_MAX_WHEEL_ACCEL));  
-  cfg.setWheelBase(params.get(cfg.PARAM_WHEEL_BASE_MM));
-  //Serial.println("After cfg.set*()");
-  //delay(20);
 
   set_microros_wifi_transports(params.get(cfg.PARAM_DEST_IP),
     String(params.get(cfg.PARAM_DEST_PORT)).toInt());
   //Serial.println("After set_microros_wifi_transports()");
 
   delay(2000);
+
+  setupLDS();
 
   initRos();
   logMsgInfo((char*)"Micro-ROS initialized");
@@ -295,9 +283,14 @@ void setup() {
   drive.initOnce(logInfo, cfg.MOT_PWM_LEFT_PIN, cfg.MOT_PWM_RIGHT_PIN,
     cfg.MOT_CW_LEFT_PIN, cfg.MOT_CW_RIGHT_PIN,
     cfg.MOT_FG_LEFT_PIN, cfg.MOT_FG_RIGHT_PIN);
-  drive.resetEncoders();
 
-  //telem_prev_pub_time_us = esp_timer_get_time();
+  drive.resetEncoders();
+  drive.setMaxRPM(String(params.get(cfg.PARAM_MOTOR_MAX_RPM)).toFloat());
+  drive.setEncoderPPR(String(params.get(cfg.PARAM_WHEEL_PPR)).toFloat());
+
+  cfg.setWheelDia(params.get(cfg.PARAM_WHEEL_DIA_MM));  
+  cfg.setMaxWheelAccel(params.get(cfg.PARAM_MAX_WHEEL_ACCEL));  
+  cfg.setWheelBase(params.get(cfg.PARAM_WHEEL_BASE_MM));
 }
 
 bool set_param_callback(const char * param_name, const char * param_value) {
@@ -886,23 +879,19 @@ void lds_error_callback(LDS::result_t code, String aux_info) {
 }
 
 void setupLDS() {
-  //Serial.println("setupLDS()");
-  //delay(20);
   const char * model = params.get(cfg.PARAM_LDS_MODEL);
   Serial.print("LDS model ");
   Serial.print(model);
-  //delay(20);
-  if (strcmp(model, "YDLIDAR X4") == 0) {
-    //Serial.println("new LDS_YDLIDAR_X4");
-    //delay(20);
-    lds = new LDS_YDLIDAR_X4();
-  } else if (strcmp(model, "LDS02RR") == 0) {
-    //Serial.println("new LDS02RR");
-    //delay(20);
-    lds = new LDS_LDS02RR();
+
+  if (strcmp(model, "LDS02RR") == 0) {
+    lds = &lds02rr;
+//    lds = new LDS_LDS02RR();
+//    lds = &ulds.lds02rr;
   } else {
-    Serial.print(" unrecognized model name");
-    lds = new LDS_YDLIDAR_X4();
+    if (strcmp(model, "YDLIDAR X4") != 0)
+      Serial.print(" unrecognized, defaulting to YDLIDAR X4");
+//    lds = new LDS_YDLIDAR_X4();
+    lds = &ydlidar_x4;
   }
   Serial.println();
   
@@ -915,7 +904,8 @@ void setupLDS() {
   lds->setErrorCallback(lds_error_callback);
 
   Serial.print("LDS RX buffer size "); // default 128 hw + 256 sw
-  Serial.print(LdSerial.setRxBufferSize(1024)); // must be before .begin()
+  Serial.flush();
+  Serial.print(LdSerial.setRxBufferSize(cfg.LDS_SERIAL_RX_BUF_LEN)); // before .begin()
   uint32_t baud_rate = lds->getSerialBaudRate();
   Serial.print(", baud rate ");
   Serial.println(baud_rate);
