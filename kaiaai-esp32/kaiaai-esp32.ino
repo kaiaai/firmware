@@ -52,8 +52,6 @@
 CONFIG cfg;
 PARAM_FILE params(cfg.getParamNames(), cfg.getParamValues(), cfg.PARAM_COUNT); // temp hack
 DriveController drive;
-LDS_LDS02RR lds02rr;
-LDS_YDLIDAR_X4 ydlidar_x4;
 LDS *lds;
 
 rcl_publisher_t telem_pub;
@@ -265,13 +263,13 @@ void setup() {
     return;
   }
 
+  setupLDS();
+
   set_microros_wifi_transports(params.get(cfg.PARAM_DEST_IP),
     String(params.get(cfg.PARAM_DEST_PORT)).toInt());
   //Serial.println("After set_microros_wifi_transports()");
 
   delay(2000);
-
-  setupLDS();
 
   initRos();
   logMsgInfo((char*)"Micro-ROS initialized");
@@ -884,17 +882,14 @@ void setupLDS() {
   Serial.print(model);
 
   if (strcmp(model, "LDS02RR") == 0) {
-    lds = &lds02rr;
-//    lds = new LDS_LDS02RR();
-//    lds = &ulds.lds02rr;
+    lds = new LDS_LDS02RR();
   } else {
     if (strcmp(model, "YDLIDAR X4") != 0)
       Serial.print(" unrecognized, defaulting to YDLIDAR X4");
-//    lds = new LDS_YDLIDAR_X4();
-    lds = &ydlidar_x4;
+    lds = new LDS_YDLIDAR_X4();
   }
   Serial.println();
-  
+    
   lds->setScanPointCallback(lds_scan_point_callback);
   lds->setPacketCallback(lds_packet_callback);
   lds->setSerialWriteCallback(lds_serial_write_callback);
@@ -902,6 +897,7 @@ void setupLDS() {
   lds->setMotorPinCallback(lds_motor_pin_callback);
   lds->setInfoCallback(lds_info_callback);
   lds->setErrorCallback(lds_error_callback);
+  lds->init();
 
   Serial.print("LDS RX buffer size "); // default 128 hw + 256 sw
   Serial.flush();
