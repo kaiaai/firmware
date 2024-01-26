@@ -33,7 +33,7 @@ public:
   static const uint8_t MOT_CW_RIGHT_PIN = 25;
   static const uint8_t MOT_FG_RIGHT_PIN = 35; // was 27
 
-  static const uint8_t RESET_SETTINGS_HOLD_SEC = 10; // Hold BOOT button to reset WiFi
+  static const uint32_t RESET_SETTINGS_HOLD_MS = 10000; // Hold BOOT button to reset WiFi
   static const int LDS_MOTOR_SPEED_DEFAULT = -1; // tristate YDLidar X4 SCTP pin for default motor speed
   static const uint8_t LDS_MOTOR_PWM_CHANNEL = 2; // ESP32 PWM channel for LDS motor speed control
 

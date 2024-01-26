@@ -148,8 +148,9 @@ button {
 	  document.getElementById('wheel_base').value = wheel_base[idx];
 	  document.getElementById('max_wheel_accel').value = max_wheel_accel[idx];
 	} else if (id === 'motor_model_div' && !is_custom) {
-      const motor_max_rpm = [200, 260, 450, 245, 408];
-      const wheel_ppr = [270, 204, 120, 630, 127.8];
+      const motor_max_rpm = [200, 245, 260, 408, 450];
+      const wheel_ppr = [270, 630, 204, 127.8, 120];
+
 	  document.getElementById('motor_max_rpm').value = motor_max_rpm[idx];
 	  document.getElementById('wheel_ppr').value = wheel_ppr[idx];
 	}
@@ -208,16 +209,16 @@ button {
 			<label for="lds_model">Laser sensor</label>
 			<select name="lds_model" id="lds_model" required>
 				<option value="YDLIDAR X4">YDLIDAR X4</option>
-				<option value="LDS02RR">Xiaomi 1st gen LDS02RR</option>
+				<option value="LDS02RR">Xiaomi Mi LDS02RR</option>
 			</select>
 			<br>
 			<label for="motor_model">Motor model</label>
 			<select name="motor_model" id="motor_model" required onchange="populateProps('motor_model_div', this);">
 				<option value="200_270">CHR-GM25-BL2418 200RPM 270PPR</option>
-				<option value="260_204">CHR-GM25-BL2418 260RPM 204PPR</option>
-				<option value="450_120">CHR-GM25-BL2418 450RPM 120PPR</option>
 				<option value="245_630">JGA25-BL2418 245RPM 630PPR</option>
+				<option value="260_204">CHR-GM25-BL2418 260RPM 204PPR</option>
 				<option value="408_127.8">JGA25-BL2418 408RPM 127.8PPR</option>
+				<option value="450_120">CHR-GM25-BL2418 450RPM 120PPR</option>
 				<option value="CUSTOM">CUSTOM RPM, PPR</option>
 			</select>
 

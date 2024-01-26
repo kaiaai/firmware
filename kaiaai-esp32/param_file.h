@@ -71,9 +71,9 @@ public:
 
     bool success = true;
     for (uint16_t i = 0; i < len; i++) {
-      Serial.print(param_name[i]);
-      Serial.print("=");
-      Serial.println(param_value[i]);
+      //Serial.print(param_name[i]);
+      //Serial.print("=");
+      //Serial.println(param_value[i]);
       success = success && file.print(param_name[i]);
       success = success && file.print('\n');
       success = success && file.print(param_value[i]);
@@ -110,9 +110,9 @@ public:
 
     int16_t idx = nameToIndex(pname);
     if (idx < 0) {
-      Serial.print("Parameter ");
-      Serial.print(pname);
-      Serial.println(" not found in setByName()");
+      //Serial.print("Parameter ");
+      //Serial.print(pname);
+      //Serial.println(" not found in setByName()");
       return false;
     }
     return set(idx, pvalue);
@@ -125,9 +125,9 @@ public:
     }
     //Serial.print(param_idx);
     //Serial.print(" ");
-    Serial.print(param_name[param_idx]);
-    Serial.print("=");
-    Serial.println(pvalue);
+    //Serial.print(param_name[param_idx]);
+    //Serial.print("=");
+    //Serial.println(pvalue);
 
     param_value[param_idx] = String(pvalue);
       

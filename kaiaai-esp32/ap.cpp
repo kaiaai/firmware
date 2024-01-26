@@ -17,7 +17,7 @@
 
 #include "ap.h"
 
-void AP::obtainConfig(void (*callback)(), const char * SSID_AP,
+void AP::obtainConfig(const char * SSID_AP,
   set_param_t set_param_callback) {
   if (set_param_callback == NULL) {
     Serial.println("AP::obtainConfig() set_param_callback == NULL");
@@ -47,7 +47,7 @@ void AP::obtainConfig(void (*callback)(), const char * SSID_AP,
   
   server.on("/", HTTP_POST, [](AsyncWebServerRequest *request) {
     String resp = "<HTML><BODY>"
-      "<center><h1><br>Connecting to your router...</h1>";
+      "<center><h1><br>Connecting to your router...</h1><p><table>";
 
     int params = request->params();
     for (int i=0; i < params; i++) {
@@ -55,15 +55,15 @@ void AP::obtainConfig(void (*callback)(), const char * SSID_AP,
       if (p->isPost()) {
         //Serial.printf("POST[%s]: %s\n", p->name().c_str(), p->value().c_str());
         param_callback(p->name().c_str(), p->value().c_str());
-        resp += "<p>";
+        resp += "<tr><td>";
         resp += p->name();
-        resp += ": ";
+        resp += "</td><td>";
         resp += p->value();
-        resp += "</p>";
+        resp += "</td></tr>";
       }
     }
 
-    resp += "</center></BODY></HTML>";
+    resp += "</table></p></center></BODY></HTML>";
     request->send(200, CHAR_ENCODING, resp);
 
     unsigned long ms = millis();
@@ -74,7 +74,7 @@ void AP::obtainConfig(void (*callback)(), const char * SSID_AP,
 
   server.begin();
   while(true) {
-    callback();
+    //callback();
     yield();
   }
 }

@@ -235,7 +235,7 @@ void logInfo(char* msg) {
 void delaySpin(unsigned long msec) {
   unsigned long time_msec = millis();
   while(millis() - time_msec < msec) {
-    spinResetSettings();
+    //spinResetSettings();
     yield();
   }
 }
@@ -245,7 +245,11 @@ void setup() {
 
   pinMode(cfg.LED_PIN, OUTPUT);
   digitalWrite(cfg.LED_PIN, HIGH);
-  
+
+  delay(1000);
+  if (isBootButtonPressed(cfg.RESET_SETTINGS_HOLD_MS))
+    resetSettings();
+
   if (!params.init())
     blink_error_code(cfg.ERR_SPIFFS_INIT);
 
@@ -254,8 +258,7 @@ void setup() {
     digitalWrite(cfg.LED_PIN, HIGH);
 
     AP ap;
-    ap.obtainConfig(spinResetSettings, // does not return
-      params.get(cfg.PARAM_ROBOT_MODEL_NAME), set_param_callback);
+    ap.obtainConfig(params.get(cfg.PARAM_ROBOT_MODEL_NAME), set_param_callback);
     return;
   }
 
@@ -272,7 +275,7 @@ void setup() {
     String(params.get(cfg.PARAM_DEST_PORT)).toInt());
 
   delay(2000);
-  
+
   initRos();
   logMsgInfo((char*)"Micro-ROS initialized");
   
@@ -501,7 +504,7 @@ static inline bool initWiFi(String ssid, String passw) {
     digitalWrite(cfg.LED_PIN, LOW);
     Serial.print('.'); // Don't use F('.'), it crashes code!!
     delay(250);
-    spinResetSettings();
+    //spinResetSettings();
   }
 
   digitalWrite(cfg.LED_PIN, LOW);
@@ -717,14 +720,10 @@ void loop() {
 
   spinTelem(false);
   spinPing();
-  spinResetSettings();
+  //spinResetSettings();
   updateSpeedRamp(); // update ramp less frequently?
   drive.update();
 }
-
-unsigned int reset_settings_check_period_ms = 1000; // Check once a second
-unsigned char button_pressed_seconds = 0;
-unsigned long reset_settings_prev_check_time_ms = 0;
 
 void resetSettings() {
   Serial.println("** Resetting settings **");
@@ -735,19 +734,21 @@ void resetSettings() {
   ESP.restart();
 }
 
-void spinResetSettings() {
-  unsigned long time_now_ms = millis();
-  unsigned long step_time_ms = time_now_ms - reset_settings_prev_check_time_ms;
+bool isBootButtonPressed(uint32_t msec) {
+  if (!digitalRead(0))
+    Serial.println("BOOT button pressed. Keep pressing for factory reset.");
+  else
+    return false;
 
-  if (step_time_ms >= reset_settings_check_period_ms) {
-
-    bool button_pressed = !digitalRead(0);
-    if (button_pressed && button_pressed_seconds > cfg.RESET_SETTINGS_HOLD_SEC)
-      resetSettings();
-
-    button_pressed_seconds = button_pressed ? button_pressed_seconds + 1 : 0;
-    reset_settings_prev_check_time_ms = time_now_ms;
+  unsigned long start_time_ms = millis();
+  while (!digitalRead(0)) {
+    delay(50);
+    digitalWrite(cfg.LED_PIN, !digitalRead(cfg.LED_PIN));
+    if (millis() - start_time_ms > msec) {
+      return true;
+    }
   }
+  return false;
 }
 
 void resetTelemMsg() {
@@ -925,9 +926,9 @@ void blink_error_code(int n_blinks) {
     blink(cfg.SHORT_BLINK_MS, n_blinks);
     delay(cfg.LONG_BLINK_PAUSE_MS);
 
-    while(!digitalRead(0)) {
-      spinResetSettings();
-    }
+    //while(!digitalRead(0)) {
+    //  spinResetSettings();
+    //}
   }
 }
 
