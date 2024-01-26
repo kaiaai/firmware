@@ -235,7 +235,6 @@ void logInfo(char* msg) {
 void delaySpin(unsigned long msec) {
   unsigned long time_msec = millis();
   while(millis() - time_msec < msec) {
-    //spinResetSettings();
     yield();
   }
 }
@@ -247,8 +246,10 @@ void setup() {
   digitalWrite(cfg.LED_PIN, HIGH);
 
   delay(1000);
-  if (isBootButtonPressed(cfg.RESET_SETTINGS_HOLD_MS))
+  if (isBootButtonPressed(cfg.RESET_SETTINGS_HOLD_MS)) {
+    params.init();
     resetSettings();
+  }
 
   if (!params.init())
     blink_error_code(cfg.ERR_SPIFFS_INIT);
@@ -261,18 +262,26 @@ void setup() {
     ap.obtainConfig(params.get(cfg.PARAM_ROBOT_MODEL_NAME), set_param_callback);
     return;
   }
-
+  Serial.println("Before setupLDS()");
+  delay(20);
   setupLDS();
+  Serial.println("After setupLDS()");
+  delay(20);
 
   drive.setMaxRPM(String(params.get(cfg.PARAM_MOTOR_MAX_RPM)).toFloat());
   drive.setEncoderPPR(String(params.get(cfg.PARAM_WHEEL_PPR)).toFloat());
+  Serial.println("After drive.set*()");
+  delay(20);
 
   cfg.setWheelDia(params.get(cfg.PARAM_WHEEL_DIA_MM));  
   cfg.setMaxWheelAccel(params.get(cfg.PARAM_MAX_WHEEL_ACCEL));  
   cfg.setWheelBase(params.get(cfg.PARAM_WHEEL_BASE_MM));
+  Serial.println("After cfg.set*()");
+  delay(20);
 
   set_microros_wifi_transports(params.get(cfg.PARAM_DEST_IP),
     String(params.get(cfg.PARAM_DEST_PORT)).toInt());
+  Serial.println("After set_microros_wifi_transports()");
 
   delay(2000);
 
@@ -296,7 +305,10 @@ bool set_param_callback(const char * param_name, const char * param_value) {
     return params.setByName(param_name, param_value);
 
   params.save();
+  Serial.println("Parameters saved");
+  delay(100);
   ESP.restart();
+
   return false;
 }
 
@@ -494,7 +506,7 @@ static inline bool initWiFi(String ssid, String passw) {
   unsigned long startMillis = millis();
 
   while (WiFi.status() != WL_CONNECTED) {
-    if (millis() - startMillis >= cfg.WIFI_CONN_TIMEOUT_SEC*1000) {
+    if (millis() - startMillis >= cfg.WIFI_CONN_TIMEOUT_MS) {
       Serial.println(" timed out");
       return false;
     }
@@ -504,12 +516,11 @@ static inline bool initWiFi(String ssid, String passw) {
     digitalWrite(cfg.LED_PIN, LOW);
     Serial.print('.'); // Don't use F('.'), it crashes code!!
     delay(250);
-    //spinResetSettings();
   }
 
   digitalWrite(cfg.LED_PIN, LOW);
-  Serial.println(F(" connected"));
-  Serial.print(F("IP "));
+  Serial.println(" connected");
+  Serial.print("IP ");
   Serial.println(WiFi.localIP());
   return true;
 }
@@ -720,7 +731,6 @@ void loop() {
 
   spinTelem(false);
   spinPing();
-  //spinResetSettings();
   updateSpeedRamp(); // update ramp less frequently?
   drive.update();
 }
@@ -728,8 +738,9 @@ void loop() {
 void resetSettings() {
   Serial.println("** Resetting settings **");
   params.purge();
-  blink(cfg.LONG_BLINK_MS, 5);
+  digitalWrite(cfg.LED_PIN, HIGH);
   Serial.flush();
+  delay(5000);
 
   ESP.restart();
 }
@@ -875,10 +886,18 @@ void lds_error_callback(LDS::result_t code, String aux_info) {
 }
 
 void setupLDS() {
+  Serial.println("setupLDS()");
+  delay(20);
   const char * model = params.get(cfg.PARAM_LDS_MODEL);
-  if (strcmp(model, "YDLIDAR X4") == 0)
+  Serial.println(model);
+  delay(20);
+  if (strcmp(model, "YDLIDAR X4") == 0) {
+    Serial.println("new LDS_YDLIDAR_X4");
+    delay(20);
     lds = new LDS_YDLIDAR_X4();
-  else if (strcmp(model, "LDS02RR") == 0)
+  } else if (strcmp(model, "LDS02RR") == 0)
+    Serial.println("new LDS02RR");
+    delay(20);
     lds = new LDS_LDS02RR();
   else {
     Serial.print("setupLDS() invalid LDS model name ");
@@ -925,10 +944,6 @@ void blink_error_code(int n_blinks) {
     delay(cfg.SHORT_BLINK_PAUSE_MS);
     blink(cfg.SHORT_BLINK_MS, n_blinks);
     delay(cfg.LONG_BLINK_PAUSE_MS);
-
-    //while(!digitalRead(0)) {
-    //  spinResetSettings();
-    //}
   }
 }
 

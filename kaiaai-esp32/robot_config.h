@@ -132,7 +132,7 @@ public:
   static const uint32_t LDS_MOTOR_PWM_FREQ = 10000;
   static const uint8_t LDS_MOTOR_PWM_BITS = 11; // was 8
 
-  static const uint32_t WIFI_CONN_TIMEOUT_SEC = 30;
+  static const uint32_t WIFI_CONN_TIMEOUT_MS = 30000;
 
 public:
   // Hack  

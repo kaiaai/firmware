@@ -162,7 +162,7 @@ public:
     return -1;
   }
   
-  void purge() {
-    SPIFFS.remove(FILE_PATH);
+  bool purge() {
+    return SPIFFS.remove(FILE_PATH);
   }
 };
