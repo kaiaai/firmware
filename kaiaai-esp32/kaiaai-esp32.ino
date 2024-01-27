@@ -153,14 +153,14 @@ void twist_sub_callback(const void *msgin) {
     ramp_target_rpm_left = twist_target_rpm_left;
   }
 
-  Serial.print("linear.x ");
-  Serial.print(msg->linear.x, 3);
-  Serial.print(", angular.z ");
-  Serial.print(msg->angular.z, 3);
-  Serial.print("; target RPM R ");
-  Serial.print(ramp_target_rpm_right);
-  Serial.print(" L ");
-  Serial.println(ramp_target_rpm_left);
+  //Serial.print("linear.x ");
+  //Serial.print(msg->linear.x, 3);
+  //Serial.print(", angular.z ");
+  //Serial.print(msg->angular.z, 3);
+  //Serial.print("; target RPM R ");
+  //Serial.print(ramp_target_rpm_right);
+  //Serial.print(" L ");
+  //Serial.println(ramp_target_rpm_left);
 
   if (!ramp_enabled) {
     setMotorSpeeds(ramp_target_rpm_right, ramp_target_rpm_left);
@@ -192,10 +192,10 @@ void twist_sub_callback(const void *msgin) {
 }
 
 void setMotorSpeeds(float ramp_target_rpm_right, float ramp_target_rpm_left) {
-  Serial.print("setRPM() ");
-  Serial.print(ramp_target_rpm_right);
-  Serial.print(" ");
-  Serial.println(ramp_target_rpm_left);
+  //Serial.print("setRPM() ");
+  //Serial.print(ramp_target_rpm_right);
+  //Serial.print(" ");
+  //Serial.println(ramp_target_rpm_left);
 
   drive.setRPM(drive.MOTOR_RIGHT, ramp_target_rpm_right);
   drive.setRPM(drive.MOTOR_LEFT, ramp_target_rpm_left);
@@ -260,7 +260,7 @@ void setup() {
   delay(2000);
 
   initRos();
-  logMsgInfo((char*)"Micro-ROS initialized");
+  Serial.println("Micro-ROS initialized");
   
   if (startLDS() != LDS::RESULT_OK)
     blink_error_code(cfg.ERR_LDS_START);
@@ -271,7 +271,8 @@ void setup() {
     cfg.MOT_FG_LEFT_PIN, cfg.MOT_FG_RIGHT_PIN);
 
   drive.resetEncoders();
-  drive.setMaxRPM(String(params.get(cfg.PARAM_MOTOR_MAX_RPM)).toFloat());
+  drive.setMaxRPM(String(params.get(cfg.PARAM_MOTOR_MAX_RPM)).toFloat()
+    * cfg.MOTOR_MAX_RPM_DERATE);
   drive.setEncoderPPR(String(params.get(cfg.PARAM_WHEEL_PPR)).toFloat());
 
   cfg.setWheelDia(params.get(cfg.PARAM_WHEEL_DIA_MM));  
@@ -284,7 +285,7 @@ bool set_param_callback(const char * param_name, const char * param_value) {
     return params.setByName(param_name, param_value);
 
   params.save();
-  Serial.println("Parameters saved");
+  Serial.println("Parameters saved, restarting..");
   delay(100);
   ESP.restart();
 
@@ -361,7 +362,7 @@ static inline void initRos() {
   //RCCHECK(rclc_parameter_server_init_default(&param_server, &node), cfg.ERR_UROS_PARAM);
   temp_rc = rclc_parameter_server_init_with_option(&param_server, &node, &rclc_param_options);
   if (temp_rc != RCL_RET_OK) {
-    Serial.print("Micro-ROS parameter server init failed.");
+    Serial.println("Micro-ROS parameter server init failed.");
     Serial.println("Make sure micro_ros_kaia library version is latest.");
     error_loop(cfg.ERR_UROS_PARAM);
   }
@@ -420,12 +421,8 @@ static inline void initRos() {
 bool on_param_changed(const Parameter * old_param, const Parameter * new_param, void * context) {
   (void) context;
 
-  if (old_param == NULL && new_param == NULL) {
-    Serial.println("old_param == NULL");
-    return false;
-  }
-  if (new_param == NULL) {
-    Serial.println("new_param == NULL");
+  if (old_param == NULL || new_param == NULL) {
+    Serial.println("old_param == NULL || new_param == NULL");
     return false;
   }
 
@@ -796,9 +793,9 @@ void syncRosTime() {
   }
 }
 
-static inline void logMsgInfo(char* msg) {
-  logMsg(msg, rcl_interfaces__msg__Log__INFO);
-}
+//static inline void logMsgInfo(char* msg) {
+//  logMsg(msg, rcl_interfaces__msg__Log__INFO);
+//}
 
 void logMsg(char* msg, uint8_t severity_level) {
   if (WiFi.status() != WL_CONNECTED) {

@@ -85,6 +85,7 @@ public:
   static const uint32_t SHORT_BLINK_MS = 200;
   static const uint32_t SHORT_BLINK_PAUSE_MS = 500;
   static const uint32_t SPIN_TELEM_STATS = 100;
+  static constexpr float MOTOR_MAX_RPM_DERATE = 0.9;
 
   // Micro-ROS config
   static const uint32_t UROS_CLIENT_KEY = 0xCA1AA100;

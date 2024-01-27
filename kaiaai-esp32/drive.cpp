@@ -145,13 +145,10 @@ void DriveController::init(
 }
 
 bool DriveController::setRPM(uint8_t motorID, float rpm) {
-  if (motorID >= MOTOR_COUNT)
+  if (motorID >= MOTOR_COUNT || targetRPM[motorID] == rpm)
     return false;
 
-  if (targetRPM[motorID] == rpm || rpm < 0)
-    return false;
-
-  bool within_limit = (rpm <= maxRPM);
+  bool within_limit = (abs(rpm) <= maxRPM);
   rpm = within_limit ? rpm : maxRPM;
 
   targetRPM[motorID] = rpm;
@@ -197,13 +194,6 @@ void DriveController::setPWM(uint8_t motorID, float value) {
 
   CW[motorID] = cw;
   PWM[motorID] = pwm;
-
-  Serial.print("setPWM() motor ");
-  Serial.print(motorID);
-  Serial.print(" ");
-  Serial.print(pwm);
-  Serial.print(" ");
-  Serial.println(cw);
 }
 
 void DriveController::resetEncoders() {

@@ -38,7 +38,7 @@ class DriveController {
     static const uint16_t PWM_MAX = (1<<PWM_BITS);  // 1024; TODO 1023?
 
     // Chihai Motor CHR-GM25-BL2418 24V 200RPM max, 145RPM rated, 45 gear ratio, 6 PPR
-    static const uint16_t DEFAULT_MOTOR_MAX_RPM = 200*0.9;  // no-load, derated
+    static constexpr float DEFAULT_MOTOR_MAX_RPM = 200*0.9;  // no-load, derated
     // encoder pulses per gearbox shaft revolution
     // WHEEL_ENCODER_PPR = (MOTOR_GEAR_RATIO*MOTOR_ENCODER_PPR)
     static constexpr float DEFAULT_WHEEL_ENCODER_PPR = 45.0*6;
