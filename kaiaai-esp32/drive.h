@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// TODO avoid divisions
+// TODO try float PID
 #pragma once
 
 #include <math.h>
@@ -20,7 +22,6 @@
 
 class DriveController {
   public:
-    typedef void (*logFuncT)(char*);
     enum motors {
       MOTOR_LEFT = 0,
       MOTOR_RIGHT = 1,
@@ -46,15 +47,15 @@ class DriveController {
     //DriveController(uint8_t pwm_left_pin, uint8_t pwm_right_pin,
     //  uint8_t cw_left_pin, uint8_t cw_right_pin,
     //  uint8_t fg_left_pin, uint8_t fg_right_pin);
-    void initOnce(logFuncT logFunc, uint8_t pwm_left_pin,
-      uint8_t pwm_right_pin, uint8_t cw_left_pin, uint8_t cw_right_pin,
+    void init(uint8_t pwm_left_pin, uint8_t pwm_right_pin,
+      uint8_t cw_left_pin, uint8_t cw_right_pin,
       uint8_t fg_left_pin, uint8_t fg_right_pin);
-    bool setRPM(unsigned char motorID, float rpm);
+    bool setRPM(uint8_t motorID, float rpm);
     void resetEncoders();
     void update();
-    float getShaftAngle(unsigned char motorID);
+    float getShaftAngle(uint8_t motorID);
     void setPIDUpdatePeriod(float period);
-    void setPWM(unsigned char motorID, float pwm);
+    void setPWM(uint8_t motorID, float pwm);
     void enablePID(bool en);
     void setMaxRPM(float rpm);
     void setEncoderPPR(float ppr);
@@ -65,13 +66,13 @@ class DriveController {
     void setProportionalMode(bool onMeasurement);
     void setPWMFreq(unsigned short int freq);
 
-    double getCurrentRPM(unsigned char motorID);
-    double getTargetRPM(unsigned char motorID);
-    float getCurrentPWM(unsigned char motorID);
+    double getCurrentRPM(uint8_t motorID);
+    double getTargetRPM(uint8_t motorID);
+    float getCurrentPWM(uint8_t motorID);
     float getMaxRPM();
 
   private:
-    PID *pid[MOTOR_COUNT];
+    PID pid[MOTOR_COUNT];
     unsigned int pidUpdatePeriodUs;
     unsigned long tickSampleTimePrev;
     unsigned long tickSampleTimeDelta;
@@ -92,5 +93,4 @@ class DriveController {
     uint8_t cwPin[MOTOR_COUNT];
 
     bool switchingCw[MOTOR_COUNT];
-    logFuncT logDebug;
 };

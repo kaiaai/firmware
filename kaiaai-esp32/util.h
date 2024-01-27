@@ -19,6 +19,7 @@
 
 void blink(unsigned int delay_ms, unsigned int count);
 float absMin(float a, float b_abs);
+void delaySpin(unsigned long msec);
 void printCurrentTime();
 void twistToWheelSpeeds(float speed_lin_x, float speed_ang_z,
   float *speed_right, float *speed_left);

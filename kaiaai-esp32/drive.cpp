@@ -32,7 +32,7 @@ void IRAM_ATTR encRightIsr() {
     encoder[DriveController::MOTOR_RIGHT]--;
 }
 
-float DriveController::getShaftAngle(unsigned char motorID) {
+float DriveController::getShaftAngle(uint8_t motorID) {
   if (motorID < MOTOR_COUNT)
     return TWO_PI * encoder[motorID] / encoderTPR;
   return 0;
@@ -40,12 +40,11 @@ float DriveController::getShaftAngle(unsigned char motorID) {
 
 void DriveController::setPIDUpdatePeriod(float period) {
   pidUpdatePeriodUs = (unsigned int) round(period * 1e6);
-  //  pid[motorID]->SetReferenceSampleTime(period);  // unnecessary in PID library
 }
 
 void DriveController::enablePID(bool en) {
   for (uint8_t motorID = 0; motorID < MOTOR_COUNT; motorID++)
-    pid[motorID]->enable(en);
+    pid[motorID].enable(en);
 }
 
 void DriveController::setMaxRPM(float rpm) {
@@ -64,39 +63,37 @@ void DriveController::setEncoderPPR(float ppr) {
 
 void DriveController::setKp(float kp) {
   for (uint8_t motorID = 0; motorID < MOTOR_COUNT; motorID++) {
-    PID * pid_ = pid[motorID];
-    pid_->SetTunings(kp, pid_->GetKi(), pid_->GetKd());
+    pid[motorID].SetTunings(kp, pid[motorID].GetKi(),
+      pid[motorID].GetKd());
   }
 }
 
 void DriveController::setKi(float ki) {
   for (uint8_t motorID = 0; motorID < MOTOR_COUNT; motorID++) {
-    PID * pid_ = pid[motorID];
-    pid_->SetTunings(pid_->GetKp(), ki, pid_->GetKd());
+    pid[motorID].SetTunings(pid[motorID].GetKp(), ki,
+      pid[motorID].GetKd());
   }
 }
 
 void DriveController::setKd(float kd) {
   for (uint8_t motorID = 0; motorID < MOTOR_COUNT; motorID++) {
-    PID * pid_ = pid[motorID];
-    pid_->SetTunings(pid_->GetKp(), pid_->GetKi(), kd);
+    pid[motorID].SetTunings(pid[motorID].GetKp(),
+      pid[motorID].GetKi(), kd);
   }
 }
 
 void DriveController::setProportionalMode(bool onMeasurement) {
   for (uint8_t motorID = 0; motorID < MOTOR_COUNT; motorID++) {    
-    PID * pid_ = pid[motorID];
-    pid_->SetTunings(pid_->GetKp(), pid_->GetKi(), pid_->GetKd(),
+    pid[motorID].SetTunings(pid[motorID].GetKp(),
+      pid[motorID].GetKi(), pid[motorID].GetKd(),
       onMeasurement ? PID::P_ON_M : PID::P_ON_E);
   }
 }
 
-//void DriveController::initOnce(logFuncT logFunc) {
-void DriveController::initOnce(logFuncT logFunc, uint8_t pwm_left_pin,
-  uint8_t pwm_right_pin, uint8_t cw_left_pin, uint8_t cw_right_pin,
+void DriveController::init(
+  uint8_t pwm_left_pin, uint8_t pwm_right_pin,
+  uint8_t cw_left_pin, uint8_t cw_right_pin,
   uint8_t fg_left_pin, uint8_t fg_right_pin) {
-
-  logDebug = logFunc;
 
   pwmPin[MOTOR_LEFT] = pwm_left_pin;
   pwmPin[MOTOR_RIGHT] = pwm_right_pin;
@@ -105,7 +102,7 @@ void DriveController::initOnce(logFuncT logFunc, uint8_t pwm_left_pin,
   cwPin[MOTOR_RIGHT] = cw_right_pin;
 
   // Encoders
-  pinMode(fg_left_pin, INPUT); // INPUT_PULLUP
+  pinMode(fg_left_pin, INPUT);
   attachInterrupt(fg_left_pin, encLeftIsr, CHANGE);
 
   pinMode(fg_right_pin, INPUT);
@@ -129,11 +126,15 @@ void DriveController::initOnce(logFuncT logFunc, uint8_t pwm_left_pin,
     setPointHasChanged[motorID] = false;
     switchingCw[motorID] = false;
     
-    // https://playground.arduino.cc/Code/PIDLibrary/
-    pid[motorID] = new PID(&measuredRPM[motorID], &pidPWM[motorID], &targetRPM[motorID],
+    // https://www.arduino.cc/reference/en/libraries/pid_timed/
+    //pid[motorID] = new PID(&measuredRPM[motorID], &pidPWM[motorID], &targetRPM[motorID],
+    //  DEFAULT_PID_KP_WHEEL, DEFAULT_PID_KI_WHEEL, DEFAULT_PID_KD_WHEEL,
+    //  DEFAULT_PID_UPDATE_PERIOD, DEFAULT_PID_MODE, PID::DIRECT);
+    pid[motorID].Init(&measuredRPM[motorID], &pidPWM[motorID], &targetRPM[motorID],
       DEFAULT_PID_KP_WHEEL, DEFAULT_PID_KI_WHEEL, DEFAULT_PID_KD_WHEEL,
       DEFAULT_PID_UPDATE_PERIOD, DEFAULT_PID_MODE, PID::DIRECT);
-    pid[motorID]->SetOutputLimits(-1, 1);
+    
+    pid[motorID].SetOutputLimits(-1, 1);
 
     PWM[motorID] = 1; // force update
     setPWM(motorID, 0);
@@ -143,8 +144,8 @@ void DriveController::initOnce(logFuncT logFunc, uint8_t pwm_left_pin,
   enablePID(true);
 }
 
-bool DriveController::setRPM(unsigned char motorID, float rpm) {
-  if (motorID >= MOTOR_COUNT) // TODO print log error
+bool DriveController::setRPM(uint8_t motorID, float rpm) {
+  if (motorID >= MOTOR_COUNT)
     return false;
 
   if (targetRPM[motorID] == rpm || rpm < 0)
@@ -161,11 +162,10 @@ bool DriveController::setRPM(unsigned char motorID, float rpm) {
 void DriveController::setPWMFreq(uint16_t freq) {
   for (uint8_t motorID = 0; motorID < MOTOR_COUNT; motorID++)
     // channels 0-15, resolution 1-16 bits, freq limits depend on resolution
-    //ledcSetup(pwmMotChannel[motorID], freq, PWM_BITS);
     ledcSetup(motorID, freq, PWM_BITS);
 }
 
-void DriveController::setPWM(unsigned char motorID, float value) {
+void DriveController::setPWM(uint8_t motorID, float value) {
   if (motorID >= MOTOR_COUNT)
     return;
 
@@ -198,13 +198,16 @@ void DriveController::setPWM(unsigned char motorID, float value) {
   CW[motorID] = cw;
   PWM[motorID] = pwm;
 
-  //char logMsg[100];
-  //sprintf(logMsg, "Motor %d PWM %d CW %d", motorID, pwm, cw);
-  //logDebug(logMsg);
+  Serial.print("setPWM() motor ");
+  Serial.print(motorID);
+  Serial.print(" ");
+  Serial.print(pwm);
+  Serial.print(" ");
+  Serial.println(cw);
 }
 
 void DriveController::resetEncoders() {
-  for (unsigned char motorID = 0; motorID < MOTOR_COUNT; motorID++)
+  for (uint8_t motorID = 0; motorID < MOTOR_COUNT; motorID++)
     encoder[motorID] = 0;
 }
 /*
@@ -228,7 +231,7 @@ DriveController::DriveController() {
 // NB BLDC motor has a built-in feature that shuts motor off after stall timeout
 void DriveController::update() {
   bool anySetPointHasChanged = false;
-  for (unsigned char motorID = 0; motorID < MOTOR_COUNT; motorID++)
+  for (uint8_t motorID = 0; motorID < MOTOR_COUNT; motorID++)
     anySetPointHasChanged |= setPointHasChanged[motorID];
   
   unsigned long tickTime = esp_timer_get_time();
@@ -242,8 +245,7 @@ void DriveController::update() {
   // TODO fix threads-and-iterrupts race condition
   // TODO move into ESP32 timer? or disable interrupts?
   // https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/system/esp_timer.html
-  unsigned char motorID;
-  for (motorID = 0; motorID < MOTOR_COUNT; motorID++) {
+  for (uint8_t motorID = 0; motorID < MOTOR_COUNT; motorID++) {
     long int encNow = encoder[motorID];
     encDelta[motorID] = encNow - encPrev[motorID];    
     encPrev[motorID] = encNow;
@@ -254,7 +256,7 @@ void DriveController::update() {
 
 // TODO maybe uncomment
 //    if (targetRPM[motorID] == 0)
-//        pid[motorID]->clearErrorIntegral();
+//        pid[motorID].clearErrorIntegral();
     setPointHasChanged[motorID] = false;
 
     if (encDelta[motorID] == 0)
@@ -265,13 +267,13 @@ void DriveController::update() {
       targetRPM[MOTOR_RIGHT] == 0 && measuredRPM[MOTOR_RIGHT] == 0) {
       
       // Prevent wheels from twitching or slowly turning after stop
-      pid[MOTOR_LEFT]->clearErrorIntegral();
-      pid[MOTOR_RIGHT]->clearErrorIntegral();
+      pid[MOTOR_LEFT].clearErrorIntegral();
+      pid[MOTOR_RIGHT].clearErrorIntegral();
   }
   
   double sampleTime = tickSampleTimeDelta * 1e-6;
-  for (motorID = 0; motorID < MOTOR_COUNT; motorID++) {
-    pid[motorID]->Compute(sampleTime);
+  for (uint8_t motorID = 0; motorID < MOTOR_COUNT; motorID++) {
+    pid[motorID].Compute(sampleTime);
 
     // Brushless motor hard-brakes when PWM == 0
 //    if (brakingEnabled[motorID] && targetRPM[motorID] == 0)
@@ -284,19 +286,19 @@ void DriveController::update() {
   }
 }
 
-double DriveController::getCurrentRPM(unsigned char motorID) {
+double DriveController::getCurrentRPM(uint8_t motorID) {
   if (motorID >= MOTOR_COUNT)
     return 0;
   return measuredRPM[motorID];
 }
 
-double DriveController::getTargetRPM(unsigned char motorID) {
+double DriveController::getTargetRPM(uint8_t motorID) {
   if (motorID >= MOTOR_COUNT)
     return 0;
   return targetRPM[motorID];
 }
 
-float DriveController::getCurrentPWM(unsigned char motorID) {
+float DriveController::getCurrentPWM(uint8_t motorID) {
   if (motorID >= MOTOR_COUNT)
     return 0;
   return float(PWM[motorID]) / PWM_MAX;

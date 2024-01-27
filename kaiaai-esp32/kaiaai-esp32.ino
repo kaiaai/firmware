@@ -192,10 +192,10 @@ void twist_sub_callback(const void *msgin) {
 }
 
 void setMotorSpeeds(float ramp_target_rpm_right, float ramp_target_rpm_left) {
-  //Serial.print("setRPM() ");
-  //Serial.print(ramp_target_rpm_right);
-  //Serial.print(" ");
-  //Serial.println(ramp_target_rpm_left);
+  Serial.print("setRPM() ");
+  Serial.print(ramp_target_rpm_right);
+  Serial.print(" ");
+  Serial.println(ramp_target_rpm_left);
 
   drive.setRPM(drive.MOTOR_RIGHT, ramp_target_rpm_right);
   drive.setRPM(drive.MOTOR_LEFT, ramp_target_rpm_left);
@@ -228,17 +228,6 @@ void updateSpeedRamp() {
   setMotorSpeeds(rpm_right, rpm_left);
 }
 
-void logInfo(char* msg) {
-  Serial.println(msg);
-}
-
-void delaySpin(unsigned long msec) {
-  unsigned long time_msec = millis();
-  while(millis() - time_msec < msec) {
-    yield();
-  }
-}
-
 void setup() {
   Serial.begin(115200);
 
@@ -267,7 +256,6 @@ void setup() {
 
   set_microros_wifi_transports(params.get(cfg.PARAM_DEST_IP),
     String(params.get(cfg.PARAM_DEST_PORT)).toInt());
-  //Serial.println("After set_microros_wifi_transports()");
 
   delay(2000);
 
@@ -278,7 +266,7 @@ void setup() {
     blink_error_code(cfg.ERR_LDS_START);
     //error_loop(cfg.ERR_LDS_START);
   
-  drive.initOnce(logInfo, cfg.MOT_PWM_LEFT_PIN, cfg.MOT_PWM_RIGHT_PIN,
+  drive.init(cfg.MOT_PWM_LEFT_PIN, cfg.MOT_PWM_RIGHT_PIN,
     cfg.MOT_CW_LEFT_PIN, cfg.MOT_CW_RIGHT_PIN,
     cfg.MOT_FG_LEFT_PIN, cfg.MOT_FG_RIGHT_PIN);
 

@@ -14,6 +14,13 @@
 
 #include "util.h"
 
+void delaySpin(unsigned long msec) {
+  unsigned long time_msec = millis();
+  while(millis() - time_msec < msec) {
+    yield();
+  }
+}
+
 float absMin(float a, float b_abs) {
   float a_abs = abs(a);
   float min_abs = min(a_abs, b_abs);

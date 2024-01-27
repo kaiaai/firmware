@@ -37,36 +37,6 @@ public:
   static const int LDS_MOTOR_SPEED_DEFAULT = -1; // tristate YDLidar X4 SCTP pin for default motor speed
   static const uint8_t LDS_MOTOR_PWM_CHANNEL = 2; // ESP32 PWM channel for LDS motor speed control
 
-// Chihai Motor CHR-GM25-BL2418 24V 200RPM max
-//#define MOTOR_MAX_RPM              200  // no-load
-//#define MOTOR_RATED_RPM            145
-//#define MOTOR_GEAR_RATIO           45.0 // gearbox reduction ratio
-//#define MOTOR_ENCODER_PPR          6    // pulses per revolution
-
-// Chihai Motor CHR-GM25-BL2418 24V 260RPM max
-//#define MOTOR_MAX_RPM              200  // no-load
-//#define MOTOR_RATED_RPM            190
-//#define MOTOR_GEAR_RATIO           34.0 // gearbox reduction ratio
-//#define MOTOR_ENCODER_PPR          6    // pulses per revolution
-
-// Chihai Motor CHR-GM25-BL2418 24V 450 RPM max
-//#define MOTOR_MAX_RPM              450  // no-load
-//#define MOTOR_RATED_RPM            325
-//#define MOTOR_GEAR_RATIO           20.0 // gearbox reduction ratio
-//#define MOTOR_ENCODER_PPR          6    // pulses per revolution
-
-// Far Along JGA25-BL2418 24V 245RPM max
-//#define MOTOR_MAX_RPM              245  // no-load
-//#define MOTOR_RATED_RPM            185
-//#define MOTOR_GEAR_RATIO           35.0 // gearbox reduction ratio
-//#define MOTOR_ENCODER_PPR          18   // pulses per revolution
-
-// AliExpress China motor store JGA25-BL2418 24V 408RPM max
-//#define MOTOR_MAX_RPM              408  // no-load
-//#define MOTOR_RATED_RPM            308
-//#define MOTOR_GEAR_RATIO           21.3 // gearbox reduction ratio
-//#define MOTOR_ENCODER_PPR          6    // pulses per revolution; TODO check  
-
   enum param_name_index {
     PARAM_SSID = 0,
     PARAM_PASS = 1,
@@ -152,23 +122,31 @@ public:
   String * getParamValues() {
     return param_value;
   }
-  
+
+  // Hack
   void setWheelDia(const char * wheel_dia_mm_str) {
     float wheel_dia = String(wheel_dia_mm_str).toFloat()*0.001;
     
     wheel_radius = wheel_dia * 0.5;
     wheel_perim_len_div60 = PI * wheel_dia / 60;
     wheel_perim_len_div60_recip = 1/wheel_perim_len_div60;
+
+    Serial.print("setWheelDia() ");
+    Serial.println(wheel_dia);
   }
   
   void setMaxWheelAccel(const char * max_wheel_accel_str) {
     float max_wheel_accel = String(max_wheel_accel_str).toFloat();
     speed_diff_to_us = 1e6/max_wheel_accel;
+    Serial.print("setMaxWheelAccel() ");
+    Serial.println(max_wheel_accel);
   }
   
   void setWheelBase(const char * wheel_base_mm_str) {
     float wheel_base = String(wheel_base_mm_str).toFloat()*0.001;
     wheel_base_recip = 1/wheel_base;
+    Serial.print("setWheelBase() ");
+    Serial.println(wheel_base);
   }
   
   // Hack
