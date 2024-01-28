@@ -8,6 +8,9 @@
 </a>
 
 ## Release notes
+1/28/2024
+- added YDLIDAR X2
+  - requires libraries LDS v0.3.1, PID_Timed v1.1.2, micro_ros_kaia 2.0.7-rolling.3, ESPAsyncWebSrv v1.2.7
 
 1/21/2024
 - updated to match PID_Timed v1.1.0 library
