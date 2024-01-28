@@ -1,6 +1,6 @@
 # Kaia.ai platform robot firmware
 This repo contains:
-- Arduino [ESP32 robot firmware]](/kaiaai-esp32/) for the ESP32 breakout board
+- Arduino [ESP32 robot firmware](/kaiaai-esp32/) for the ESP32 breakout board
 - Robot's [lower body extension module firmware](/kaiaai-pico-body/)
 - Robot's [head extension module firmware](/kaiaai-pico-head/)
 
@@ -16,4 +16,5 @@ Once you have uploaded firmware (and the sketch data) to your Kaia.ai-compatible
 - configure your robot and its WiFi connection by selecting the robot model, its laser sensor and motor models
 
 This [blog post](https://kaia.ai/blog/arduino-platform-firmware-avaiable/) discusses the configuration in more detail.
+
 ![kaiaai_robot_configurator](https://github.com/kaiaai/firmware/assets/33589365/5961c7df-7ed7-460d-80ae-b7148ed91a66)
