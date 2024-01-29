@@ -608,7 +608,7 @@ void calcOdometry(unsigned long step_time_us, float joint_pos_delta_right,
 
 void lds_scan_point_callback(float angle_deg, float distance_mm, float quality,
   bool scan_completed) {
-  return;
+//  return;
 
   static int i=0;
 
@@ -627,6 +627,9 @@ void lds_scan_point_callback(float angle_deg, float distance_mm, float quality,
 
 void lds_packet_callback(uint8_t * packet, uint16_t packet_length, bool scan_completed) {
 
+  //Serial.print(packet_length);
+  //Serial.print(' ');
+  //Serial.println(scan_completed);
   bool packet_sent = false;
   while (packet_length-- > 0) {
     if (telem_msg.lds.size >= telem_msg.lds.capacity) {
@@ -638,7 +641,7 @@ void lds_packet_callback(uint8_t * packet, uint16_t packet_length, bool scan_com
   }
 
   if (scan_completed && !packet_sent)
-    spinTelem(true); // Opional: reduce lag a little
+    spinTelem(true); // Opional, reduce lag a little
 }
 
 void lds_motor_pin_callback(float value, LDS::lds_pin_t lds_pin) {
@@ -871,9 +874,13 @@ void setupLDS() {
     if (strcmp(model, "YDLIDAR X2") == 0) {
       lds = new LDS_YDLIDAR_X2();
     } else {
-      if (strcmp(model, "YDLIDAR X4") != 0)
-        Serial.print(" unrecognized, defaulting to YDLIDAR X4");
-      lds = new LDS_YDLIDAR_X4();
+      if (strcmp(model, "YDLIDAR X3 PRO") == 0) {
+        lds = new LDS_YDLIDAR_X3_PRO();
+      } else {
+        if (strcmp(model, "YDLIDAR X4") != 0)
+          Serial.print(" unrecognized, defaulting to YDLIDAR X4");
+        lds = new LDS_YDLIDAR_X4();
+      }
     }
   }
   Serial.println();
