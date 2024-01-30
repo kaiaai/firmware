@@ -92,6 +92,22 @@ size_t lds_serial_write_callback(const uint8_t * buffer, size_t length) {
 }
 
 int lds_serial_read_callback() {
+/*
+  static int i=0;
+
+  int c = LdSerial.read();
+  if (c < 0)
+    return c;
+
+  if (c < 16)
+    Serial.print('0');
+  Serial.print(c, HEX);
+  if (i++ % 16 == 0)
+    Serial.println();
+  else
+  Serial.print(' ');
+  return c;
+*/
   return LdSerial.read();
 }
 
@@ -608,7 +624,7 @@ void calcOdometry(unsigned long step_time_us, float joint_pos_delta_right,
 
 void lds_scan_point_callback(float angle_deg, float distance_mm, float quality,
   bool scan_completed) {
-//  return;
+  return;
 
   static int i=0;
 
@@ -640,7 +656,7 @@ void lds_packet_callback(uint8_t * packet, uint16_t packet_length, bool scan_com
     packet++;
   }
 
-  if (scan_completed && !packet_sent)
+  if (scan_completed && !packet_sent && (telem_msg.lds.size > 0))
     spinTelem(true); // Opional, reduce lag a little
 }
 
@@ -856,7 +872,7 @@ void lds_info_callback(LDS::info_t code, String info) {
 
 void lds_error_callback(LDS::result_t code, String aux_info) {
   if (code != LDS::ERROR_NOT_READY) {
-    Serial.print("LDS error ");
+    Serial.print("LDS ");
     Serial.print(lds->resultCodeToString(code));
     Serial.print(": ");
     Serial.println(aux_info);

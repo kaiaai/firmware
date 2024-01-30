@@ -131,23 +131,16 @@ public:
     wheel_radius = wheel_dia * 0.5;
     wheel_perim_len_div60 = PI * wheel_dia / 60;
     wheel_perim_len_div60_recip = 1/wheel_perim_len_div60;
-
-    Serial.print("setWheelDia() ");
-    Serial.println(wheel_dia);
   }
   
   void setMaxWheelAccel(const char * max_wheel_accel_str) {
     float max_wheel_accel = String(max_wheel_accel_str).toFloat();
     speed_diff_to_us = 1e6/max_wheel_accel;
-    Serial.print("setMaxWheelAccel() ");
-    Serial.println(max_wheel_accel);
   }
   
   void setWheelBase(const char * wheel_base_mm_str) {
     float wheel_base = String(wheel_base_mm_str).toFloat()*0.001;
     wheel_base_recip = 1/wheel_base;
-    Serial.print("setWheelBase() ");
-    Serial.println(wheel_base);
   }
   
   // Hack
