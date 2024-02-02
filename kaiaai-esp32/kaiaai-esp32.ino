@@ -37,7 +37,7 @@
 #include "drive.h"
 #include "ap.h"
 #include "param_file.h"
-#include "LDS_all_models.h"
+#include "lds_all_models.h"
 
 #if !defined(IS_MICRO_ROS_KAIA_MIN_VERSION) || !IS_MICRO_ROS_KAIA_MIN_VERSION(2,0,7,3)
 #error "Please upgrade micro_ros_kaia library version"
@@ -887,18 +887,22 @@ void setupLDS() {
   if (strcmp(model, "NEATO XV11") == 0) {
     lds = new LDS_NEATO_XV11();
   } else {
-    if (strcmp(model, "LDS02RR") == 0) {
-      lds = new LDS_LDS02RR();
+    if (strcmp(model, "RPLIDAR A1") == 0) {
+      lds = new LDS_RPLIDAR_A1();
     } else {
-      if (strcmp(model, "YDLIDAR X2") == 0) {
-        lds = new LDS_YDLIDAR_X2();
+      if (strcmp(model, "LDS02RR") == 0) {
+        lds = new LDS_LDS02RR();
       } else {
-        if (strcmp(model, "YDLIDAR X3 PRO") == 0) {
-          lds = new LDS_YDLIDAR_X3_PRO();
+        if (strcmp(model, "YDLIDAR X2") == 0) {
+          lds = new LDS_YDLIDAR_X2();
         } else {
-          if (strcmp(model, "YDLIDAR X4") != 0)
-            Serial.print(" unrecognized, defaulting to YDLIDAR X4");
-          lds = new LDS_YDLIDAR_X4();
+          if (strcmp(model, "YDLIDAR X3 PRO") == 0) {
+            lds = new LDS_YDLIDAR_X3_PRO();
+          } else {
+            if (strcmp(model, "YDLIDAR X4") != 0)
+              Serial.print(" unrecognized, defaulting to YDLIDAR X4");
+            lds = new LDS_YDLIDAR_X4();
+          }
         }
       }
     }
