@@ -893,15 +893,19 @@ void setupLDS() {
       if (strcmp(model, "LDS02RR") == 0) {
         lds = new LDS_LDS02RR();
       } else {
-        if (strcmp(model, "YDLIDAR X2") == 0) {
-          lds = new LDS_YDLIDAR_X2();
+        if (strcmp(model, "YDLIDAR X2/X2L") == 0) {
+          lds = new LDS_YDLIDAR_X2_X2L();
         } else {
-          if (strcmp(model, "YDLIDAR X3 PRO") == 0) {
-            lds = new LDS_YDLIDAR_X3_PRO();
+          if (strcmp(model, "YDLIDAR X3") == 0) {
+            lds = new LDS_YDLIDAR_X3();
           } else {
-            if (strcmp(model, "YDLIDAR X4") != 0)
-              Serial.print(" unrecognized, defaulting to YDLIDAR X4");
-            lds = new LDS_YDLIDAR_X4();
+            if (strcmp(model, "YDLIDAR X3 PRO") == 0) {
+              lds = new LDS_YDLIDAR_X3_PRO();
+            } else {
+              if (strcmp(model, "YDLIDAR X4") != 0)
+                Serial.print(" not recognized, defaulting to YDLIDAR X4");
+              lds = new LDS_YDLIDAR_X4();
+            }
           }
         }
       }
