@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// TODO make ROS2 properties
+// TODO make ROS2 properties  
 
 #ifndef ESP32
   #error This code runs on ESP32
@@ -332,7 +332,10 @@ static inline void initRos() {
   RCCHECK(rmw_uros_options_set_client_key(cfg.UROS_CLIENT_KEY, rmw_options),
     cfg.ERR_UROS_INIT); // TODO multiple bots
 
-  Serial.print(F("Connecting to Micro-ROS agent ... "));
+  Serial.print(F("Connecting to Micro-ROS agent "));
+  Serial.print(params.get(cfg.PARAM_DEST_IP));
+  Serial.print(" ... ");
+
   //RCCHECK(rclc_support_init(&support, 0, NULL, &allocator), cfg.ERR_UROS_AGENT_CONN);
   //RCCHECK(rclc_support_init_with_options(&support, 0, NULL,
   //  &init_options, &allocator), cfg.ERR_UROS_AGENT_CONN);
@@ -727,7 +730,7 @@ void loop() {
 }
 
 void resetSettings() {
-  Serial.println("** Resetting settings **");
+  Serial.println("** Factory reset **");
   params.purge();
   digitalWrite(cfg.LED_PIN, HIGH);
   Serial.flush();
