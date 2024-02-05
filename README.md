@@ -32,3 +32,9 @@ This [blog post](https://kaia.ai/blog/arduino-platform-firmware-avaiable/) discu
   - Xiaomi Mi 1st gen LDS02RR
   - Neato XV11
   - RPLIDAR A1
+- library verion dependencies
+  - [LDS](https://github.com/kaiaai/LDS) v0.4.0
+  - [ESPAsyncWebSrv](https://github.com/dvarrel/ESPAsyncWebSrv) v1.2.7 (including AsyncTCP, ESPAsyncTCP)
+  - [micro_ros_kaia](https://github.com/kaiaai/micro_ros_arduino_kaiaai/) v2.0.7-rolling.3
+  - [PID_Timed](https://github.com/kaiaai/arduino_pid_library) v1.1.2
+- use Kaia.ai ROS2 image dated 02/04/2024
