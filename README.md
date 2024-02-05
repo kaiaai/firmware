@@ -25,8 +25,7 @@ This [blog post](https://kaia.ai/blog/arduino-platform-firmware-avaiable/) discu
 
 ## Change Log
 
-### v0.1.0
-- initial release
+### v0.2.0
 - list of supported LiDAR/LDS laser distance scan sensors
   - YDLIDAR X4, X3, X3-PRO, X2/X2L
   - Xiaomi Mi 1st gen LDS02RR
@@ -37,4 +36,17 @@ This [blog post](https://kaia.ai/blog/arduino-platform-firmware-avaiable/) discu
   - [ESPAsyncWebSrv](https://github.com/dvarrel/ESPAsyncWebSrv) v1.2.7 (including AsyncTCP, ESPAsyncTCP)
   - [micro_ros_kaia](https://github.com/kaiaai/micro_ros_arduino_kaiaai/) v2.0.7-rolling.3
   - [PID_Timed](https://github.com/kaiaai/arduino_pid_library) v1.1.2
-- use Kaia.ai ROS2 image dated 02/04/2024
+- requires Kaia.ai ROS2 image `kaiaai/kaiaai-ros-dev:humble-02-05-2024` or `kaiaai/kaiaai-ros-dev:iron-02-05-2024`
+
+### v0.1.0
+- initial release
+- supports sensors
+  - YDLIDAR X4, X2/X2L
+  - LDS02RR
+- robot model configuration via web browser
+- requires libraries
+  - [LDS](https://github.com/kaiaai/LDS) v0.3.1
+  - [PID_Timed](https://github.com/kaiaai/arduino_pid_library) v1.1.2
+  - [micro_ros_kaia](https://github.com/kaiaai/micro_ros_arduino_kaiaai/) 2.0.7-rolling.3
+  - [ESPAsyncWebSrv](https://github.com/dvarrel/ESPAsyncWebSrv) v1.2.7
+- requires Kaia.ai ROS2 image `kaiaai/kaiaai-ros-dev:humble-01-28-2024` or `kaiaai/kaiaai-ros-dev:iron-01-28-2024`
