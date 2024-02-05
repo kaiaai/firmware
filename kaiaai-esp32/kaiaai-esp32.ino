@@ -626,26 +626,23 @@ void lds_scan_point_callback(float angle_deg, float distance_mm, float quality,
   bool scan_completed) {
   return;
 
-  static int i=0;
+  static int i = 0;
 
   if ((i++ % 20 == 0) || scan_completed) {
     Serial.print(i);
-    Serial.print(' ');
-    Serial.print(distance_mm);
-    Serial.print(' ');
+    Serial.print('\t');
     Serial.print(angle_deg);
-    if (scan_completed)
-      Serial.println('*');
-    else
+    Serial.print('\t');
+    Serial.print(distance_mm);
+    if (scan_completed) {
+      Serial.print('\t');
+      Serial.println(millis());
+    } else
       Serial.println();
   }
 }
 
 void lds_packet_callback(uint8_t * packet, uint16_t packet_length, bool scan_completed) {
-
-  //Serial.print(packet_length);
-  //Serial.print(' ');
-  //Serial.println(scan_completed);
   bool packet_sent = false;
   while (packet_length-- > 0) {
     if (telem_msg.lds.size >= telem_msg.lds.capacity) {
@@ -941,7 +938,7 @@ LDS::result_t startLDS() {
   Serial.println(lds->resultCodeToString(result));
 
   if (result < 0)
-    Serial.println("WARNING: is LDS connected to ESP32?");
+    Serial.println("Is the LiDAR/LDS connected to ESP32 and powerd up?");
 
   return result;
 }
