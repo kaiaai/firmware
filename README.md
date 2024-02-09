@@ -4,10 +4,14 @@ This repo contains:
 - Robot's [lower body extension module firmware](/kaiaai-pico-body/)
 - Robot's [head extension module firmware](/kaiaai-pico-head/)
 
-TODO how boards are connected
+Please install these Arduino libraries using Arduino Library Manager before compiling the firmware:
+- [micro_ros_kaia](https://github.com/kaiaai/micro_ros_arduino_kaiaai)
+- [LDS](https://github.com/kaiaai/LDS/)
+- [PID_Timed](https://github.com/kaiaai/arduino_pid_timed)
+- [ESPAsyncWebSrv](https://github.com/dvarrel/ESPAsyncWebSrv) including AsyncTCP, ESPAsyncTCP
 
 ## Robot Configuration
-Platform firmware in this repository replaces having separate firmwares - one for each Kaia.ai-compatible robot model - with just one, but configurable.
+Platform firmware in this repository replaces separate firmwares - one for each Kaia.ai-compatible robot model - with a single, configurable one.
 Once you have uploaded firmware (and the sketch data) to your Kaia.ai-compatible robot:
 - wait for your robot to enter the AP (WiFi access point) mode
   - alternatively, force your robot to enter the AP mode by pressing the ESP32 BOOT button for 10+ seconds
@@ -18,3 +22,30 @@ Once you have uploaded firmware (and the sketch data) to your Kaia.ai-compatible
 This [blog post](https://kaia.ai/blog/arduino-platform-firmware-avaiable/) discusses the configuration in more detail.
 
 ![kaiaai_robot_configurator](https://github.com/kaiaai/firmware/assets/33589365/5961c7df-7ed7-460d-80ae-b7148ed91a66)
+
+## Change Log
+
+### v0.2.0
+- added LiDAR/LDS laser distance scan sensors support
+  - YDLIDAR X3, X3-PRO
+  - Neato XV11
+  - RPLIDAR A1
+- library version dependencies
+  - [LDS](https://github.com/kaiaai/LDS) v0.4.0
+  - [ESPAsyncWebSrv](https://github.com/dvarrel/ESPAsyncWebSrv) v1.2.7 (including AsyncTCP, ESPAsyncTCP)
+  - [micro_ros_kaia](https://github.com/kaiaai/micro_ros_arduino_kaiaai/) v2.0.7-rolling.3
+  - [PID_Timed](https://github.com/kaiaai/arduino_pid_library) v1.1.2
+- requires Kaia.ai ROS2 image `kaiaai/kaiaai-ros-dev:humble-02-05-2024` or `kaiaai/kaiaai-ros-dev:iron-02-05-2024`
+
+### v0.1.0
+- initial release
+- supports sensors
+  - YDLIDAR X4, X2/X2L
+  - LDS02RR
+- robot model configuration via web browser
+- requires libraries
+  - [LDS](https://github.com/kaiaai/LDS) v0.3.1
+  - [PID_Timed](https://github.com/kaiaai/arduino_pid_library) v1.1.2
+  - [micro_ros_kaia](https://github.com/kaiaai/micro_ros_arduino_kaiaai/) 2.0.7-rolling.3
+  - [ESPAsyncWebSrv](https://github.com/dvarrel/ESPAsyncWebSrv) v1.2.7
+- requires Kaia.ai ROS2 image `kaiaai/kaiaai-ros-dev:humble-01-28-2024` or `kaiaai/kaiaai-ros-dev:iron-01-28-2024`
