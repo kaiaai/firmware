@@ -168,15 +168,6 @@ void twist_sub_callback(const void *msgin) {
     ramp_target_rpm_left = twist_target_rpm_left;
   }
 
-  //Serial.print("linear.x ");
-  //Serial.print(msg->linear.x, 3);
-  //Serial.print(", angular.z ");
-  //Serial.print(msg->angular.z, 3);
-  //Serial.print("; target RPM R ");
-  //Serial.print(ramp_target_rpm_right);
-  //Serial.print(" L ");
-  //Serial.println(ramp_target_rpm_left);
-
   if (!ramp_enabled) {
     setMotorSpeeds(ramp_target_rpm_right, ramp_target_rpm_left);
     return;
@@ -207,11 +198,6 @@ void twist_sub_callback(const void *msgin) {
 }
 
 void setMotorSpeeds(float ramp_target_rpm_right, float ramp_target_rpm_left) {
-  //Serial.print("setRPM() ");
-  //Serial.print(ramp_target_rpm_right);
-  //Serial.print(" ");
-  //Serial.println(ramp_target_rpm_left);
-
   drive.setRPM(drive.MOTOR_RIGHT, ramp_target_rpm_right);
   drive.setRPM(drive.MOTOR_LEFT, ramp_target_rpm_left);
 }
@@ -902,9 +888,13 @@ void setupLDS() {
             if (strcmp(model, "YDLIDAR X3 PRO") == 0) {
               lds = new LDS_YDLIDAR_X3_PRO();
             } else {
-              if (strcmp(model, "YDLIDAR X4") != 0)
-                Serial.print(" not recognized, defaulting to YDLIDAR X4");
-              lds = new LDS_YDLIDAR_X4();
+              if (strcmp(model, "DELTA 2G") == 0) {
+                lds = new LDS_DELTA_2G();
+              } else {
+                if (strcmp(model, "YDLIDAR X4") != 0)
+                  Serial.print(" not recognized, defaulting to YDLIDAR X4");
+                lds = new LDS_YDLIDAR_X4();
+              }
             }
           }
         }
