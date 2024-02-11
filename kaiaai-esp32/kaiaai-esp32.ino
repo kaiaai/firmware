@@ -86,6 +86,7 @@ bool ramp_enabled = true;
 
 unsigned long stat_sum_spin_telem_period_us = 0;
 unsigned long stat_max_spin_telem_period_us = 0;
+uint16_t serial_tx_buf_len = 0;
 
 size_t lds_serial_write_callback(const uint8_t * buffer, size_t length) {
   return LdSerial.write(buffer, length);
@@ -105,7 +106,7 @@ int lds_serial_read_callback() {
   if (i++ % 16 == 0)
     Serial.println();
   else
-  Serial.print(' ');
+    Serial.print(' ');
   return c;
 */
   return LdSerial.read();
@@ -231,6 +232,7 @@ void updateSpeedRamp() {
 
 void setup() {
   Serial.begin(115200);
+  serial_tx_buf_len = (uint16_t) Serial.availableForWrite();
 
   pinMode(cfg.LED_PIN, OUTPUT);
   digitalWrite(cfg.LED_PIN, HIGH);
@@ -505,6 +507,12 @@ static inline bool initWiFi(String ssid, String passw) {
   return true;
 }
 
+void serialPrintLnNonBlocking(const String s) {
+  uint16_t tx_room = (uint16_t) Serial.availableForWrite();
+  if (tx_room >= s.length())
+    Serial.println(s);
+}
+
 void spinTelem(bool force_pub) {
   static int telem_pub_count = 0;
   unsigned long time_now_us = esp_timer_get_time();
@@ -530,18 +538,18 @@ void spinTelem(bool force_pub) {
   
   // How often telemetry gets published
   if (++telem_pub_count % cfg.SPIN_TELEM_STATS == 0) {
-    Serial.print("spinTelem() period avg ");
-    Serial.print(stat_sum_spin_telem_period_us / (1000*cfg.SPIN_TELEM_STATS));
-    Serial.print(" max ");
-    Serial.print(stat_max_spin_telem_period_us / 1000);
-    Serial.print("ms");
+    String s = "spinTelem() period avg ";
+    s = s + String(stat_sum_spin_telem_period_us / (1000*cfg.SPIN_TELEM_STATS));
+    s = s + " max ";
+    s = s + String(stat_max_spin_telem_period_us / 1000);
+    s = s + "ms";
 
     float rpm = lds->getCurrentScanFreqHz();
     if (rpm >= 0) {
-      Serial.print(", LDS RPM ");
-      Serial.print(rpm);
+      s = s + ", LDS RPM ";
+      s = s + String(rpm);
     }
-    Serial.println();
+    serialPrintLnNonBlocking(s);
 
     stat_sum_spin_telem_period_us = 0;
     stat_max_spin_telem_period_us = 0;
@@ -858,10 +866,11 @@ void lds_info_callback(LDS::info_t code, String info) {
 
 void lds_error_callback(LDS::result_t code, String aux_info) {
   if (code != LDS::ERROR_NOT_READY) {
-    Serial.print("LDS ");
-    Serial.print(lds->resultCodeToString(code));
-    Serial.print(": ");
-    Serial.println(aux_info);
+//    String s = "LDS ";
+//    s = s + String(lds->resultCodeToString(code));
+//    s = s + ": ";
+//    s = s + String(aux_info);
+//    serialPrintLnNonBlocking(s);
   }
 }
 
