@@ -626,8 +626,8 @@ void lds_scan_point_callback(float angle_deg, float distance_mm, float quality,
   static int i = 0;
 
   if ((i++ % 20 == 0) || scan_completed) {
-    Serial.print(i);
-    Serial.print('\t');
+    //Serial.print(i);
+    //Serial.print('\t');
     Serial.print(angle_deg);
     Serial.print('\t');
     Serial.print(distance_mm);
