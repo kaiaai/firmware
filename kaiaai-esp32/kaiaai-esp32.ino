@@ -866,11 +866,11 @@ void lds_info_callback(LDS::info_t code, String info) {
 
 void lds_error_callback(LDS::result_t code, String aux_info) {
   if (code != LDS::ERROR_NOT_READY) {
-//    String s = "LDS ";
-//    s = s + String(lds->resultCodeToString(code));
-//    s = s + ": ";
-//    s = s + String(aux_info);
-//    serialPrintLnNonBlocking(s);
+    String s = "LDS ";
+    s = s + String(lds->resultCodeToString(code));
+    s = s + ": ";
+    s = s + String(aux_info);
+    serialPrintLnNonBlocking(s);
   }
 }
 
