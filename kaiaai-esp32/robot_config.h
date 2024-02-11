@@ -21,6 +21,7 @@
 
 class CONFIG {
 public:
+  static constexpr char* FW_VERSION = (char*)"0.3.0";
   // ESP32 pin assignment
   static const uint8_t LED_PIN = 2; // ESP32 on-board LED
   static const uint8_t LDS_MOTOR_PWM_PIN = 15; // LDS motor speed control using PWM

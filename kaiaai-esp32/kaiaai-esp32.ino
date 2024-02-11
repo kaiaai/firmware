@@ -86,7 +86,6 @@ bool ramp_enabled = true;
 
 unsigned long stat_sum_spin_telem_period_us = 0;
 unsigned long stat_max_spin_telem_period_us = 0;
-uint16_t serial_tx_buf_len = 0;
 
 size_t lds_serial_write_callback(const uint8_t * buffer, size_t length) {
   return LdSerial.write(buffer, length);
@@ -232,10 +231,13 @@ void updateSpeedRamp() {
 
 void setup() {
   Serial.begin(115200);
-  serial_tx_buf_len = (uint16_t) Serial.availableForWrite();
 
   pinMode(cfg.LED_PIN, OUTPUT);
   digitalWrite(cfg.LED_PIN, HIGH);
+
+  Serial.println();
+  Serial.print("Kaia.ai firmware version ");
+  Serial.println(cfg.FW_VERSION);
 
   delay(1000);
   if (isBootButtonPressed(cfg.RESET_SETTINGS_HOLD_MS)) {
