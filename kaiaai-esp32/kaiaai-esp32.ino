@@ -905,9 +905,13 @@ void setupLDS() {
                 if (strcmp(model, "DELTA 2A") == 0) {
                   lds = new LDS_DELTA_2A();
                 } else {
-                  if (strcmp(model, "YDLIDAR X4") != 0)
-                    Serial.print(" not recognized, defaulting to YDLIDAR X4");
-                  lds = new LDS_YDLIDAR_X4();
+                  if (strcmp(model, "LD14P") == 0) {
+                    lds = new LDS_LDLIDAR_LD14P();
+                  } else {
+                    if (strcmp(model, "YDLIDAR X4") != 0)
+                      Serial.print(" not recognized, defaulting to YDLIDAR X4");
+                    lds = new LDS_YDLIDAR_X4();
+                  }
                 }
               }
             }
