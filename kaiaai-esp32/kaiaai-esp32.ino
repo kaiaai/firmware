@@ -870,8 +870,11 @@ void lds_error_callback(LDS::result_t code, String aux_info) {
   if (code != LDS::ERROR_NOT_READY) {
     String s = "LDS ";
     s = s + String(lds->resultCodeToString(code));
-    s = s + ": ";
-    s = s + String(aux_info);
+
+    if (aux_info.length() > 0) {
+      s = s + ": ";
+      s = s + String(aux_info);
+    }
     serialPrintLnNonBlocking(s);
   }
 }
@@ -884,7 +887,7 @@ void setupLDS() {
   if (strcmp(model, "NEATO XV11") == 0) {
     lds = new LDS_NEATO_XV11();
   } else {
-    if (strcmp(model, "RPLIDAR A1") == 0) {
+    if (strcmp(model, "SLAMTEC RPLIDAR A1") == 0) {
       lds = new LDS_RPLIDAR_A1();
     } else {
       if (strcmp(model, "LDS02RR") == 0) {
@@ -899,13 +902,13 @@ void setupLDS() {
             if (strcmp(model, "YDLIDAR X3 PRO") == 0) {
               lds = new LDS_YDLIDAR_X3_PRO();
             } else {
-              if (strcmp(model, "DELTA 2G") == 0) {
+              if (strcmp(model, "3IROBOTIX DELTA 2G") == 0) {
                 lds = new LDS_DELTA_2G();
               } else {
-                if (strcmp(model, "DELTA 2A") == 0) {
+                if (strcmp(model, "3IROBOTIX DELTA 2A") == 0) {
                   lds = new LDS_DELTA_2A();
                 } else {
-                  if (strcmp(model, "LD14P") == 0) {
+                  if (strcmp(model, "LDLIDAR LD14P") == 0) {
                     lds = new LDS_LDLIDAR_LD14P();
                   } else {
                     if (strcmp(model, "YDLIDAR X4") != 0)
@@ -929,7 +932,6 @@ void setupLDS() {
   lds->setMotorPinCallback(lds_motor_pin_callback);
   lds->setInfoCallback(lds_info_callback);
   lds->setErrorCallback(lds_error_callback);
-  lds->init();
 
   Serial.print("LDS RX buffer size "); // default 128 hw + 256 sw
   Serial.flush();
@@ -939,7 +941,8 @@ void setupLDS() {
   Serial.println(baud_rate);
 
   LdSerial.begin(baud_rate);
-  while (LdSerial.read() >= 0);  
+  lds->init();
+  //while (LdSerial.read() >= 0);  
 
   lds->stop();
 }
