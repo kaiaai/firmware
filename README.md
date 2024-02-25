@@ -10,6 +10,11 @@ Please install these Arduino libraries using Arduino Library Manager before comp
 - [PID_Timed](https://github.com/kaiaai/arduino_pid_timed)
 - [ESPAsyncWebSrv](https://github.com/dvarrel/ESPAsyncWebSrv) including AsyncTCP, ESPAsyncTCP
 
+## Firmware setup video
+<a href="http://www.youtube.com/watch?feature=player_embedded&v=XOc5kCE3MC0" target="_blank">
+ <img src="http://img.youtube.com/vi/XOc5kCE3MC0/maxresdefault.jpg" alt="Robot Arduino firmware, ROS2/Docker PC setup instructions video" width="720" height="405" border="10" />
+</a>
+
 ## Robot Configuration
 Platform firmware in this repository replaces separate firmwares - one for each Kaia.ai-compatible robot model - with a single, configurable one.
 Once you have uploaded firmware (and the sketch data) to your Kaia.ai-compatible robot:
