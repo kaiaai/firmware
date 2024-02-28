@@ -7,10 +7,36 @@
  <img src="http://img.youtube.com/vi/XOc5kCE3MC0/maxresdefault.jpg" alt="Watch the one-time PC setup, firmware upload instructions video" width="720" height="405" border="10" />
 </a>
 
-## Release notes
-1/28/2024
-- added YDLIDAR X2
-  - requires libraries LDS v0.3.1, PID_Timed v1.1.2, micro_ros_kaia 2.0.7-rolling.3, ESPAsyncWebSrv v1.2.7
+## Change Log
+v0.4.0 - in debug
+- moved from KaiaaiTelemetry to KaiaaiTelemetry2 message
+- added LDROBOT LD14P laser distance scan sensor
+
+v0.3.0
+- added 3irobotix Delta-2A, Delta-2G
+- library version dependencies
+  - [LDS](https://github.com/kaiaai/LDS) v0.5.0
+  - [ESPAsyncWebSrv](https://github.com/dvarrel/ESPAsyncWebSrv) v1.2.7 (including AsyncTCP, ESPAsyncTCP)
+  - [micro_ros_kaia](https://github.com/kaiaai/micro_ros_arduino_kaiaai/) v2.0.7-rolling.3
+  - [PID_Timed](https://github.com/kaiaai/arduino_pid_library) v1.1.2
+- requires Kaia.ai ROS2 image `kaiaai/kaiaai-ros-dev:humble-02-11-2024` or `kaiaai/kaiaai-ros-dev:iron-02-11-2024`
+
+v0.2.0
+- added LiDAR/LDS laser distance scan sensors support
+  - YDLIDAR X3, X3-PRO
+  - Neato XV11
+  - RPLIDAR A1
+- library version dependencies
+  - [LDS](https://github.com/kaiaai/LDS) v0.4.0
+  - [ESPAsyncWebSrv](https://github.com/dvarrel/ESPAsyncWebSrv) v1.2.7 (including AsyncTCP, ESPAsyncTCP)
+  - [micro_ros_kaia](https://github.com/kaiaai/micro_ros_arduino_kaiaai/) v2.0.7-rolling.3
+  - [PID_Timed](https://github.com/kaiaai/arduino_pid_library) v1.1.2
+- requires Kaia.ai ROS2 image `kaiaai/kaiaai-ros-dev:humble-02-05-2024` or `kaiaai/kaiaai-ros-dev:iron-02-05-2024`
+
+v0.1.0
+- supports YDLIDAR X4, LDS02RR, YDLIDAR X2/X2L
+- robot model configuration via web browser
+- requires libraries LDS v0.3.1, PID_Timed v1.1.2, micro_ros_kaia 2.0.7-rolling.3, ESPAsyncWebSrv v1.2.7
 
 1/21/2024
 - updated to match PID_Timed v1.1.0 library

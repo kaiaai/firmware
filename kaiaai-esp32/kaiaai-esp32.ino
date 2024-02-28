@@ -28,7 +28,7 @@
 #include <rcl/error_handling.h>
 #include <rclc/rclc.h>
 #include <rclc/executor.h>
-#include <kaiaai_msgs/msg/kaiaai_telemetry.h>
+#include <kaiaai_msgs/msg/kaiaai_telemetry2.h>
 #include <geometry_msgs/msg/twist.h>
 #include <rcl_interfaces/msg/log.h>
 #include <rmw_microros/rmw_microros.h>
@@ -39,7 +39,7 @@
 #include "param_file.h"
 #include "lds_all_models.h"
 
-#if !defined(IS_MICRO_ROS_KAIA_MIN_VERSION) || !IS_MICRO_ROS_KAIA_MIN_VERSION(2,0,7,3)
+#if !defined(IS_MICRO_ROS_KAIA_MIN_VERSION) || !IS_MICRO_ROS_KAIA_MIN_VERSION(2,0,7,4)
 #error "Please upgrade micro_ros_kaia library version"
 #endif
 
@@ -56,7 +56,7 @@ LDS *lds;
 rcl_publisher_t telem_pub;
 rcl_publisher_t log_pub;
 rcl_subscription_t twist_sub;
-kaiaai_msgs__msg__KaiaaiTelemetry telem_msg;
+kaiaai_msgs__msg__KaiaaiTelemetry2 telem_msg;
 geometry_msgs__msg__Twist twist_msg;
 rclc_support_t support;
 rcl_allocator_t allocator;
@@ -349,7 +349,7 @@ static inline void initRos() {
     cfg.UROS_CMD_VEL_TOPIC_NAME), cfg.ERR_UROS_PUBSUB);
 
   RCCHECK(rclc_publisher_init_best_effort(&telem_pub, &node,
-    ROSIDL_GET_MSG_TYPE_SUPPORT(kaiaai_msgs, msg, KaiaaiTelemetry),
+    ROSIDL_GET_MSG_TYPE_SUPPORT(kaiaai_msgs, msg, KaiaaiTelemetry2),
     cfg.UROS_TELEM_TOPIC_NAME), cfg.ERR_UROS_PUBSUB);
 
   RCCHECK(rclc_publisher_init_default(&log_pub, &node,
