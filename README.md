@@ -30,10 +30,10 @@ This [blog post](https://kaia.ai/blog/arduino-platform-firmware-avaiable/) discu
 
 ## Change Log
 ### v0.4.0 - in debug
-- kaiaai_telemetry
-  - switched to KaiaTelemetry2 message from KaiaTelemetry
-  - publish /battery_state
-  - publish /wifi_state RSSI
+- switched to KaiaTelemetry2 message from KaiaTelemetry
+  - added WiFi RSSI telemetry
+  - added battery voltage telemetry
+- added LDROBOT LD14P
 
 ### v0.3.0
 - added 3irobotix Delta-2A, Delta-2G
