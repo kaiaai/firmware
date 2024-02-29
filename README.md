@@ -29,6 +29,11 @@ This [blog post](https://kaia.ai/blog/arduino-platform-firmware-avaiable/) discu
 ![kaiaai_robot_configurator](https://github.com/kaiaai/firmware/assets/33589365/5961c7df-7ed7-460d-80ae-b7148ed91a66)
 
 ## Change Log
+### v0.4.0 - in debug
+- kaiaai_telemetry
+  - switched to KaiaTelemetry2 message from KaiaTelemetry
+  - publish /battery_state
+  - publish /wifi_state RSSI
 
 ### v0.3.0
 - added 3irobotix Delta-2A, Delta-2G
