@@ -12,19 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Based on
+// https://github.com/espressif/arduino-esp32/blob/1.0.4/cores/esp32/esp32-hal-adc.c#L159-L217
+
 #pragma once
+#include <Arduino.h>
 
-#include <arduino.h>
-#include "robot_config.h"
-//#include "esp32-hal.h"
+class ESP32AsyncADC {
+protected:
+  static const uint8_t __analogWidth = 3; //12 bits
+  static const uint8_t __analogReturnedWidth = 12; // Width of returned answer
 
-void blink(unsigned int delay_ms, unsigned int count);
-float absMin(float a, float b_abs);
-void delaySpin(unsigned long msec);
-void printCurrentTime();
-void twistToWheelSpeeds(float speed_lin_x, float speed_ang_z,
-  float *speed_right, float *speed_left);
-void delayYield(unsigned long msec);
-const String micro_ros_error_string(int err);
-
-const String reset_reason_to_string(int reason, bool verbose=false);
+public:
+  static bool IRAM_ATTR adcStart(uint8_t pin);
+  static bool IRAM_ATTR adcBusy(uint8_t pin);
+  static uint16_t IRAM_ATTR adcEnd(uint8_t pin);
+};

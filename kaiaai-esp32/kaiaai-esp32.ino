@@ -38,6 +38,8 @@
 #include "ap.h"
 #include "param_file.h"
 #include "lds_all_models.h"
+#include "esp_adc_cal.h"
+#include "esp32_async_adc.h"
 
 #if !defined(IS_MICRO_ROS_KAIA_MIN_VERSION) || !IS_MICRO_ROS_KAIA_MIN_VERSION(2,0,7,4)
 #error "Please upgrade micro_ros_kaia library version"
@@ -86,6 +88,8 @@ bool ramp_enabled = true;
 
 unsigned long stat_sum_spin_telem_period_us = 0;
 unsigned long stat_max_spin_telem_period_us = 0;
+
+esp_adc_cal_characteristics_t adc_chars;
 
 size_t lds_serial_write_callback(const uint8_t * buffer, size_t length) {
   return LdSerial.write(buffer, length);
@@ -257,6 +261,7 @@ void setup() {
     return;
   }
 
+  setupADC();
   setupLDS();
 
   set_microros_wifi_transports(params.get(cfg.PARAM_DEST_IP),
@@ -283,6 +288,41 @@ void setup() {
   cfg.setWheelDia(params.get(cfg.PARAM_WHEEL_DIA_MM));  
   cfg.setMaxWheelAccel(params.get(cfg.PARAM_MAX_WHEEL_ACCEL));  
   cfg.setWheelBase(params.get(cfg.PARAM_WHEEL_BASE_MM));
+}
+
+void setupADC() {
+
+  if (!adcAttachPin(cfg.BAT_ADC_PIN))
+    Serial.println("adcAttachPin() FAILED");
+
+  esp_adc_cal_value_t val_type = esp_adc_cal_characterize(ADC_UNIT_1,
+    ADC_ATTEN_DB_11, ADC_WIDTH_BIT_12, 1100, &adc_chars);
+
+  Serial.print("ADC calibration: ");
+  switch (val_type) {
+    case ESP_ADC_CAL_VAL_EFUSE_VREF:
+      Serial.println("eFuse Vref");
+      break;
+    case ESP_ADC_CAL_VAL_EFUSE_TP:
+      Serial.println("Two Point");
+      break;
+    default:
+      Serial.println("None");
+  }
+  unsigned int adc_value = analogRead(cfg.BAT_ADC_PIN);
+  uint32_t voltage_mv = esp_adc_cal_raw_to_voltage(adc_value, &adc_chars);
+  voltage_mv *= cfg.BAT_ADC_MULTIPLIER;
+
+  Serial.print("Battery ");
+  if (adc_value == 0) {
+    Serial.println("NOT detected");
+    Serial.println("Is the battery connected? Is the power switch on?");
+  } else {
+    Serial.print("voltage ");
+    Serial.print(voltage_mv*0.001f);
+    Serial.println("V");
+  }
+  ESP32AsyncADC::adcStart(cfg.BAT_ADC_PIN);
 }
 
 bool set_param_callback(const char * param_name, const char * param_value) {
@@ -551,6 +591,9 @@ void spinTelem(bool force_pub) {
       s = s + ", LDS RPM ";
       s = s + String(rpm);
     }
+
+    s = s + ", battery " + String(telem_msg.battery_mv*0.001f) + "V";
+    s = s + ", RSSI " + String(telem_msg.wifi_rssi_dbm) + "dBm";
     serialPrintLnNonBlocking(s);
 
     stat_sum_spin_telem_period_us = 0;
@@ -566,6 +609,25 @@ void publishTelem(unsigned long step_time_us) {
 
   float joint_pos_delta[drive.MOTOR_COUNT];
   float step_time = 1e-6 * (float)step_time_us;
+
+  long rssi_dbm = WiFi.RSSI();
+  rssi_dbm = rssi_dbm > 127 ? 127 : rssi_dbm;
+  rssi_dbm = rssi_dbm < -128 ? -128 : rssi_dbm;
+  telem_msg.wifi_rssi_dbm = (int8_t) rssi_dbm;
+
+  //if (ESP32AsyncADC::adcBusy(cfg.BAT_ADC_PIN))
+  //  Serial.println("adcBusy()");
+  unsigned int adc_value = ESP32AsyncADC::adcEnd(cfg.BAT_ADC_PIN);
+  //unsigned int adc_value = analogRead(cfg.BAT_ADC_PIN);
+  uint32_t voltage_mv = esp_adc_cal_raw_to_voltage(adc_value, &adc_chars);
+  voltage_mv = adc_value == 0 ? 0 : voltage_mv*cfg.BAT_ADC_MULTIPLIER;
+  telem_msg.battery_mv = (uint16_t) voltage_mv;
+  ESP32AsyncADC::adcStart(cfg.BAT_ADC_PIN);
+
+  //Serial.print(rssi_dbm);
+  //Serial.print("dbm, ");
+  //Serial.print(voltage_mv);
+  //Serial.println("mV");
 
   for (unsigned char i = 0; i < drive.MOTOR_COUNT; i++) {
     joint_pos[i]  = drive.getShaftAngle(i);
@@ -698,11 +760,8 @@ void spinPing() {
   if (step_time_us >= ping_pub_period_us) {
     // timeout_ms, attempts
     rmw_ret_t rc = rmw_uros_ping_agent(1, 1);
-    //int battery_level = analogRead(cfg.BAT_ADC_PIN);
-    //Serial.print("Battery level ");
-    //Serial.println(battery_level);
     ping_prev_pub_time_us = time_now_us;
-    Serial.println(rc == RCL_RET_OK ? "Ping OK" : "Ping error");
+    //Serial.println(rc == RCL_RET_OK ? "Ping OK" : "Ping error");
   }
 }
 

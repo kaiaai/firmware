@@ -38,6 +38,8 @@ public:
   static const int LDS_MOTOR_SPEED_DEFAULT = -1; // tristate YDLidar X4 SCTP pin for default motor speed
   static const uint8_t LDS_MOTOR_PWM_CHANNEL = 2; // ESP32 PWM channel for LDS motor speed control
 
+  static const uint8_t BAT_ADC_MULTIPLIER = 21; // resistor divider reciprocal
+
   enum param_name_index {
     PARAM_SSID = 0,
     PARAM_PASS = 1,
