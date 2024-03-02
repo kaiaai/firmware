@@ -39,7 +39,6 @@
 #include "param_file.h"
 #include "lds_all_models.h"
 #include "esp_adc_cal.h"
-#include "esp32_async_adc.h"
 
 #if !defined(IS_MICRO_ROS_KAIA_MIN_VERSION) || !IS_MICRO_ROS_KAIA_MIN_VERSION(2,0,7,4)
 #error "Please upgrade micro_ros_kaia library version"
@@ -309,6 +308,7 @@ void setupADC() {
     default:
       Serial.println("None");
   }
+  Serial.println(analogReadMilliVolts(cfg.BAT_ADC_PIN));
   unsigned int adc_value = analogRead(cfg.BAT_ADC_PIN);
   uint32_t voltage_mv = esp_adc_cal_raw_to_voltage(adc_value, &adc_chars);
   voltage_mv *= cfg.BAT_ADC_MULTIPLIER;
@@ -322,7 +322,6 @@ void setupADC() {
     Serial.print(voltage_mv*0.001f);
     Serial.println("V");
   }
-  ESP32AsyncADC::adcStart(cfg.BAT_ADC_PIN);
 }
 
 bool set_param_callback(const char * param_name, const char * param_value) {
@@ -615,14 +614,10 @@ void publishTelem(unsigned long step_time_us) {
   rssi_dbm = rssi_dbm < -128 ? -128 : rssi_dbm;
   telem_msg.wifi_rssi_dbm = (int8_t) rssi_dbm;
 
-  //if (ESP32AsyncADC::adcBusy(cfg.BAT_ADC_PIN))
-  //  Serial.println("adcBusy()");
-  unsigned int adc_value = ESP32AsyncADC::adcEnd(cfg.BAT_ADC_PIN);
-  //unsigned int adc_value = analogRead(cfg.BAT_ADC_PIN);
+  unsigned int adc_value = analogRead(cfg.BAT_ADC_PIN);
   uint32_t voltage_mv = esp_adc_cal_raw_to_voltage(adc_value, &adc_chars);
   voltage_mv = adc_value == 0 ? 0 : voltage_mv*cfg.BAT_ADC_MULTIPLIER;
   telem_msg.battery_mv = (uint16_t) voltage_mv;
-  ESP32AsyncADC::adcStart(cfg.BAT_ADC_PIN);
 
   //Serial.print(rssi_dbm);
   //Serial.print("dbm, ");
@@ -761,7 +756,7 @@ void spinPing() {
     // timeout_ms, attempts
     rmw_ret_t rc = rmw_uros_ping_agent(1, 1);
     ping_prev_pub_time_us = time_now_us;
-    //Serial.println(rc == RCL_RET_OK ? "Ping OK" : "Ping error");
+    Serial.println(rc == RCL_RET_OK ? "Ping OK" : "Ping error");
   }
 }
 
