@@ -38,7 +38,6 @@
 #include "ap.h"
 #include "param_file.h"
 #include "lds_all_models.h"
-#include "esp_adc_cal.h"
 
 #if !defined(IS_MICRO_ROS_KAIA_MIN_VERSION) || !IS_MICRO_ROS_KAIA_MIN_VERSION(2,0,7,4)
 #error "Please upgrade micro_ros_kaia library version"
@@ -87,8 +86,6 @@ bool ramp_enabled = true;
 
 unsigned long stat_sum_spin_telem_period_us = 0;
 unsigned long stat_max_spin_telem_period_us = 0;
-
-esp_adc_cal_characteristics_t adc_chars;
 
 size_t lds_serial_write_callback(const uint8_t * buffer, size_t length) {
   return LdSerial.write(buffer, length);
@@ -294,27 +291,13 @@ void setupADC() {
   if (!adcAttachPin(cfg.BAT_ADC_PIN))
     Serial.println("adcAttachPin() FAILED");
 
-  esp_adc_cal_value_t val_type = esp_adc_cal_characterize(ADC_UNIT_1,
-    ADC_ATTEN_DB_11, ADC_WIDTH_BIT_12, 1100, &adc_chars);
-
-  Serial.print("ADC calibration: ");
-  switch (val_type) {
-    case ESP_ADC_CAL_VAL_EFUSE_VREF:
-      Serial.println("eFuse Vref");
-      break;
-    case ESP_ADC_CAL_VAL_EFUSE_TP:
-      Serial.println("Two Point");
-      break;
-    default:
-      Serial.println("None");
-  }
-  Serial.println(analogReadMilliVolts(cfg.BAT_ADC_PIN));
-  unsigned int adc_value = analogRead(cfg.BAT_ADC_PIN);
-  uint32_t voltage_mv = esp_adc_cal_raw_to_voltage(adc_value, &adc_chars);
+  unsigned int voltage_mv = analogReadMilliVolts(cfg.BAT_ADC_PIN);
   voltage_mv *= cfg.BAT_ADC_MULTIPLIER;
+  if (voltage_mv < cfg.BAT_PRESENT_MV_MIN)
+    voltage_mv = 0;
 
   Serial.print("Battery ");
-  if (adc_value == 0) {
+  if (voltage_mv == 0) {
     Serial.println("NOT detected");
     Serial.println("Is the battery connected? Is the power switch on?");
   } else {
@@ -614,9 +597,11 @@ void publishTelem(unsigned long step_time_us) {
   rssi_dbm = rssi_dbm < -128 ? -128 : rssi_dbm;
   telem_msg.wifi_rssi_dbm = (int8_t) rssi_dbm;
 
-  unsigned int adc_value = analogRead(cfg.BAT_ADC_PIN);
-  uint32_t voltage_mv = esp_adc_cal_raw_to_voltage(adc_value, &adc_chars);
-  voltage_mv = adc_value == 0 ? 0 : voltage_mv*cfg.BAT_ADC_MULTIPLIER;
+  unsigned int voltage_mv = analogReadMilliVolts(cfg.BAT_ADC_PIN);
+  voltage_mv *= cfg.BAT_ADC_MULTIPLIER;
+  if (voltage_mv < cfg.BAT_PRESENT_MV_MIN)
+    voltage_mv = 0;
+
   telem_msg.battery_mv = (uint16_t) voltage_mv;
 
   //Serial.print(rssi_dbm);

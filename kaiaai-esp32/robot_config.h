@@ -39,6 +39,7 @@ public:
   static const uint8_t LDS_MOTOR_PWM_CHANNEL = 2; // ESP32 PWM channel for LDS motor speed control
 
   static const uint8_t BAT_ADC_MULTIPLIER = 21; // resistor divider reciprocal
+  static const uint16_t BAT_PRESENT_MV_MIN = 4000;
 
   enum param_name_index {
     PARAM_SSID = 0,
