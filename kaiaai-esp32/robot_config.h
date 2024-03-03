@@ -24,8 +24,8 @@ public:
   static constexpr char* FW_VERSION = (char*)"0.4.0";
   // ESP32 pin assignment
   static const uint8_t LED_PIN = 2; // ESP32 on-board LED
-  static const uint8_t LDS_MOTOR_PWM_PIN = 15; // LDS motor speed control using PWM
-  static const uint8_t LDS_MOTOR_EN_PIN = 19; // LDS motor enable pin (was 12)
+  static const uint8_t LDS_MOTOR_PWM_PIN = 15;
+  static const uint8_t LDS_MOTOR_EN_PIN = 19;
   static const uint8_t BAT_ADC_PIN = 36;
   static const uint8_t MOT_PWM_LEFT_PIN = 33;
   static const uint8_t MOT_CW_LEFT_PIN = 23; // was 32

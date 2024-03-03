@@ -28,7 +28,8 @@
 #include <rcl/error_handling.h>
 #include <rclc/rclc.h>
 #include <rclc/executor.h>
-#include <kaiaai_msgs/msg/kaiaai_telemetry2.h>
+#include <kaiaai_msgs/msg/kaiaai_telemetry.h>
+//#include <kaiaai_msgs/msg/kaiaai_telemetry2.h>
 #include <geometry_msgs/msg/twist.h>
 #include <rcl_interfaces/msg/log.h>
 #include <rmw_microros/rmw_microros.h>
@@ -56,7 +57,8 @@ LDS *lds;
 rcl_publisher_t telem_pub;
 rcl_publisher_t log_pub;
 rcl_subscription_t twist_sub;
-kaiaai_msgs__msg__KaiaaiTelemetry2 telem_msg;
+kaiaai_msgs__msg__KaiaaiTelemetry telem_msg;
+//kaiaai_msgs__msg__KaiaaiTelemetry2 telem_msg;
 geometry_msgs__msg__Twist twist_msg;
 rclc_support_t support;
 rcl_allocator_t allocator;
@@ -68,6 +70,7 @@ HardwareSerial LdSerial(2); // TX 17, RX 16
 
 float joint_pos[drive.MOTOR_COUNT] = {0};
 float joint_vel[drive.MOTOR_COUNT] = {0};
+//kaiaai_msgs__msg__JointPosVel joint[drive.MOTOR_COUNT];
 float joint_prev_pos[drive.MOTOR_COUNT] = {0};
 uint8_t lds_buf[cfg.LDS_BUF_LEN] = {0};
 
@@ -371,7 +374,8 @@ static inline void initRos() {
     cfg.UROS_CMD_VEL_TOPIC_NAME), cfg.ERR_UROS_PUBSUB);
 
   RCCHECK(rclc_publisher_init_best_effort(&telem_pub, &node,
-    ROSIDL_GET_MSG_TYPE_SUPPORT(kaiaai_msgs, msg, KaiaaiTelemetry2),
+//    ROSIDL_GET_MSG_TYPE_SUPPORT(kaiaai_msgs, msg, KaiaaiTelemetry2),
+    ROSIDL_GET_MSG_TYPE_SUPPORT(kaiaai_msgs, msg, KaiaaiTelemetry),
     cfg.UROS_TELEM_TOPIC_NAME), cfg.ERR_UROS_PUBSUB);
 
   RCCHECK(rclc_publisher_init_default(&log_pub, &node,
@@ -573,9 +577,10 @@ void spinTelem(bool force_pub) {
       s = s + ", LDS RPM ";
       s = s + String(rpm);
     }
-
+/*
     s = s + ", battery " + String(telem_msg.battery_mv*0.001f) + "V";
     s = s + ", RSSI " + String(telem_msg.wifi_rssi_dbm) + "dBm";
+*/
     serialPrintLnNonBlocking(s);
 
     stat_sum_spin_telem_period_us = 0;
@@ -591,7 +596,7 @@ void publishTelem(unsigned long step_time_us) {
 
   float joint_pos_delta[drive.MOTOR_COUNT];
   float step_time = 1e-6 * (float)step_time_us;
-
+/*
   long rssi_dbm = WiFi.RSSI();
   rssi_dbm = rssi_dbm > 127 ? 127 : rssi_dbm;
   rssi_dbm = rssi_dbm < -128 ? -128 : rssi_dbm;
@@ -603,7 +608,7 @@ void publishTelem(unsigned long step_time_us) {
     voltage_mv = 0;
 
   telem_msg.battery_mv = (uint16_t) voltage_mv;
-
+*/
   //Serial.print(rssi_dbm);
   //Serial.print("dbm, ");
   //Serial.print(voltage_mv);
@@ -614,6 +619,12 @@ void publishTelem(unsigned long step_time_us) {
     joint_pos_delta[i] = joint_pos[i] - joint_prev_pos[i];
     joint_vel[i]  = joint_pos_delta[i] / step_time; 
     joint_prev_pos[i] = joint_pos[i];
+/*
+    joint[i].pos = drive.getShaftAngle(i);
+    joint[i].vel = joint_pos_delta[i] / step_time;    
+    joint_pos_delta[i] = joint[i].pos - joint_prev_pos[i];
+    joint_prev_pos[i] = joint[i].pos;
+*/
   }
 
   calcOdometry(step_time_us, joint_pos_delta[drive.MOTOR_LEFT],
@@ -807,6 +818,12 @@ void resetTelemMsg() {
   telem_msg.joint_vel.capacity = drive.MOTOR_COUNT;
   telem_msg.joint_vel.size = drive.MOTOR_COUNT;
 
+/*
+  telem_msg.joint.data = joint;
+  telem_msg.joint.capacity = drive.MOTOR_COUNT;
+  telem_msg.joint.size = drive.MOTOR_COUNT;
+*/
+
   telem_msg.lds.data = lds_buf;
   telem_msg.lds.capacity = cfg.LDS_BUF_LEN;
   telem_msg.lds.size = 0;
@@ -814,6 +831,10 @@ void resetTelemMsg() {
   for (int i = 0; i < drive.MOTOR_COUNT; i++) {
     joint_pos[i] = 0;
     joint_vel[i] = 0; 
+/*
+    joint[i].pos = 0;
+    joint[i].vel = 0;
+*/
     joint_prev_pos[i] = 0;
   }
 }
