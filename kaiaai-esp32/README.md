@@ -3,14 +3,28 @@
 - TODO link to board files
 - TODO link to setup, configuration video
 
+## Installation
+- on this page click Code -> Download ZIP
+- open the downloaded ZIP file, navigate inside kaiaai-esp32 folder
+  - copy library folder (from inside kaiaai-esp32 folder) to your Arduino sketch folder
+  - copy tools folder (from inside kaiaai-esp32 folder) to your Arduino sketch folder
+  - navigate back out of the kaiaai-esp32 folder and copy kaiaai-esp32 folder to your Arduino sketch folder
+- install the ESP32 tool chain, see the video below
+
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=XOc5kCE3MC0" target="_blank">
  <img src="http://img.youtube.com/vi/XOc5kCE3MC0/maxresdefault.jpg" alt="Watch the one-time PC setup, firmware upload instructions video" width="720" height="405" border="10" />
 </a>
 
 ## Change Log
-v0.4.0 - in debug
+v0.4.0
 - moved from KaiaaiTelemetry to KaiaaiTelemetry2 message
+  - added battery voltage telemetry
+  - added WiFi RSSI telemetry
 - added LDROBOT LD14P laser distance scan sensor
+- included all library dependencies in library/ to make the code self-contained 
+  - do not use Arduino IDE Library manager
+  - instead, move kaiaai-esp32/library into your Arduino sketch folder
+- install the data upload tool by moving kaiaai-esp32/tools into your Arduino sketch folder
 
 v0.3.0
 - added 3irobotix Delta-2A, Delta-2G

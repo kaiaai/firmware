@@ -20,7 +20,6 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <ESPAsyncWebSrv.h>
-#include <AsyncTCP.h>
 #include <SPIFFS.h>
 
 class AP {
