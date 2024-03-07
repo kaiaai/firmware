@@ -3,37 +3,55 @@ This repo contains:
 - Arduino [ESP32 robot firmware](/kaiaai-esp32/) for the ESP32 breakout board
 - Robot's [lower body extension module firmware](/kaiaai-pico-body/)
 - Robot's [head extension module firmware](/kaiaai-pico-head/)
+- all libraries necessary to build the sketch
+- ESP32 sketch [data upload tool](https://github.com/me-no-dev/arduino-esp32fs-plugin/)
 
-Please install these Arduino libraries using Arduino Library Manager before compiling the firmware:
-- [micro_ros_kaia](https://github.com/kaiaai/micro_ros_arduino_kaiaai)
-- [LDS](https://github.com/kaiaai/LDS/)
-- [PID_Timed](https://github.com/kaiaai/arduino_pid_timed)
-- [ESPAsyncWebSrv](https://github.com/dvarrel/ESPAsyncWebSrv) including AsyncTCP, ESPAsyncTCP
+## Installation and setup
+- download the latest code by Code -> Download ZIP on this page
+  - alternatively, download the latest or an older release by clicking Releases on this page; click on Assets -> Source code to download the firmware
+- open the downloaded ZIP file
+  - navigate inside the "firmware-xxx" folder
+  - copy everything inside the "firmware-xxx" folder to your Arduino sketch folder
+- watch the video below to
+  - install the ESP32 tool chain
+  - ignore Arduino IDE library installation in the video
+  - build, upload firmware
+  - upload sketch data
 
-## Firmware setup video
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=XOc5kCE3MC0" target="_blank">
- <img src="http://img.youtube.com/vi/XOc5kCE3MC0/maxresdefault.jpg" alt="Robot Arduino firmware, ROS2/Docker PC setup instructions video" width="720" height="405" border="10" />
+ <img src="http://img.youtube.com/vi/XOc5kCE3MC0/maxresdefault.jpg" alt="Watch the one-time PC setup, firmware upload instructions video" width="720" height="405" border="10" />
 </a>
 
-## Robot Configuration
-Platform firmware in this repository replaces separate firmwares - one for each Kaia.ai-compatible robot model - with a single, configurable one.
-Once you have uploaded firmware (and the sketch data) to your Kaia.ai-compatible robot:
+## Configuration
+Once you have uploaded firmware and the sketch data) to your Kaia.ai-compatible robot:
 - wait for your robot to enter the AP (WiFi access point) mode
-  - alternatively, force your robot to enter the AP mode by pressing the ESP32 BOOT button for 10+ seconds
--  connect to your robot's WiFi
+  - the robot enters the AP (WiFi access point) mode whenever the robot fails to connect to WiFi
+- Alternatively, force your robot to enter the AP mode by performing a "factory reset":
+  - Press the "EN" (reset) button on your ESP32 board.
+  - Next, immediately after that (within 1 second) press the ESP32 "BOOT" button and hold it for 10+ seconds.
+  - The ESP32 board LED will blink fast.
+  - Release the "BOOT" button once the ESP32 board LED stops blinking.
+- connect to your robot's WiFi (MAKERSPET)
 - navigate your browser (PC or mobile handset) to 192.168.4.1
 - configure your robot and its WiFi connection by selecting the robot model, its laser sensor and motor models
+  - press the "Configure and Connect" button
+  - disconnect from your robot's WiFi and reconnect back to your own WiFi
 
 This [blog post](https://kaia.ai/blog/arduino-platform-firmware-avaiable/) discusses the configuration in more detail.
 
 ![kaiaai_robot_configurator](https://github.com/kaiaai/firmware/assets/33589365/5961c7df-7ed7-460d-80ae-b7148ed91a66)
 
 ## Change Log
-### v0.4.0 - in debug
-- switched to KaiaTelemetry2 message from KaiaTelemetry
-  - added WiFi RSSI telemetry
+
+### v0.4.0
+- moved from KaiaaiTelemetry to KaiaaiTelemetry2 message
   - added battery voltage telemetry
-- added LDROBOT LD14P
+  - added WiFi RSSI telemetry
+- added LDROBOT LD14P laser distance scan sensor
+- included all library dependencies in library/ to make the code self-contained 
+  - do not use Arduino IDE Library manager
+  - instead, just copy everything to your Arduino sketch folder
+- included the ESP32 sketch data upload tool in tools/
 
 ### v0.3.0
 - added 3irobotix Delta-2A, Delta-2G
@@ -68,3 +86,40 @@ This [blog post](https://kaia.ai/blog/arduino-platform-firmware-avaiable/) discu
   - [micro_ros_kaia](https://github.com/kaiaai/micro_ros_arduino_kaiaai/) 2.0.7-rolling.3
   - [ESPAsyncWebSrv](https://github.com/dvarrel/ESPAsyncWebSrv) v1.2.7
 - requires Kaia.ai ROS2 image `kaiaai/kaiaai-ros-dev:humble-01-28-2024` or `kaiaai/kaiaai-ros-dev:iron-01-28-2024`
+
+### 1/21/2024
+- updated to match PID_Timed v1.1.0 library
+  - PID_Timed v1.1.0 replaced constant `#define` with class constants to fix namespace collisions
+- added [LDS](https://github.com/kaiaai/LDS) library as dependency
+  - refactoried and moved YDLIDAR X4 into LDS library
+  - added support for Xiaomi 1st gen LDS02RR laser distance scan sensor
+- started moving `#define` constants into CONFIG class to clean up namespace
+- added motor choices
+- miscellaneous cleanup
+
+### 12/02/2023
+- BREAKING ESP32 pinout assignment change to support the newly ESP32 breakout board
+  - the new ESP32 breakout board works
+  - the motor pin change fixes the "motor kick" upon ESP32 hard reboot
+  - the LDS pin change fixes the LDS motor enabled by ESP32 upon hard reboot
+  - MOT_FG_RIGHT has changed from GPIO27 to GPIO35_IN
+  - LDS_MOT_EN has changed from GPIO12_OUT to GPIO19
+  - MOT_CW_LEFT has changed from GPIO32 to GPIO23
+- requires micro_ros_kaia Arduino library version 2.0.7-any.3 minimum
+- added ROS2 parameter server
+  - works successfully
+- added lds.motor_speed parameter
+  - controls the laser distance sensor motor speed
+  - type double; set lds.motor=0 to stop LDS motor; set lds.motor=1.0 for maximum speed
+  - set lds.motor=-1.0 for LDS default motor speed
+- added minimum micro_ros_kaia library version check
+  - Arduino build errors out at compile time if the library version is too old
+- renamed some #define symbols from YDLidar-specific to generic LDS
+
+## Acknowledgements
+- Arduino libraries:
+  - [micro_ros_kaia](https://github.com/kaiaai/micro_ros_arduino_kaiaai)
+  - [LDS](https://github.com/kaiaai/LDS/)
+  - [PID_Timed](https://github.com/kaiaai/arduino_pid_timed)
+  - [ESPAsyncWebSrv](https://github.com/dvarrel/ESPAsyncWebSrv) including AsyncTCP
+- ESP32 sketch [data upload tool](https://github.com/me-no-dev/arduino-esp32fs-plugin/)
