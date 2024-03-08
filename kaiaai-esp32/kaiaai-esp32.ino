@@ -63,6 +63,7 @@ rcl_allocator_t allocator;
 rclc_executor_t executor;
 rcl_node_t node;
 rclc_parameter_server_t param_server;
+bool lds_scan_freq_param_changed = true;
 
 HardwareSerial LdSerial(2); // TX 17, RX 16
 
@@ -405,37 +406,25 @@ static inline void initRos() {
   RCCHECK(rclc_executor_add_parameter_server(&executor, &param_server,
     on_param_changed), cfg.ERR_UROS_EXEC);;
 
+  RCCHECK(rclc_add_parameter(&param_server, cfg.UROS_PARAM_LDS_SCAN_FREQ,
+    RCLC_PARAMETER_DOUBLE), cfg.ERR_UROS_PARAM);
+  RCCHECK(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_LDS_SCAN_FREQ,
+    cfg.LDS_SCAN_FREQ_DEFAULT), cfg.ERR_UROS_PARAM);
+  //RCCHECK(rclc_add_parameter_constraint_double(&param_server, cfg.UROS_PARAM_LDS_SCAN_FREQ,
+  //  -1.0, 1.0, 0), cfg.ERR_UROS_PARAM);
 
-  
-  
-  // TODO change to LDS scan frequency
   //RCCHECK(rclc_add_parameter(&param_server, "param_bool", RCLC_PARAMETER_BOOL), cfg.ERR_UROS_PARAM);
   //RCCHECK(rclc_add_parameter(&param_server, "param_int", RCLC_PARAMETER_INT), cfg.ERR_UROS_PARAM);
-  RCCHECK(rclc_add_parameter(&param_server, cfg.UROS_PARAM_LDS_MOTOR_SPEED,
-    RCLC_PARAMETER_DOUBLE), cfg.ERR_UROS_PARAM);
 
-
-  
-  
-  // TODO change to LDS scan frequency
   //RCCHECK(rclc_parameter_set_bool(&param_server, "param_bool", false), cfg.ERR_UROS_PARAM);
   //RCCHECK(rclc_parameter_set_int(&param_server, "param_int", 10), cfg.ERR_UROS_PARAM);
-  RCCHECK(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_LDS_MOTOR_SPEED,
-    cfg.LDS_MOTOR_SPEED_DEFAULT), cfg.ERR_UROS_PARAM);
 
   //rclc_add_parameter_description(&param_server, "param_int", "Second parameter", "Only even numbers");
   //RCCHECK(rclc_add_parameter_constraint_integer(&param_server, "param_int", -10, 120, 2), cfg.ERR_UROS_PARAM);
 
   //rclc_add_parameter_description(&param_server, "param_double", "Third parameter", "");
   //RCCHECK(rclc_set_parameter_read_only(&param_server, "param_double", true), cfg.ERR_UROS_PARAM);
-
-
-
   
-  // TODO change to LDS scan frequency
-  RCCHECK(rclc_add_parameter_constraint_double(&param_server, cfg.UROS_PARAM_LDS_MOTOR_SPEED,
-    -1.0, 1.0, 0), cfg.ERR_UROS_PARAM);
-
   //bool param_bool;
   //int64_t param_int;
   //double param_double;
@@ -474,9 +463,9 @@ bool on_param_changed(const Parameter * old_param, const Parameter * new_param, 
       Serial.print(" to ");
       Serial.println(new_param->value.double_value);
 
-      if (strcmp(old_param->name.data, cfg.UROS_PARAM_LDS_MOTOR_SPEED) == 0) {
-        //int16_t speed_int = round((float)(new_param->value.double_value) * 255);
-//        lds->setScanTargetFreqHz(new_param->value.double_value);
+      if (strcmp(old_param->name.data, cfg.UROS_PARAM_LDS_SCAN_FREQ) == 0) {
+        lds->setScanTargetFreqHz(new_param->value.double_value);
+        lds_scan_freq_param_changed = true;
       }
       break;
     default:
@@ -756,6 +745,11 @@ void loop() {
   
   // Process micro-ROS callbacks
   RCCHECK(rclc_executor_spin_some(&executor, RCL_MS_TO_NS(1)), cfg.ERR_UROS_SPIN);
+  if (lds_scan_freq_param_changed) {
+    RCCHECK(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_LDS_SCAN_FREQ,
+      lds->getTargetScanFreqHz()), cfg.ERR_UROS_PARAM);
+    lds_scan_freq_param_changed = false;
+  }
 
   spinTelem(false);
   spinPing();

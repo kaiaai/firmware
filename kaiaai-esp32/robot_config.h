@@ -35,7 +35,7 @@ public:
   static const uint8_t MOT_FG_RIGHT_PIN = 35; // was 27
 
   static const uint32_t RESET_SETTINGS_HOLD_MS = 10000; // Hold BOOT button to reset WiFi
-  static const int LDS_MOTOR_SPEED_DEFAULT = -1; // tristate YDLidar X4 SCTP pin for default motor speed
+  static constexpr double LDS_SCAN_FREQ_DEFAULT = 0;
   static const uint8_t LDS_MOTOR_PWM_CHANNEL = 2; // ESP32 PWM channel for LDS motor speed control
 
   static const uint8_t BAT_ADC_MULTIPLIER = 21; // resistor divider reciprocal
@@ -100,7 +100,7 @@ public:
   static const uint32_t UROS_PING_PUB_PERIOD_MS = 10000;
   static const uint32_t UROS_TELEM_PUB_PERIOD_MS = 50;
   static const uint32_t UROS_TIME_SYNC_TIMEOUT_MS = 1000;
-  static constexpr char * UROS_PARAM_LDS_MOTOR_SPEED = (char *)"lds.motor_speed";
+  static constexpr char * UROS_PARAM_LDS_SCAN_FREQ = (char *)"lds.scan_freq";
 
   static const uint16_t LDS_BUF_LEN = 400;
   static const uint32_t LDS_MOTOR_PWM_FREQ = 10000;
