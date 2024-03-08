@@ -6,6 +6,8 @@ This repo contains:
 - all libraries necessary to build the sketch
 - ESP32 sketch [data upload tool](https://github.com/me-no-dev/arduino-esp32fs-plugin/)
 
+List of supported LiDAR/LDS sensors is here.
+
 ## Installation and setup
 - download the latest code by Code -> Download ZIP on this page
   - alternatively, download the latest or an older release by clicking Releases on this page; click on Assets -> Source code to download the firmware
@@ -17,6 +19,7 @@ This repo contains:
   - ignore Arduino IDE library installation in the video
   - build, upload firmware
   - upload sketch data
+- follow the configuration instructions on this page
 
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=XOc5kCE3MC0" target="_blank">
  <img src="http://img.youtube.com/vi/XOc5kCE3MC0/maxresdefault.jpg" alt="Watch the one-time PC setup, firmware upload instructions video" width="720" height="405" border="10" />
@@ -33,8 +36,12 @@ Once you have uploaded firmware and the sketch data) to your Kaia.ai-compatible 
   - Release the "BOOT" button once the ESP32 board LED stops blinking.
 - connect to your robot's WiFi (MAKERSPET)
 - navigate your browser (PC or mobile handset) to 192.168.4.1
-- configure your robot and its WiFi connection by selecting the robot model, its laser sensor and motor models
-  - press the "Configure and Connect" button
+- configure your robot and its WiFi connection:
+  - input your WiFi name, password
+  - select your robot's model
+  - select your robot's laser sensor from the [list of supported LiDAR/LDS](https://github.com/kaiaai/LDS)
+  - select your robot's motor model
+- press the "Configure and Connect" button
   - disconnect from your robot's WiFi and reconnect back to your own WiFi
 
 This [blog post](https://kaia.ai/blog/arduino-platform-firmware-avaiable/) discusses the configuration in more detail.
@@ -42,6 +49,10 @@ This [blog post](https://kaia.ai/blog/arduino-platform-firmware-avaiable/) discu
 ![kaiaai_robot_configurator](https://github.com/kaiaai/firmware/assets/33589365/5961c7df-7ed7-460d-80ae-b7148ed91a66)
 
 ## Change Log
+
+### v0.4.1 - in debug
+- added Delta-2A 230400 baud version (vs old 115200 baud)
+- added Delta-2B
 
 ### v0.4.0
 - moved from KaiaaiTelemetry to KaiaaiTelemetry2 message
