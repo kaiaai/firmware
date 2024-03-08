@@ -942,15 +942,23 @@ void setupLDS() {
               if (strcmp(model, "3IROBOTIX DELTA 2G") == 0) {
                 lds = new LDS_DELTA_2G();
               } else {
-                if (strcmp(model, "3IROBOTIX DELTA 2A") == 0) {
-                  lds = new LDS_DELTA_2A();
+                if (strcmp(model, "3IROBOTIX DELTA 2A 115200") == 0) {
+                  lds = new LDS_DELTA_2A_115200();
                 } else {
-                  if (strcmp(model, "LDLIDAR LD14P") == 0) {
-                    lds = new LDS_LDLIDAR_LD14P();
+                  if (strcmp(model, "LDLIDAR DELTA 2A") == 0) {
+                    lds = new LDS_DELTA_2A_230400();
                   } else {
-                    if (strcmp(model, "YDLIDAR X4") != 0)
-                      Serial.print(" not recognized, defaulting to YDLIDAR X4");
-                    lds = new LDS_YDLIDAR_X4();
+                    if (strcmp(model, "LDLIDAR DELTA 2B") == 0) {
+                      lds = new LDS_DELTA_2B();
+                    } else {
+                      if (strcmp(model, "LDLIDAR LD14P") == 0) {
+                        lds = new LDS_LDLIDAR_LD14P();
+                      } else {
+                        if (strcmp(model, "YDLIDAR X4") != 0)
+                          Serial.print(" not recognized, defaulting to YDLIDAR X4");
+                        lds = new LDS_YDLIDAR_X4();
+                      }
+                    }
                   }
                 }
               }
