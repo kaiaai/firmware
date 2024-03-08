@@ -945,7 +945,7 @@ void setupLDS() {
                 if (strcmp(model, "3IROBOTIX DELTA 2A 115200") == 0) {
                   lds = new LDS_DELTA_2A_115200();
                 } else {
-                  if (strcmp(model, "LDLIDAR DELTA 2A") == 0) {
+                  if (strcmp(model, "3IROBOTIX DELTA 2A") == 0) {
                     lds = new LDS_DELTA_2A_230400();
                   } else {
                     if (strcmp(model, "LDLIDAR DELTA 2B") == 0) {
