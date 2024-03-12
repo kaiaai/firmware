@@ -150,9 +150,11 @@ button {
 	} else if (id === 'motor_model_div' && !is_custom) {
       const motor_max_rpm = [200, 245, 260, 408, 450];
       const wheel_ppr = [270, 630, 204, 127.8, 120];
+      const motor_voltage = [24, 24, 24, 24, 24];
 
 	  document.getElementById('motor_max_rpm').value = motor_max_rpm[idx];
 	  document.getElementById('wheel_ppr').value = wheel_ppr[idx];
+	  document.getElementById('motor_voltage').value = motor_voltage[idx];
 	}
   }
   </script>
@@ -224,24 +226,28 @@ button {
 			<br>
 			<label for="motor_model">Motor model</label>
 			<select name="motor_model" id="motor_model" required onchange="populateProps('motor_model_div', this);">
-				<option value="200_270">CHR-GM25-BL2418 200RPM 270PPR</option>
-				<option value="245_630">JGA25-BL2418 245RPM 630PPR</option>
-				<option value="260_204">CHR-GM25-BL2418 260RPM 204PPR</option>
-				<option value="408_127.8">JGA25-BL2418 408RPM 127.8PPR</option>
-				<option value="450_120">CHR-GM25-BL2418 450RPM 120PPR</option>
-				<option value="CUSTOM">CUSTOM RPM, PPR</option>
+				<option value="200_270">CHR-GM25-BL2418 24V 200RPM 270PPR</option>
+				<option value="245_630">JGA25-BL2418 24V 245RPM 630PPR</option>
+				<option value="260_204">CHR-GM25-BL2418 24V 260RPM 204PPR</option>
+				<option value="408_127.8">JGA25-BL2418 24V 408RPM 127.8PPR</option>
+				<option value="450_120">CHR-GM25-BL2418 24V 450RPM 120PPR</option>
+				<option value="CUSTOM">CUSTOM RPM, PPR, Voltage</option>
 			</select>
 
 			<div id="motor_model_div" class="advanced_props">
-			<label for="motor_max_rpm">Motor max RPM</label>
-			<input type="text" id="motor_max_rpm" name="motor_max_ppr" value="200" pattern="([0-9]+\.)?[0-9]+" title="Wheel (motor shaft) maximum RPM" required maxlength="8" minlength="1" inputmode="decimal">
-			<br>
-            <label for="wheel_ppr">Wheel PPR</label>
-			<input type="text" id="wheel_ppr" name="wheel_ppr" value="270" pattern="([0-9]+\.)?[0-9]+" title="Pulses per revolution. Wheel (motor shaft) PPR = Motor Gear Ratio * Motor Encoder PPR" required maxlength="8" minlength="1" inputmode="decimal">
-			</div>
+				<label for="motor_max_rpm">Motor max RPM</label>
+				<input type="text" id="motor_max_rpm" name="motor_max_ppr" value="200" pattern="([0-9]+\.)?[0-9]+" title="Wheel (motor shaft) maximum RPM" required maxlength="8" minlength="1" inputmode="decimal">
+				<br>
 
+				<label for="wheel_ppr">Wheel PPR</label>
+				<input type="text" id="wheel_ppr" name="wheel_ppr" value="270" pattern="([0-9]+\.)?[0-9]+" title="Pulses per revolution. Wheel (motor shaft) PPR = Motor Gear Ratio * Motor Encoder PPR" required maxlength="8" minlength="1" inputmode="decimal">
+				<br>
+
+				<label for="motor_voltage">Motor Voltage</label>
+				<input type="number" id="motor_voltage" name="motor_voltage" value="24" title="Motor voltage 9..24 volts" required min="9" max="24">
+			</div>
 			<p>
-            <input type ="submit" value ="Configure and Connect">
+				<input type ="submit" value ="Configure and Connect">
 			</p>
           </p>
         </form>

@@ -653,8 +653,7 @@ void calcOdometry(unsigned long step_time_us, float joint_pos_delta_right,
 
 void lds_scan_point_callback(float angle_deg, float distance_mm, float quality,
   bool scan_completed) {
-  return;
-
+/*
   static int i = 0;
 
   if ((i++ % 20 == 0) || scan_completed) {
@@ -669,10 +668,22 @@ void lds_scan_point_callback(float angle_deg, float distance_mm, float quality,
     } else
       Serial.println();
   }
+*/
+/*
+  if (scan_completed)
+    Serial.println();
+  
+  Serial.print(angle_deg);
+  Serial.print('\t');
+  Serial.print(distance_mm);
+  Serial.print('\t');
+  Serial.println(quality);
+*/
 }
 
 void lds_packet_callback(uint8_t * packet, uint16_t packet_length, bool scan_completed) {
   bool packet_sent = false;
+//  Serial.println('-');
   while (packet_length-- > 0) {
     if (telem_msg.lds.size >= telem_msg.lds.capacity) {
       spinTelem(true);
