@@ -77,12 +77,13 @@ This [blog post](https://kaia.ai/blog/arduino-platform-firmware-avaiable/) discu
 - L298N motor driver is required when using brushed motors
 
 ### Where to Purchase Motors/Components
-- Amazon
 - AliExpress
 - Ebay
+- Amazon
 - online robotics specialty stores
   - robotshop.com
-  - in India robu.in, zbotic.in, robokits.co.in, robocraze.com, roboticsdna.in, probots.co.in, roboindia.com, flipkart.com
+- in India
+  - robu.in, zbotic.in, robokits.co.in, robocraze.com, roboticsdna.in, probots.co.in, roboindia.com, flipkart.com, digikey.in, mouser.in, in.element14.com
 
 ### Choosing a Motor
 - choose a motor with a minimum rated torque of ~0.5Kg*cm (a guess). Your motor must have enough torque
