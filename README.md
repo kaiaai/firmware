@@ -50,9 +50,10 @@ This [blog post](https://kaia.ai/blog/arduino-platform-firmware-avaiable/) discu
 
 ## Change Log
 
-### v0.4.1 - in debug
+### v0.4.1
 - added Delta-2A 230400 baud version (vs old 115200 baud)
 - added Delta-2B
+- added motor voltage to configuration
 
 ### v0.4.0
 - moved from KaiaaiTelemetry to KaiaaiTelemetry2 message
