@@ -54,8 +54,7 @@ DriveController drive;
 LDS *lds;
 
 rcl_publisher_t telem_pub;
-rcl_publisher_t log_pub;
-rcl_subscription_t twist_sub;
+rcl_publisher_t log_pub;rcl_subscription_t twist_sub;
 kaiaai_msgs__msg__KaiaaiTelemetry2 telem_msg;
 geometry_msgs__msg__Twist twist_msg;
 rclc_support_t support;
@@ -959,9 +958,13 @@ void setupLDS() {
                       if (strcmp(model, "LDLIDAR LD14P") == 0) {
                         lds = new LDS_LDLIDAR_LD14P();
                       } else {
-                        if (strcmp(model, "YDLIDAR X4") != 0)
-                          Serial.print(" not recognized, defaulting to YDLIDAR X4");
-                        lds = new LDS_YDLIDAR_X4();
+                        if (strcmp(model, "CAMSENSE X1") == 0) {
+                          lds = new LDS_CAMSENSE_X1();
+                        } else {
+                          if (strcmp(model, "YDLIDAR X4") != 0)
+                            Serial.print(" not recognized, defaulting to YDLIDAR X4");
+                          lds = new LDS_YDLIDAR_X4();
+                        }
                       }
                     }
                   }
