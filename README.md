@@ -48,6 +48,60 @@ This [blog post](https://kaia.ai/blog/arduino-platform-firmware-avaiable/) discu
 
 ![kaiaai_robot_configurator](https://github.com/kaiaai/firmware/assets/33589365/5961c7df-7ed7-460d-80ae-b7148ed91a66)
 
+## Compatible Motors
+
+### Brushless (BLDC) Motors
+- BLDC motors with these specifications should (generally) work:
+  - 9..24V voltage (higher voltage increases efficiency)
+  - models JGA25-2418, JGA25-2430; 24.4mm outer diameter
+  - ~190..450 no-load (max) RPM, ~140..350 rated RPM
+  - JST SH 1.0mm 5-pin connector on the back (PWM, CW/CCW, VMOT, GND, FG)
+  - built-in BLDC driver and encoder
+  - ~0.5..1.5 Kg*cm rated torque 
+- Examples
+  - CHR-GM25-BL2418 24V 200RPM 270PPR
+  - JGA25-BL2418 24V 245RPM 630PPR
+  - CHR-GM25-BL2418 24V 260RPM 204PPR
+  - JGA25-BL2418 24V 408RPM 127.8PPR
+  - CHR-GM25-BL2418 24V 450RPM 120PPR
+
+### Brushed Motors
+- Brushed motors with these specifications should (generally) works
+  - 9..24V voltage (higher voltage increases efficiency)
+  - GA25-370 size; 24.4mm outer diameter
+  - ~190..450 no-load (max) RPM, ~140..350 rated RPM
+  - quadrature encoder
+  - 6-pin connector (VMOT+, VMOT-, ENC_A, ENC_B, VENC+, GND)
+- N20 motors
+  - can be connected, but not recommended due to their low power
+- L298N motor driver is required when using brushed motors
+
+### Where to Purchase Motors/Components
+- AliExpress
+- Ebay
+- Amazon
+- online robotics specialty stores
+  - robotshop.com
+- in India
+  - robu.in, zbotic.in, robokits.co.in, robocraze.com, roboticsdna.in, probots.co.in, roboindia.com, flipkart.com, digikey.in, mouser.in, in.element14.com
+
+### Choosing a Motor
+- choose a motor with a minimum rated torque of ~0.5Kg*cm (a guess). Your motor must have enough torque
+  - to accelerate the weight of your robot reasonably quickly, let's say 2lbs or so
+  - to drive over thick carpet, floor mats, etc.
+- for the given rated torque, choose a motor with the highest RPM
+  - the higher the motor RPM, the faster your robot can drive
+- we recommend 24V BLDC ~400 RPM motors, e.g. JGA25-BL2418 24V 408RPM 127.8PPR
+  - these motors are fast, powerful and (generally) long-lasting
+- 12V BLDC ~300 RPM is the second choice
+  - often 12V BLDC offer less torque at the same RPM compared to 24V BLDC motors
+- if you cannot get a BLDC motor, get yourself a brushed GA25-370 motor with encoder
+  - this motor is (generally) less powerful compared to the recommended BLDC motors
+  - brushed motors (generally) do not last as long as BLDC motors
+- if you cannot get a GA25-370 motor, you can use N20 motors as the last resort
+  - N20 motors have considerably less torque compared to the recommended motors
+  - However, some N20 motors with low RPM (e.g. <=100RPM) do offer sufficient torque
+
 ## Change Log
 
 ### v0.4.1 - in debug
