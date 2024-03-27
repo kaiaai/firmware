@@ -26,5 +26,7 @@ void twistToWheelSpeeds(float speed_lin_x, float speed_ang_z,
   float *speed_right, float *speed_left);
 void delayYield(unsigned long msec);
 const String micro_ros_error_string(int err);
+void printByteAsHex(uint8_t b);
+void printBytesAsHex(uint8_t * buffer, uint16_t length);
 
 const String reset_reason_to_string(int reason, bool verbose=false);

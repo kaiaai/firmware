@@ -117,3 +117,19 @@ const String micro_ros_error_string(int err) {
     default : return errCode;
   }
 }
+
+void printByteAsHex(uint8_t b) {
+  if (b < 16)
+    Serial.print('0');
+  Serial.print(b, HEX);
+}
+
+void printBytesAsHex(uint8_t * buffer, uint16_t length) {
+  if (length == 0)
+    return;
+
+  for (uint16_t i = 0; i < length; i++) {
+    printByteAsHex(buffer[i]);
+    Serial.print(' ');
+  }
+}

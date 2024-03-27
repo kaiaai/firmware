@@ -98,9 +98,7 @@ int lds_serial_read_callback() {
   if (c < 0)
     return c;
 
-  if (c < 16)
-    Serial.print('0');
-  Serial.print(c, HEX);
+  printByteAsHex(c);
   if (i++ % 16 == 0)
     Serial.println();
   else
@@ -297,8 +295,7 @@ void setupADC() {
 
   Serial.print("Battery ");
   if (voltage_mv == 0) {
-    Serial.println("NOT detected");
-    Serial.println("Is the battery connected? Is the power switch on?");
+    Serial.println("NOT detected - is the power switch on?");
   } else {
     Serial.print("voltage ");
     Serial.print(voltage_mv*0.001f);
@@ -312,6 +309,7 @@ bool set_param_callback(const char * param_name, const char * param_value) {
 
   params.save();
   Serial.println("Parameters saved, restarting..");
+  WiFi.softAPdisconnect(true);
   delay(100);
   ESP.restart();
 
@@ -670,7 +668,7 @@ void lds_scan_point_callback(float angle_deg, float distance_mm, float quality,
 */
 /*
   if (scan_completed)
-    Serial.println();
+    Serial.println("***");
   
   Serial.print(angle_deg);
   Serial.print('\t');
@@ -681,8 +679,14 @@ void lds_scan_point_callback(float angle_deg, float distance_mm, float quality,
 }
 
 void lds_packet_callback(uint8_t * packet, uint16_t packet_length, bool scan_completed) {
+/*
+  Serial.println('-');
+  if (packet_length > 0) {
+    printBytesAsHex(packet, packet_length);
+    Serial.println();
+  }
+*/
   bool packet_sent = false;
-//  Serial.println('-');
   while (packet_length-- > 0) {
     if (telem_msg.lds.size >= telem_msg.lds.capacity) {
       spinTelem(true);
