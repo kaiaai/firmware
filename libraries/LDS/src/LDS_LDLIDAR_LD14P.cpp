@@ -42,21 +42,14 @@ int LDS_LDLIDAR_LD14P::getSamplingRateHz() {
   return 4000;
 }
 
-LDS::result_t LDS_LDLIDAR_LD14P::setScanPIDCoeffs(float Kp, float Ki, float Kd) {
-  return ERROR_NOT_IMPLEMENTED;
-}
-
-LDS::result_t LDS_LDLIDAR_LD14P::setScanPIDSamplePeriodMs(uint32_t sample_period_ms) {
-  return ERROR_NOT_IMPLEMENTED;
-}
-
 float LDS_LDLIDAR_LD14P::getCurrentScanFreqHz() {
   static constexpr float ONE_OVER_360 = 1.0f/360.0f;
   return ONE_OVER_360 * speed_deg_per_sec;
 }
 
-void LDS_LDLIDAR_LD14P::stop() {
+LDS::result_t LDS_LDLIDAR_LD14P::stop() {
   enableMotor(false);
+  return RESULT_OK;
 }
 
 void LDS_LDLIDAR_LD14P::enableMotor(bool enable) {
@@ -77,7 +70,7 @@ bool LDS_LDLIDAR_LD14P::isActive() {
 }
 
 LDS::result_t LDS_LDLIDAR_LD14P::setScanTargetFreqHz(float freq) {
-  return ERROR_NOT_IMPLEMENTED;
+  return freq <= 0 ? RESULT_OK : ERROR_NOT_IMPLEMENTED;
 }
 
 void LDS_LDLIDAR_LD14P::loop() {
@@ -190,10 +183,6 @@ LDS::result_t LDS_LDLIDAR_LD14P::processByte(uint8_t c) {
 
       float start_angle = start_angle_deg_x100*0.01f;
       float end_angle = end_angle_deg_x100*0.01f;
-
-      //Serial.print(start_angle);
-      //Serial.print(' ');
-      //Serial.println(end_angle);
 
       if (end_angle < start_angle)
         end_angle = end_angle + 360;
