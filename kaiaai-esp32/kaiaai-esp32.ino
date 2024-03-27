@@ -227,7 +227,7 @@ void updateSpeedRamp() {
 }
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(500000); //115200
 
   pinMode(cfg.LED_PIN, OUTPUT);
   digitalWrite(cfg.LED_PIN, HIGH);
@@ -680,7 +680,8 @@ void lds_scan_point_callback(float angle_deg, float distance_mm, float quality,
 
 void lds_packet_callback(uint8_t * packet, uint16_t packet_length, bool scan_completed) {
 /*
-  Serial.println('-');
+//  if (scan_completed)
+//    Serial.println("***");
   if (packet_length > 0) {
     printBytesAsHex(packet, packet_length);
     Serial.println();
