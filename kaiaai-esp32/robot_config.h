@@ -21,22 +21,50 @@
 
 class CONFIG {
 public:
-  static constexpr char* FW_VERSION = (char*)"0.4.1-iron";
+  static constexpr char* FW_VERSION = (char*)"0.5.0-iron";
+
   // ESP32 pin assignment
   static const uint8_t LED_PIN = 2; // ESP32 on-board LED
-  static const uint8_t LDS_MOTOR_PWM_PIN = 15;
-  static const uint8_t LDS_MOTOR_EN_PIN = 19;
   static const uint8_t BAT_ADC_PIN = 36;
+
+  // LiDAR
+  static const uint8_t LDS_PWM_PIN = 15;
+  static const uint8_t LDS_EN_PIN = 19;
+  
+  // Brushless motors
   static const uint8_t MOT_PWM_LEFT_PIN = 33;
-  static const uint8_t MOT_CW_LEFT_PIN = 23; // was 32
+  static const uint8_t MOT_CW_LEFT_PIN = 23;
   static const uint8_t MOT_FG_LEFT_PIN = 34;
+
   static const uint8_t MOT_PWM_RIGHT_PIN = 13;
   static const uint8_t MOT_CW_RIGHT_PIN = 25;
-  static const uint8_t MOT_FG_RIGHT_PIN = 35; // was 27
+  static const uint8_t MOT_FG_RIGHT_PIN = 35;
+  
+  // Brushed motors
+  static const uint8_t MOT_ENC_A_RIGHT_PIN = MOT_FG_RIGHT_PIN;
+  static const uint8_t MOT_ENC_B_RIGHT_PIN = 26;
+  static const uint8_t MOT_IN1_RIGHT_PIN = MOT_PWM_RIGHT_PIN;
+  static const uint8_t MOT_IN2_RIGHT_PIN = MOT_CW_RIGHT_PIN;
+
+  static const uint8_t MOT_ENC_A_LEFT_PIN = MOT_FG_LEFT_PIN;
+  static const uint8_t MOT_ENC_B_LEFT_PIN = 32;
+  static const uint8_t MOT_IN1_LEFT_PIN = MOT_PWM_LEFT_PIN;
+  static const uint8_t MOT_IN2_LEFT_PIN = MOT_CW_LEFT_PIN;
+
+  // PWM channels
+  enum pwm_channel {
+    MOT_PWM_LEFT_CHANNEL = 0,
+    MOT_PWM_RIGHT_CHANNEL = 1,
+    LDS_PWM_CHANNEL = 2,
+  };
+  static const uint16_t MOT_PWM_FREQ = 20000; // 15..25KHz
+  static const uint8_t MOT_PWM_BITS = 10;
+
+  static const uint32_t LDS_PWM_FREQ = 10000;
+  static const uint8_t LDS_PWM_BITS = 11;
 
   static const uint32_t RESET_SETTINGS_HOLD_MS = 10000; // Hold BOOT button to reset WiFi
   static constexpr double LDS_SCAN_FREQ_DEFAULT = 0;
-  static const uint8_t LDS_MOTOR_PWM_CHANNEL = 2; // ESP32 PWM channel for LDS motor speed control
 
   static const uint8_t BAT_ADC_MULTIPLIER = 11; // resistor divider reciprocal
   static const uint16_t BAT_PRESENT_MV_MIN = 4000;
@@ -104,8 +132,6 @@ public:
   static constexpr char * UROS_PARAM_LDS_SCAN_FREQ = (char *)"lds.scan_freq";
 
   static const uint16_t LDS_BUF_LEN = 400;
-  static const uint32_t LDS_MOTOR_PWM_FREQ = 10000;
-  static const uint8_t LDS_MOTOR_PWM_BITS = 11;
   static const uint16_t LDS_SERIAL_RX_BUF_LEN = 1024;
 
   static const uint32_t WIFI_CONN_TIMEOUT_MS = 30000;

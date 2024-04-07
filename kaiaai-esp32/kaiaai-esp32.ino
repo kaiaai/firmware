@@ -34,7 +34,8 @@
 #include <rmw_microros/rmw_microros.h>
 //#include <rmw_microros/discovery.h>
 #include <rclc_parameter/rclc_parameter.h>
-#include "drive.h"
+#include "brushless_ctl.h"
+#include "brushed_ctl.h"
 #include "ap.h"
 #include "param_file.h"
 #include "lds_all_models.h"
@@ -48,13 +49,17 @@
 #define RCSOFTCHECK(fn) { rcl_ret_t temp_rc = fn; \
   if((temp_rc != RCL_RET_OK)){Serial.println("RCSOFTCHECK failed");}}
 
+const uint8_t MOTOR_COUNT = 2;
+MotorController motorLeft, motorRight;
+
 CONFIG cfg;
 PARAM_FILE params(cfg.getParamNames(), cfg.getParamValues(), cfg.PARAM_COUNT); // temp hack
 DriveController drive;
 LDS *lds;
 
 rcl_publisher_t telem_pub;
-rcl_publisher_t log_pub;rcl_subscription_t twist_sub;
+rcl_publisher_t log_pub;
+rcl_subscription_t twist_sub;
 kaiaai_msgs__msg__KaiaaiTelemetry2 telem_msg;
 geometry_msgs__msg__Twist twist_msg;
 rclc_support_t support;
@@ -66,8 +71,8 @@ bool lds_scan_freq_param_changed = true;
 
 HardwareSerial LdSerial(2); // TX 17, RX 16
 
-kaiaai_msgs__msg__JointPosVel joint[drive.MOTOR_COUNT];
-float joint_prev_pos[drive.MOTOR_COUNT] = {0};
+kaiaai_msgs__msg__JointPosVel joint[MOTOR_COUNT];
+float joint_prev_pos[MOTOR_COUNT] = {0};
 uint8_t lds_buf[cfg.LDS_BUF_LEN] = {0};
 
 unsigned long telem_prev_pub_time_us = 0;
@@ -86,8 +91,135 @@ bool ramp_enabled = true;
 unsigned long stat_sum_spin_telem_period_us = 0;
 unsigned long stat_max_spin_telem_period_us = 0;
 
+void IRAM_ATTR brlessMotorLeftISR() {
+  if (MotorLeft::encoder_dir)
+    MotorLeft::encoder++;
+  else
+    MotorLeft::encoder--;
+}
+
+void IRAM_ATTR brlessMotorRightISR() {
+  if (MotorRight::encoder_dir)
+    MotorRight::encoder++;
+  else
+    MotorRight::encoder--;
+}
+
+void IRAM_ATTR brushedMotorLeftAISR() {
+  bool inc = digitalRead(cfg.MOT_ENC_A_LEFT_PIN) != digitalRead(cfg.MOT_ENC_B_LEFT_PIN)
+    ^ MotorLeft::encoder_inc;
+  if (inc)
+    MotorLeft::encoder++;
+  else
+    MotorLeft::encoder--;
+}
+
+void IRAM_ATTR brushedMotorRightAISR() {
+  bool inc = digitalRead(cfg.MOT_ENC_A_RIGHT_PIN) != digitalRead(cfg.MOT_ENC_B_RIGHT_PIN)
+    ^ MotorRight::encoder_inc;
+  if (inc)
+    MotorRight::encoder++;
+  else
+    MotorRight::encoder--;
+}
+
 size_t lds_serial_write_callback(const uint8_t * buffer, size_t length) {
   return LdSerial.write(buffer, length);
+}
+
+void setupBrlessMotors() {
+  pinMode(cfg.MOT_CW_LEFT_PIN, OUTPUT);
+  pinMode(cfg.MOT_CW_RIGHT_PIN, OUTPUT);
+
+  ledcSetup(cfg.MOT_PWM_LEFT_CHANNEL, cfg.MOT_PWM_FREQ, cfg.MOT_PWM_BITS);
+  ledcAttachPin(cfg.MOT_PWM_LEFT_PIN, cfg.MOT_PWM_LEFT_CHANNEL);
+
+  ledcSetup(cfg.MOT_PWM_RIGHT_CHANNEL, cfg.MOT_PWM_FREQ, cfg.MOT_PWM_BITS);
+  ledcAttachPin(cfg.MOT_PWM_RIGHT_PIN, cfg.MOT_PWM_RIGHT_CHANNEL);
+
+  leftMotor->setPWMCallback(motorLeftBrlessPWMCallback);
+  rightMotor->setPWMCallback(motorRightBrlessPWMCallback);
+
+  // Encoders
+  pinMode(cfg.MOT_FG_LEFT_PIN, INPUT);
+  attachInterrupt(cfg.MOT_FG_LEFT_PIN, brlessMotorLeftISR, CHANGE);
+
+  pinMode(cfg.MOT_FG_RIGHT_PIN, INPUT);
+  attachInterrupt(cfg.MOT_FG_RIGHT_PIN, brlessMotorRightISR, CHANGE);
+}
+
+void motorLeftBrlessPWMCallback(float pwm) {
+  setBrlessMotorPWM(false, pwm);
+}
+
+void motorRightBrlessPWMCallback(float pwm) {
+  setBrlessMotorPWM(true, pwm);
+}
+
+void motorLeftBrushedPWMCallback(float pwm) {
+  setBrushedMotorPWM(false, pwm);
+}
+
+void motorRightBrushedPWMCallback(float pwm) {
+  setBrushedMotorPWM(true, pwm);
+}
+
+void setBrushedMotorPWM(bool is_right, float pwm) {
+  uint8_t in1_pin = is_right ? cfg.MOT_IN1_RIGHT_PIN : cfg.MOT_IN1_LEFT_PIN;
+  uint8_t in2_pin = is_right ? cfg.MOT_IN2_RIGHT_PIN : cfg.MOT_IN2_LEFT_PIN;
+  uint8_t pwm_channel = is_right ? cfg.MOT_PWM_RIGHT_CHANNEL : cfg.MOT_PWM_LEFT_CHANNEL;
+
+  pwm = pwm > 1 ? 1 : pwm;
+
+  if (pwm == 0) {
+    // Hard brake
+    digitalWrite(in1_pin, HIGH);
+    digitalWrite(in2_pin, HIGH);
+    return;
+  } else if (pwm < -1) {
+    // Soft brake
+    digitalWrite(in1_pin, LOW);
+    digitalWrite(in2_pin, LOW);
+    return;
+  }
+  
+  int pwm_value = ((1<<cfg.MOT_PWM_BITS)-1)*abs(pwm);
+  ledcWrite(pwm_channel, pwm_value);
+  ledcAttachPin(pwm > 0 ? in2_pin : in1_pin, pwm_channel);
+  digitalWrite(pwm > 0 / in1_pin : in2_pin, HIGH);
+}
+
+void setupBrushedMotors() {
+  pinMode(cfg.MOT_IN1_LEFT_PIN, OUTPUT);
+  pinMode(cfg.MOT_IN2_LEFT_PIN, OUTPUT);
+  ledcSetup(cfg.MOT_PWM_LEFT_CHANNEL, cfg.MOT_PWM_FREQ, cfg.MOT_PWM_BITS);
+  setBrushedMotorPWM(false, 0);
+
+  pinMode(cfg.MOT_IN1_RIGHT_PIN, OUTPUT);
+  pinMode(cfg.MOT_IN2_RIGHT_PIN, OUTPUT);
+  ledcSetup(cfg.MOT_PWM_RIGHT_CHANNEL, cfg.MOT_PWM_FREQ, cfg.MOT_PWM_BITS);
+  setBrushedMotorPWM(true, 0);
+
+  leftMotor->setPWMCallback(motorLeftBrushedPWMCallback);
+  rightMotor->setPWMCallback(motorRightBrushedPWMCallback);
+
+  // Encoders
+  pinMode(cfg.MOT_ENC_A_LEFT_PIN, INPUT);
+  pinMode(cfg.MOT_ENC_B_LEFT_PIN, INPUT);
+  attachInterrupt(cfg.MOT_ENC_A_LEFT_PIN, brushedLeftAISR, CHANGE);
+
+  pinMode(cfg.MOT_ENC_A_RIGHT_PIN, INPUT);
+  pinMode(cfg.MOT_ENC_B_RIGHT_PIN, INPUT);
+  attachInterrupt(cfg.MOT_ENC_A_RIGHT_PIN, brushedRightAISR, CHANGE);
+}
+
+void setBrlessMotorPWM(bool is_right, float pwm) {
+  uint8_t cw_pin = is_right ? cfg.MOT_CW_RIGHT_PIN : cfg.MOT_CW_LEFT_PIN;
+  uint8_t pwm_channel = is_right ? cfg.MOT_PWM_RIGHT_CHANNEL : cfg.MOT_PWM_LEFT_CHANNEL;
+
+  int pwm_value = ((1<<cfg.MOT_PWM_BITS)-1) - abs(pwm);
+  ledcWrite(pwm_channel, pwm_value);
+  digitalWrite (cw_pin, pwm ? LOW : HIGH);
 }
 
 int lds_serial_read_callback() {
@@ -98,7 +230,9 @@ int lds_serial_read_callback() {
   if (c < 0)
     return c;
 
-  printByteAsHex(c);
+  if (c < 16)
+    Serial.print('0');
+  Serial.print(c, HEX);
   if (i++ % 16 == 0)
     Serial.println();
   else
@@ -135,9 +269,9 @@ void twist_sub_callback(const void *msgin) {
 
   // Limit target RPM
   float limited_target_rpm_right =
-    absMin(twist_target_rpm_right, drive.getMaxRPM());
+    absMin(twist_target_rpm_right, motorRight->getMaxRPM());
   float limited_target_rpm_left =
-    absMin(twist_target_rpm_left, drive.getMaxRPM());
+    absMin(twist_target_rpm_left, motorLeft->getMaxRPM());
 
   // Scale down both target RPMs to within limits
   if (twist_target_rpm_right != limited_target_rpm_right ||
@@ -171,8 +305,8 @@ void twist_sub_callback(const void *msgin) {
   }
 
   // Calculate change in speeds
-  ramp_start_rpm_right = drive.getTargetRPM(drive.MOTOR_RIGHT);
-  ramp_start_rpm_left = drive.getTargetRPM(drive.MOTOR_LEFT);
+  ramp_start_rpm_right = motorRight->getTargetRPM();
+  ramp_start_rpm_left = motorLeft->getTargetRPM();
   
   float ramp_start_speed_right = cfg.rpm_to_speed(ramp_start_rpm_right);
   float ramp_start_speed_left = cfg.rpm_to_speed(ramp_start_rpm_left);
@@ -195,13 +329,13 @@ void twist_sub_callback(const void *msgin) {
 }
 
 void setMotorSpeeds(float ramp_target_rpm_right, float ramp_target_rpm_left) {
-  drive.setRPM(drive.MOTOR_RIGHT, ramp_target_rpm_right);
-  drive.setRPM(drive.MOTOR_LEFT, ramp_target_rpm_left);
+  motorRight->setRPM(ramp_target_rpm_right);
+  motorLeft->setRPM(ramp_target_rpm_left);
 }
 
 void updateSpeedRamp() {
-  if (ramp_target_rpm_right == drive.getTargetRPM(drive.MOTOR_RIGHT) &&
-    ramp_target_rpm_left == drive.getTargetRPM(drive.MOTOR_LEFT)) {
+  if (ramp_target_rpm_right == motorRight->getTargetRPM() &&
+    ramp_target_rpm_left == motorLeft->getTargetRPM()) {
     return;
   }
 
@@ -227,7 +361,7 @@ void updateSpeedRamp() {
 }
 
 void setup() {
-  Serial.begin(500000); //115200
+  Serial.begin(115200);
 
   pinMode(cfg.LED_PIN, OUTPUT);
   digitalWrite(cfg.LED_PIN, HIGH);
@@ -269,14 +403,19 @@ void setup() {
     blink_error_code(cfg.ERR_LDS_START);
     //error_loop(cfg.ERR_LDS_START);
   
-  drive.init(cfg.MOT_PWM_LEFT_PIN, cfg.MOT_PWM_RIGHT_PIN,
-    cfg.MOT_CW_LEFT_PIN, cfg.MOT_CW_RIGHT_PIN,
-    cfg.MOT_FG_LEFT_PIN, cfg.MOT_FG_RIGHT_PIN);
+  motorLeft->init();
+  motorRight->init();
+  //motorLeft->resetEncoders();
+  //motorRight->resetEncoders();
 
-  drive.resetEncoders();
-  drive.setMaxRPM(String(params.get(cfg.PARAM_MOTOR_MAX_RPM)).toFloat()
-    * cfg.MOTOR_MAX_RPM_DERATE);
-  drive.setEncoderPPR(String(params.get(cfg.PARAM_WHEEL_PPR)).toFloat());
+  float value = String(params.get(cfg.PARAM_MOTOR_MAX_RPM)).toFloat() *
+    cfg.MOTOR_MAX_RPM_DERATE;
+  motorLeft->setMaxRPM(value);
+  motorRight->setMaxRPM(value);
+
+  value = String(params.get(cfg.PARAM_WHEEL_PPR)).toFloat();
+  motorLeft->setEncoderPPR(value);
+  motorRight->setEncoderPPR(value);
 
   cfg.setWheelDia(params.get(cfg.PARAM_WHEEL_DIA_MM));  
   cfg.setMaxWheelAccel(params.get(cfg.PARAM_MAX_WHEEL_ACCEL));  
@@ -295,7 +434,8 @@ void setupADC() {
 
   Serial.print("Battery ");
   if (voltage_mv == 0) {
-    Serial.println("NOT detected - is the power switch on?");
+    Serial.println("NOT detected");
+    Serial.println("Is the battery connected? Is the power switch on?");
   } else {
     Serial.print("voltage ");
     Serial.print(voltage_mv*0.001f);
@@ -309,7 +449,6 @@ bool set_param_callback(const char * param_name, const char * param_value) {
 
   params.save();
   Serial.println("Parameters saved, restarting..");
-  WiFi.softAPdisconnect(true);
   delay(100);
   ESP.restart();
 
@@ -536,9 +675,9 @@ void spinTelem(bool force_pub) {
   digitalWrite(cfg.LED_PIN, !digitalRead(cfg.LED_PIN));
   //if (++telem_pub_count % 5 == 0) {
     //Serial.print("RPM L ");
-    //Serial.print(drive.getCurrentRPM(drive.MOTOR_LEFT));
+    //Serial.print(motorLeft->getCurrentRPM());
     //Serial.print(" R ");
-    //Serial.println(drive.getCurrentRPM(drive.MOTOR_RIGHT));
+    //Serial.println(motorRight->getCurrentRPM());
   //}
 
   stat_sum_spin_telem_period_us += step_time_us;
@@ -574,7 +713,7 @@ void publishTelem(unsigned long step_time_us) {
   telem_msg.stamp.sec = tv.tv_sec;
   telem_msg.stamp.nanosec = tv.tv_nsec;
 
-  float joint_pos_delta[drive.MOTOR_COUNT];
+  float joint_pos_delta[MOTOR_COUNT];
   float step_time = 1e-6 * (float)step_time_us;
 
   long rssi_dbm = WiFi.RSSI();
@@ -594,15 +733,17 @@ void publishTelem(unsigned long step_time_us) {
   //Serial.print(voltage_mv);
   //Serial.println("mV");
 
-  for (unsigned char i = 0; i < drive.MOTOR_COUNT; i++) {
-    joint[i].pos = drive.getShaftAngle(i);
+  MotorController motors[MOTOR_COUNT] = {leftMotor, rightMotor};
+
+  for (unsigned char i = 0; i < MOTOR_COUNT; i++) {
+    MotorController motor = motors[i];
+    joint[i].pos = motor->getShaftAngle();
     joint_pos_delta[i] = joint[i].pos - joint_prev_pos[i];
     joint[i].vel = joint_pos_delta[i] / step_time;    
     joint_prev_pos[i] = joint[i].pos;
   }
 
-  calcOdometry(step_time_us, joint_pos_delta[drive.MOTOR_LEFT],
-    joint_pos_delta[drive.MOTOR_RIGHT]);
+  calcOdometry(step_time_us, joint_pos_delta[0], joint_pos_delta[1]);
 
   RCSOFTCHECK(rcl_publish(&telem_pub, &telem_msg, NULL));
   telem_msg.lds.size = 0;
@@ -668,7 +809,7 @@ void lds_scan_point_callback(float angle_deg, float distance_mm, float quality,
 */
 /*
   if (scan_completed)
-    Serial.println("***");
+    Serial.println();
   
   Serial.print(angle_deg);
   Serial.print('\t');
@@ -679,15 +820,8 @@ void lds_scan_point_callback(float angle_deg, float distance_mm, float quality,
 }
 
 void lds_packet_callback(uint8_t * packet, uint16_t packet_length, bool scan_completed) {
-/*
-//  if (scan_completed)
-//    Serial.println("***");
-  if (packet_length > 0) {
-    printBytesAsHex(packet, packet_length);
-    Serial.println();
-  }
-*/
   bool packet_sent = false;
+//  Serial.println('-');
   while (packet_length-- > 0) {
     if (telem_msg.lds.size >= telem_msg.lds.capacity) {
       spinTelem(true);
@@ -715,14 +849,14 @@ void lds_motor_pin_callback(float value, LDS::lds_pin_t lds_pin) {
   */
   
   int pin = (lds_pin == LDS::LDS_MOTOR_EN_PIN) ?
-    cfg.LDS_MOTOR_EN_PIN : cfg.LDS_MOTOR_PWM_PIN;
+    cfg.LDS_EN_PIN : cfg.LDS_PWM_PIN;
 
   if (value <= LDS::DIR_INPUT) {
     // Configure pin direction
     if (value == LDS::DIR_OUTPUT_PWM) {
-      pinMode(pin, OUTPUT);
-      ledcSetup(cfg.LDS_MOTOR_PWM_CHANNEL, cfg.LDS_MOTOR_PWM_FREQ, cfg.LDS_MOTOR_PWM_BITS);
-      ledcAttachPin(pin, cfg.LDS_MOTOR_PWM_CHANNEL);
+      //pinMode(pin, OUTPUT);
+      //ledcSetup(cfg.LDS_PWM_CHANNEL, cfg.LDS_PWM_FREQ, cfg.LDS_PWM_BITS);
+      ledcAttachPin(pin, cfg.LDS_PWM_CHANNEL);
     } else
       pinMode(pin, (value == LDS::DIR_INPUT) ? INPUT : OUTPUT);
     return;
@@ -731,8 +865,8 @@ void lds_motor_pin_callback(float value, LDS::lds_pin_t lds_pin) {
   if (value < LDS::VALUE_PWM) // set constant output
     digitalWrite(pin, (value == LDS::VALUE_HIGH) ? HIGH : LOW);
   else { // set PWM duty cycle
-    int pwm_value = ((1<<cfg.LDS_MOTOR_PWM_BITS)-1)*value;
-    ledcWrite(cfg.LDS_MOTOR_PWM_CHANNEL, pwm_value);
+    int pwm_value = ((1<<cfg.LDS_PWM_BITS)-1)*value;
+    ledcWrite(cfg.LDS_PWM_CHANNEL, pwm_value);
   }
 }
 
@@ -751,8 +885,8 @@ void spinPing() {
 void loop() {
   if (WiFi.status() != WL_CONNECTED) {
     lds->stop();
-    drive.setRPM(drive.MOTOR_RIGHT, 0);
-    drive.setRPM(drive.MOTOR_LEFT, 0);
+    motorLeft->setRPM(0);
+    motorRight->setRPM(0);
     return;
   }
 
@@ -769,7 +903,8 @@ void loop() {
   spinTelem(false);
   spinPing();
   updateSpeedRamp(); // update ramp less frequently?
-  drive.update();
+  motorLeft->update();
+  motorRight->update();
 }
 
 void resetSettings() {
@@ -808,14 +943,14 @@ void resetTelemMsg() {
   telem_msg.odom_vel_yaw = 0;
   
   telem_msg.joint.data = joint;
-  telem_msg.joint.capacity = drive.MOTOR_COUNT;
-  telem_msg.joint.size = drive.MOTOR_COUNT;
+  telem_msg.joint.capacity = MOTOR_COUNT;
+  telem_msg.joint.size = MOTOR_COUNT;
 
   telem_msg.lds.data = lds_buf;
   telem_msg.lds.capacity = cfg.LDS_BUF_LEN;
   telem_msg.lds.size = 0;
 
-  for (int i = 0; i < drive.MOTOR_COUNT; i++) {
+  for (int i = 0; i < MOTOR_COUNT; i++) {
     joint[i].pos = 0;
     joint[i].vel = 0;
     joint_prev_pos[i] = 0;
@@ -926,6 +1061,8 @@ void lds_error_callback(LDS::result_t code, String aux_info) {
 }
 
 void setupLDS() {
+  ledcSetup(cfg.LDS_PWM_CHANNEL, cfg.LDS_PWM_FREQ, cfg.LDS_PWM_BITS);
+
   const char * model = params.get(cfg.PARAM_LDS_MODEL);
   Serial.print("LDS model ");
   Serial.print(model);
@@ -963,13 +1100,9 @@ void setupLDS() {
                       if (strcmp(model, "LDLIDAR LD14P") == 0) {
                         lds = new LDS_LDLIDAR_LD14P();
                       } else {
-                        if (strcmp(model, "CAMSENSE X1") == 0) {
-                          lds = new LDS_CAMSENSE_X1();
-                        } else {
-                          if (strcmp(model, "YDLIDAR X4") != 0)
-                            Serial.print(" not recognized, defaulting to YDLIDAR X4");
-                          lds = new LDS_YDLIDAR_X4();
-                        }
+                        if (strcmp(model, "YDLIDAR X4") != 0)
+                          Serial.print(" not recognized, defaulting to YDLIDAR X4");
+                        lds = new LDS_YDLIDAR_X4();
                       }
                     }
                   }
