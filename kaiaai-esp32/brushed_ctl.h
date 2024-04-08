@@ -18,10 +18,5 @@
 
 class BrushedMotorController : public MotorController {
   public:
-  public:
-    void init() override;
     void update() override;
-
-  private:
-    bool encoderReversed;
 };

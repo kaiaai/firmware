@@ -12,15 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "drive_ctl.h"
+#include "motor_ctl.h"
 
 void MotorController::init() {
 
   setMaxRPM(200);
   setEncoderPPR(45.0*6);
-
-  pinMode(cwPin[motorID], OUTPUT);
-  ledcAttachPin(pwmPin[motorID], motorID);
 
   targetRPM = 0;
   measuredRPM = 0;
@@ -34,12 +31,13 @@ void MotorController::init() {
   float updatePeriodSec = 0.03;
   pid.Init(&measuredRPM, &pidPWM, &targetRPM, 0.001, 0.001, 0,
     updatePeriodSec, PID::P_ON_M, PID::DIRECT);
+  pidUpdatePeriodUs = (unsigned int) round(updatePeriodSec * 1e6);
   
   pid.SetOutputLimits(-1, 1);
 
   pwm = 1; // force update
 
-  setPIDUpdatePeriod(updatePeriodSec);
+  //setPIDUpdatePeriod(updatePeriodSec);
   enablePID(true);
 }
 
@@ -92,8 +90,7 @@ void MotorController::resetEncoders() {
 
 void MotorController::setPIDConfig(float kp, float ki, float kd, float period, bool on_error) {
   pidUpdatePeriodUs = (unsigned int) round(period * 1e6);
-
-  pid.SetTunings(kp, ki, kd, on_meas ? PID::P_ON_E : PID::P_ON_M);
+  pid.SetTunings(kp, ki, kd, on_error ? PID::P_ON_E : PID::P_ON_M);
 }
 
 void MotorController::getPIDConfig(float &kp, float &ki, float &kd, float &period, bool &on_error) {
@@ -101,7 +98,7 @@ void MotorController::getPIDConfig(float &kp, float &ki, float &kd, float &perio
   ki = pid.GetKi();
   kd = pid.GetKd();
   period = pidUpdatePeriodUs * 1e-6;
-  on_error = !pid.isOnError;
+  on_error = !pid.isOnError();
 }
 
 bool MotorController::setRPM(float rpm) {
@@ -116,7 +113,7 @@ bool MotorController::setRPM(float rpm) {
   return within_limit;
 }
 
-void MotorController::setEncoderDirection(bool reverse) {
+void MotorController::setEncoderDirection(bool reversed) {
   encoderReversed = reversed;
 }
 

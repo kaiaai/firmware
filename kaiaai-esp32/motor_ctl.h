@@ -25,7 +25,7 @@ class MotorController {
     void setPWMCallback(SetPWMCallback callback);
     bool setRPM(float rpm);
     void resetEncoders();
-    void update();
+    virtual void update() = 0;
     float getShaftAngle();
     void setMotorDirection(bool reversed);
     void setEncoderDirection(bool reversed);
@@ -36,10 +36,10 @@ class MotorController {
     float getCurrentRPM();
     float getTargetRPM();
     float getMaxRPM();
-    virtual void update() = 0;
+    void enablePID(bool en);
 
-    static volatile long int encoder; // 0
-    static volatile uint8_t encoder_dir; // true
+    volatile long int encoder; // 0
+    volatile uint8_t encoder_dir; // true
 
   protected:  
     virtual void setPWM(float value);
@@ -60,5 +60,6 @@ class MotorController {
     long int encPrev;
     bool setPointHasChanged;
     bool motorReversed;
+    bool encoderReversed;
     unsigned long tickSampleTimePrev;
 };

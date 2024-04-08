@@ -17,7 +17,6 @@
 #include "motor_ctl.h"
 
 class BrushlessMotorController : public MotorController {
-  public:                   
   public:
     void init() override;
     void update() override;

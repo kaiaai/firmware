@@ -23,15 +23,11 @@ void BrushlessMotorController::setPWM(float value) {
   if (switchingCw)
     return;
 
-  value = value > 1.0 ? 1.0 : value; // clamp to range
-  value = value < -1.0 ? -1.0 : value;
-  
-//  int pwm = (int) round(value * PWM_MAX);
+  //value = value > 1.0 ? 1.0 : value; // clamp to range
+  //value = value < -1.0 ? -1.0 : value;
 
   if (value == pwm)
     return;
-
-  //bool cw = (pwm >= 0) ^ FLIP_ROTATION;
 
   if ((pwm > 0 && value < 0) || (pwm < 0 && value > 0)) {
     // when cw/ccw changes, stop pwm:=0, verify 0 enc pulses
@@ -41,17 +37,13 @@ void BrushlessMotorController::setPWM(float value) {
     //cw = CW; // freeze cw for encoders until we stop
   }
 
-  //int pwmValue = PWM_MAX - abs(pwm); //(pwm >= 0 ? pwm : -pwm);
-  //ledcWrite(motorID, pwmValue);
-  //digitalWrite (cwPin[motorID], cw ? LOW : HIGH);
   MotorController::setPWM(motorReversed ? -value : value);
-  //CW = cw;
   pwm = value;
 }
 
 // TODO detect stuck (stalled) motor, limit current, let robot know
 // NB BLDC motor has a built-in feature that shuts motor off after stall timeout
-void DriveController::update() {  
+void BrushlessMotorController::update() {  
   unsigned long tickTime = micros();
   unsigned long tickTimeDelta = tickTime - tickSampleTimePrev;
   if ((tickTimeDelta < pidUpdatePeriodUs) && !setPointHasChanged)
@@ -60,12 +52,12 @@ void DriveController::update() {
   tickSampleTimePrev = tickTime;
   
   long int encNow = encoder;
-  encDelta = encNow - encPrev;
+  long int encDelta = encNow - encPrev;
   encPrev = encNow;
-  float ticksPerMicroSec = ((float) encDelta[motorID]) / ((float) tickTimeDelta);
+  float ticksPerMicroSec = ((float) encDelta) / ((float) tickTimeDelta);
   measuredRPM = ticksPerMicroSec * ticksPerMicroSecToRPM;
 
-  setPointHasChanged[motorID] = false;
+  setPointHasChanged = false;
 
   if (encDelta == 0)
     switchingCw = false;
@@ -77,7 +69,5 @@ void DriveController::update() {
   
   float sampleTime = tickTimeDelta * 1e-6;
   pid.Compute(sampleTime);
-
-    setPWM(motorID, (float) pidPWM[motorID]);
-  }
+  setPWM(pidPWM);
 }

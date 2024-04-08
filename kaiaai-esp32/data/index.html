@@ -151,13 +151,13 @@ button {
       const motor_max_rpm = [200, 245, 260, 408, 450, 333];
       const wheel_ppr = [270, 630, 204, 127.8, 120, 111];
       const motor_voltage = [24, 24, 24, 24, 24, 12];
-      const motor_controller = ['PWM_CW_FG', 'PWM_CW_FG', 'PWM_CW_FG', 'PWM_CW_FG',
+      const motor_driver = ['PWM_CW_FG', 'PWM_CW_FG', 'PWM_CW_FG', 'PWM_CW_FG',
 	    'PWM_CW_FG', 'TB6612FNG'];
 
 	  document.getElementById('motor_max_rpm').value = motor_max_rpm[idx];
 	  document.getElementById('wheel_ppr').value = wheel_ppr[idx];
 	  document.getElementById('motor_voltage').value = motor_voltage[idx];
-	  document.getElementById('motor_controller').value = motor_controller[idx];
+	  document.getElementById('motor_driver').value = motor_driver[idx];
 	}
   }
   </script>
@@ -256,10 +256,10 @@ button {
 				<input type="number" id="motor_voltage" name="motor_voltage" value="24" title="Motor voltage 9..24 volts" required min="9" max="24">
 				<br>
 
-				<label for="motor_controller">Motor Controller</label>
-				<select name="motor_controller" id="motor_controller" required>
-					<option value="TB6612FNG">Brushed: TB6612FNG driver</option>
-					<option value="PWM_CW_FG">Brushless: PWM, CW, FG pins</option>
+				<label for="motor_driver">Motor Driver</label>
+				<select name="motor_driver" id="motor_driver" required>
+					<option value="TB6612FNG">Brushed: TB6612FNG</option>
+					<option value="PWM_CW_FG">Brushless built-in: PWM, CW, FG pins</option>
 				</select>
 			</div>
 			<p>
