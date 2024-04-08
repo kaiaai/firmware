@@ -388,6 +388,7 @@ void setup() {
     return;
   }
 
+  setupMotors();
   setupADC();
   setupLDS();
 

@@ -148,13 +148,16 @@ button {
 	  document.getElementById('wheel_base').value = wheel_base[idx];
 	  document.getElementById('max_wheel_accel').value = max_wheel_accel[idx];
 	} else if (id === 'motor_model_div' && !is_custom) {
-      const motor_max_rpm = [200, 245, 260, 408, 450];
-      const wheel_ppr = [270, 630, 204, 127.8, 120];
-      const motor_voltage = [24, 24, 24, 24, 24];
+      const motor_max_rpm = [200, 245, 260, 408, 450, 333];
+      const wheel_ppr = [270, 630, 204, 127.8, 120, 111];
+      const motor_voltage = [24, 24, 24, 24, 24, 12];
+      const motor_controller = ['PWM_CW_FG', 'PWM_CW_FG', 'PWM_CW_FG', 'PWM_CW_FG',
+	    'PWM_CW_FG', 'TB6612FNG'];
 
 	  document.getElementById('motor_max_rpm').value = motor_max_rpm[idx];
 	  document.getElementById('wheel_ppr').value = wheel_ppr[idx];
 	  document.getElementById('motor_voltage').value = motor_voltage[idx];
+	  document.getElementById('motor_controller').value = motor_controller[idx];
 	}
   }
   </script>
@@ -227,12 +230,17 @@ button {
 			<br>
 			<label for="motor_model">Motor model</label>
 			<select name="motor_model" id="motor_model" required onchange="populateProps('motor_model_div', this);">
-				<option value="200_270">CHR-GM25-BL2418 24V 200RPM 270PPR</option>
-				<option value="245_630">JGA25-BL2418 24V 245RPM 630PPR</option>
-				<option value="260_204">CHR-GM25-BL2418 24V 260RPM 204PPR</option>
-				<option value="408_127.8">JGA25-BL2418 24V 408RPM 127.8PPR</option>
-				<option value="450_120">CHR-GM25-BL2418 24V 450RPM 120PPR</option>
-				<option value="CUSTOM">CUSTOM RPM, PPR, Voltage</option>
+				<optgroup label="Brushless">
+					<option value="24V_200RPM_270PPR_PWM_CW_FG">CHR-GM25-BL2418 24V 200RPM 270PPR</option>
+					<option value="24V_245RPM_630PPR_PWM_CW_FG">JGA25-BL2418 24V 245RPM 630PPR</option>
+					<option value="24V_260RPM_204PPR_PWM_CW_FG">CHR-GM25-BL2418 24V 260RPM 204PPR</option>
+					<option value="24V_408RPM_127.8PPR_PWM_CW_FG">JGA25-BL2418 24V 408RPM 127.8PPR</option>
+					<option value="24V_450RPM_120PPR_PWM_CW_FG">CHR-GM25-BL2418 24V 450RPM 120PPR</option>
+				</optgroup>
+				<optgroup label="Brushed">
+					<option value="12V_450RPM_120PPR_TB6612FNG">JGA25-370 12V 450RPM 120PPR TB6612FNG</option>
+				</optgroup>
+				<option value="CUSTOM">CUSTOM RPM, PPR, Voltage, Controller</option>
 			</select>
 
 			<div id="motor_model_div" class="advanced_props">
@@ -246,6 +254,13 @@ button {
 
 				<label for="motor_voltage">Motor Voltage</label>
 				<input type="number" id="motor_voltage" name="motor_voltage" value="24" title="Motor voltage 9..24 volts" required min="9" max="24">
+				<br>
+
+				<label for="motor_controller">Motor Controller</label>
+				<select name="motor_controller" id="motor_controller" required>
+					<option value="TB6612FNG">Brushed: TB6612FNG driver</option>
+					<option value="PWM_CW_FG">Brushless: PWM, CW, FG pins</option>
+				</select>
 			</div>
 			<p>
 				<input type ="submit" value ="Configure and Connect">
