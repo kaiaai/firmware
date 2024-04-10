@@ -19,13 +19,17 @@
 
 class MotorController {
   public:
-    typedef void (*SetPWMCallback)(float);
+    typedef void (*SetPWMCallback)(MotorController*, float);
+    enum encoder_type_t {
+      ENCODER_UNSIGNED,
+      ENCODER_SIGNED,
+    };
 
-    virtual void init();
+    void init(encoder_type_t encoder_type);
     void setPWMCallback(SetPWMCallback callback);
     bool setRPM(float rpm);
     void resetEncoders();
-    virtual void update() = 0;
+    void update();
     float getShaftAngle();
     void setMotorDirection(bool reversed);
     void setEncoderDirection(bool reversed);
@@ -38,28 +42,46 @@ class MotorController {
     float getMaxRPM();
     void enablePID(bool en);
 
-    volatile long int encoder; // 0
-    volatile uint8_t encoder_dir; // true
+  protected:
+    volatile long int encoder;
+    bool encoder_reversed;
 
-  protected:  
-    virtual void setPWM(float value);
+    void setPWM(float value);
     SetPWMCallback set_pwm_callback;
-    float encoderTPR;
     PID_FLOAT pid;
     float pidPWM;
-    unsigned int pidUpdatePeriodUs;
     float targetRPM;
     float measuredRPM;
-    float maxRPM;
-    //float encoderTPR;
-    float encoderTPR_reciprocal;
     float pwm;
+    bool cw;
 
+    //float encoderTPR;
+    float maxRPM;
+    float encoderTPR;
+    unsigned int pidUpdatePeriodUs;
+    float encoderTPR_reciprocal;
+    encoder_type_t encoderType;
     float ticksPerMicroSecToRPM;
+
     long int encDelta;
     long int encPrev;
     bool setPointHasChanged;
     bool motorReversed;
     bool encoderReversed;
     unsigned long tickSampleTimePrev;
+    bool switchingCw;
+
+  public:
+    void tickSignedEncoder(bool increment) {
+      if (increment ^ encoder_reversed)
+        encoder++;
+      else
+        encoder--;      
+    }
+    void tickUnsignedEncoder() {
+      if (cw ^ encoder_reversed)
+        encoder++;
+      else
+        encoder--;
+    }
 };

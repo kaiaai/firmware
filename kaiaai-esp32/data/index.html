@@ -151,13 +151,14 @@ button {
       const motor_max_rpm = [200, 245, 260, 408, 450, 333];
       const wheel_ppr = [270, 630, 204, 127.8, 120, 111];
       const motor_voltage = [24, 24, 24, 24, 24, 12];
-      const motor_driver = ['PWM_CW_FG', 'PWM_CW_FG', 'PWM_CW_FG', 'PWM_CW_FG',
-	    'PWM_CW_FG', 'TB6612FNG'];
+      const motor_driver = ['PWM_CW', 'PWM_CW', 'PWM_CW', 'PWM_CW', 'PWM_CW', 'IN1_IN2_TB6612FNG'];
+      const motor_encoder = ['FG', 'FG', 'FG', 'FG', 'FG', 'ENCA_ENCB_QUAD'];
 
 	  document.getElementById('motor_max_rpm').value = motor_max_rpm[idx];
 	  document.getElementById('wheel_ppr').value = wheel_ppr[idx];
 	  document.getElementById('motor_voltage').value = motor_voltage[idx];
 	  document.getElementById('motor_driver').value = motor_driver[idx];
+	  document.getElementById('motor_encoder').value = motor_encoder[idx];
 	}
   }
   </script>
@@ -196,16 +197,20 @@ button {
 
 			<div id="robot_model_div" class="advanced_props">
             <label for="robot_model_name">Robot model name</label>
-			<input type="text" id="robot_model_name" name="robot_model_name" value="MAKERSPET_LOKI" pattern="[0-9a-zA-Z\-_]+" title="Robot model name, alphanumeric with no spaces" required minlength="2"><br>
+			<input type="text" id="robot_model_name" name="robot_model_name" value="MAKERSPET_LOKI" pattern="[0-9a-zA-Z\-_]+" title="Robot model name, alphanumeric with no spaces" required minlength="2">
+			<br>
 
             <label for="base_dia">Base dia., mm</label>
-			<input type="text" id="base_dia" name="base_dia" value="202" pattern="([0-9]+\.)?[0-9]+" title="Robot body outer diameter in millimeters" required maxlength="8" minlength="1" inputmode="decimal"><br>
+			<input type="text" id="base_dia" name="base_dia" value="202" pattern="([0-9]+\.)?[0-9]+" title="Robot body outer diameter in millimeters" required maxlength="8" minlength="1" inputmode="decimal">
+			<br>
 
             <label for="wheel_base">Wheel base, mm</label>
-			<input type="text" id="wheel_base" name="wheel_base" value="159.063" pattern="([0-9]+\.)?[0-9]+" title="Distance between tire midpoints in millimeters" required maxlength="8" minlength="1" inputmode="decimal"><br>
+			<input type="text" id="wheel_base" name="wheel_base" value="159.063" pattern="([0-9]+\.)?[0-9]+" title="Distance between tire midpoints in millimeters" required maxlength="8" minlength="1" inputmode="decimal">
+			<br>
 
             <label for="wheel_dia">Wheel dia., mm</label>
-			<input type="text" id="wheel_dia" name="wheel_dia" value="67" pattern="([0-9]+\.)?[0-9]+" title="Wheel diameter in millimeters" required maxlength="8" minlength="1" inputmode="decimal"><br>
+			<input type="text" id="wheel_dia" name="wheel_dia" value="67" pattern="([0-9]+\.)?[0-9]+" title="Wheel diameter in millimeters" required maxlength="8" minlength="1" inputmode="decimal">
+			<br>
 
             <label for="max_wheel_accel">Max acceleration</label>
 			<input type="text" id="max_wheel_accel" name="max_wheel_accel" value="2.0" pattern="([0-9]+\.)?[0-9]+" title="Maximum wheel-vs-floor acceleration, m2/s" required maxlength="8" minlength="1" inputmode="decimal">
@@ -258,8 +263,15 @@ button {
 
 				<label for="motor_driver">Motor Driver</label>
 				<select name="motor_driver" id="motor_driver" required>
-					<option value="TB6612FNG">Brushed: TB6612FNG</option>
-					<option value="PWM_CW_FG">Brushless built-in: PWM, CW, FG pins</option>
+					<option value="IN1_IN2_TB6612FNG">TB6612FNG IN1/IN2 input signals</option>
+					<option value="PWM_CW">PWM/CW input signals (including brushless)</option>
+				</select>
+				<br>
+
+				<label for="motor_encoder">Motor Encoder</label>
+				<select name="motor_encoder" id="motor_encoder" required>
+					<option value="ENCA_ENCB_QUAD">Quadrature ENC_A/ENC_B output signals</option>
+					<option value="FG">FG output signal (including brushless)</option>
 				</select>
 			</div>
 			<p>

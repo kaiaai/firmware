@@ -14,8 +14,10 @@
 
 #include "motor_ctl.h"
 
-void MotorController::init() {
+void MotorController::init(encoder_type_t encoder_type) {
 
+  encoderType = encoder_type;
+  resetEncoders();
   setMaxRPM(200);
   setEncoderPPR(45.0*6);
 
@@ -27,17 +29,16 @@ void MotorController::init() {
   tickSampleTimePrev = 0;
   motorReversed = false;
   encoderReversed = false;
+  cw = true;
 
   float updatePeriodSec = 0.03;
   pid.Init(&measuredRPM, &pidPWM, &targetRPM, 0.001, 0.001, 0,
     updatePeriodSec, PID::P_ON_M, PID::DIRECT);
+
   pidUpdatePeriodUs = (unsigned int) round(updatePeriodSec * 1e6);
-  
   pid.SetOutputLimits(-1, 1);
 
   pwm = 1; // force update
-
-  //setPIDUpdatePeriod(updatePeriodSec);
   enablePID(true);
 }
 
@@ -46,8 +47,29 @@ void MotorController::setPWMCallback(SetPWMCallback set_pwm_callback) {
 }
 
 void MotorController::setPWM(float value) {
+
+  if ((encoderType == ENCODER_UNSIGNED) && switchingCw)
+    return;
+
+  if (value == pwm)
+    return;
+
+  bool cw_new = (pwm >= 0);
+
+  if ((encoderType == ENCODER_UNSIGNED) &&
+   ((pwm > 0 && value < 0) || (pwm < 0 && value > 0))) {
+    // when cw/ccw changes, stop pwm:=0, verify 0 enc pulses
+    // then flip encoder inc/dec, proceed
+    switchingCw = true;
+    value = 0;
+    cw_new = cw; // keep cw unchanged for encoders until we stop
+  }
+  
   if (set_pwm_callback)
-    set_pwm_callback(value);
+    set_pwm_callback(this, motorReversed ? -value : value);
+
+  pwm = value;
+  cw = cw_new;
 }
 
 float MotorController::getShaftAngle() {
@@ -86,6 +108,7 @@ float MotorController::getTargetRPM() {
 
 void MotorController::resetEncoders() {
   encoder = 0;
+  switchingCw = false;
 }
 
 void MotorController::setPIDConfig(float kp, float ki, float kd, float period, bool on_error) {
@@ -119,4 +142,35 @@ void MotorController::setEncoderDirection(bool reversed) {
 
 void MotorController::setMotorDirection(bool reversed) {
   motorReversed = reversed;
+}
+
+// TODO detect stuck (stalled) motor, limit current, let robot know
+// NB BLDC motor has a built-in feature that shuts motor off after stall timeout
+void MotorController::update() {  
+  unsigned long tickTime = micros();
+  unsigned long tickTimeDelta = tickTime - tickSampleTimePrev;
+  if ((tickTimeDelta < pidUpdatePeriodUs) && !setPointHasChanged)
+    return;
+
+  tickSampleTimePrev = tickTime;
+  
+  long int encNow = encoder;
+  long int encDelta = encNow - encPrev;
+  encPrev = encNow;
+  float ticksPerMicroSec = ((float) encDelta) / ((float) tickTimeDelta);
+  measuredRPM = ticksPerMicroSec * ticksPerMicroSecToRPM;
+
+  setPointHasChanged = false;
+
+  if ((encoderType == ENCODER_UNSIGNED) && (encDelta == 0))
+    switchingCw = false;
+
+  if (targetRPM == 0 && measuredRPM == 0) {
+      // Prevent wheels from twitching or slowly turning after stop
+      pid.clearErrorIntegral();
+  }
+  
+  float sampleTime = tickTimeDelta * 1e-6;
+  pid.Compute(sampleTime);
+  setPWM(pidPWM);
 }

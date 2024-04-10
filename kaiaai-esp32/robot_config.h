@@ -70,21 +70,22 @@ public:
   static const uint16_t BAT_PRESENT_MV_MIN = 4000;
 
   enum param_name_index {
-    PARAM_SSID = 0,
-    PARAM_PASS = 1,
-    PARAM_DEST_IP = 2,
-    PARAM_DEST_PORT = 3,
-    PARAM_ROBOT_MODEL_NAME = 4,
-    PARAM_LDS_MODEL = 5,
-    PARAM_BASE_DIA_MM = 6,
-    PARAM_WHEEL_BASE_MM = 7,
-    PARAM_WHEEL_DIA_MM = 8,
-    PARAM_MAX_WHEEL_ACCEL = 9,
-    PARAM_MOTOR_MAX_RPM = 10,
-    PARAM_WHEEL_PPR = 11,
-    PARAM_MOTOR_VOLTAGE = 12,
-    PARAM_MOTOR_CONTROLLER = 13,
-    PARAM_COUNT = 14,
+    PARAM_SSID,
+    PARAM_PASS,
+    PARAM_DEST_IP,
+    PARAM_DEST_PORT,
+    PARAM_ROBOT_MODEL_NAME,
+    PARAM_LDS_MODEL,
+    PARAM_BASE_DIA_MM,
+    PARAM_WHEEL_BASE_MM,
+    PARAM_WHEEL_DIA_MM,
+    PARAM_MAX_WHEEL_ACCEL,
+    PARAM_MOTOR_MAX_RPM,
+    PARAM_WHEEL_PPR,
+    PARAM_MOTOR_VOLTAGE,
+    PARAM_MOTOR_DRIVER,
+    PARAM_MOTOR_ENCODER,
+    PARAM_COUNT,
   };
 
 public: // Misc constants
@@ -111,7 +112,7 @@ protected:
     (char *)"lds_model", (char *)"base_dia", (char *)"wheel_base",
     (char *)"wheel_dia", (char *)"max_wheel_accel",
     (char *)"motor_max_rpm", (char *)"wheel_ppr", (char *)"motor_voltage",
-    (char *)"motor_controller"};
+    (char *)"motor_driver", (char *)"motor_encoder"};
 
 public:
   static const uint8_t ERR_REBOOT_BLINK_CYCLES = 3; // Blink out an error a few times, then reboot
