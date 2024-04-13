@@ -151,7 +151,7 @@ void setupDriver(motor_driver_t motor_driver) {
 void setupMotors() {  
   const char * motor_driver = params.get(cfg.PARAM_MOTOR_DRIVER);
   Serial.print("Motor driver type ");
-  Serial.println(motor_driver);
+  Serial.print(motor_driver);
 
   if (strcmp(motor_driver, "PWM_CW") == 0) {
     setupDriver(MOT_DRIVER_PWM_CW);
@@ -160,6 +160,7 @@ void setupMotors() {
       Serial.print(" not recognized, defaulting to IN1_IN2_TB6612FNG");
     setupDriver(MOT_DRIVER_IN1_IN2_TB6612FNG);
   }
+  Serial.println();
   
   const char * motor_encoder = params.get(cfg.PARAM_MOTOR_ENCODER);
   Serial.print("Motor encoder type ");
@@ -172,6 +173,7 @@ void setupMotors() {
       Serial.print(" not recognized, defaulting to ENCA_ENCB_QUAD");
     setupEncoders(MOT_ENCODER_ENCA_ENCB_QUAD);
   }
+  Serial.println();
 
   float value = String(params.get(cfg.PARAM_MOTOR_MAX_RPM)).toFloat() *
     cfg.MOTOR_MAX_RPM_DERATE;

@@ -284,8 +284,7 @@ void setupADC() {
 
   Serial.print("Battery ");
   if (voltage_mv == 0) {
-    Serial.println("NOT detected");
-    Serial.println("Is the battery connected? Is the power switch on?");
+    Serial.println("NOT detected - Is the battery connected? Is the power switch on?");
   } else {
     Serial.print("voltage ");
     Serial.print(voltage_mv*0.001f);
