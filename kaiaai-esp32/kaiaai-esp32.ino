@@ -34,7 +34,7 @@
 #include <rmw_microros/rmw_microros.h>
 //#include <rmw_microros/discovery.h>
 #include <rclc_parameter/rclc_parameter.h>
-#include "motors.h"
+#include "drive.h"
 #include "ap.h"
 #include "param_file.h"
 #include "lds_all_models.h"
@@ -50,6 +50,7 @@
 
 CONFIG cfg;
 PARAM_FILE params(cfg.getParamNames(), cfg.getParamValues(), cfg.PARAM_COUNT); // temp hack
+DriveController drive;
 LDS *lds;
 
 rcl_publisher_t telem_pub;
@@ -66,8 +67,8 @@ bool lds_scan_freq_param_changed = true;
 
 HardwareSerial LdSerial(2); // TX 17, RX 16
 
-kaiaai_msgs__msg__JointPosVel joint[MOTOR_COUNT];
-float joint_prev_pos[MOTOR_COUNT] = {0};
+kaiaai_msgs__msg__JointPosVel joint[drive.MOTOR_COUNT];
+float joint_prev_pos[drive.MOTOR_COUNT] = {0};
 uint8_t lds_buf[cfg.LDS_BUF_LEN] = {0};
 
 unsigned long telem_prev_pub_time_us = 0;
@@ -137,9 +138,9 @@ void twist_sub_callback(const void *msgin) {
 
   // Limit target RPM
   float limited_target_rpm_right =
-    absMin(twist_target_rpm_right, motorRight.getMaxRPM());
+    absMin(twist_target_rpm_right, drive.getMaxRPM());
   float limited_target_rpm_left =
-    absMin(twist_target_rpm_left, motorLeft.getMaxRPM());
+    absMin(twist_target_rpm_left, drive.getMaxRPM());
 
   // Scale down both target RPMs to within limits
   if (twist_target_rpm_right != limited_target_rpm_right ||
@@ -173,8 +174,8 @@ void twist_sub_callback(const void *msgin) {
   }
 
   // Calculate change in speeds
-  ramp_start_rpm_right = motorRight.getTargetRPM();
-  ramp_start_rpm_left = motorLeft.getTargetRPM();
+  ramp_start_rpm_right = drive.getTargetRPM(drive.MOTOR_RIGHT);
+  ramp_start_rpm_left = drive.getTargetRPM(drive.MOTOR_LEFT);
   
   float ramp_start_speed_right = cfg.rpm_to_speed(ramp_start_rpm_right);
   float ramp_start_speed_left = cfg.rpm_to_speed(ramp_start_rpm_left);
@@ -196,9 +197,14 @@ void twist_sub_callback(const void *msgin) {
   updateSpeedRamp();
 }
 
+void setMotorSpeeds(float ramp_target_rpm_right, float ramp_target_rpm_left) {
+  drive.setRPM(drive.MOTOR_RIGHT, ramp_target_rpm_right);
+  drive.setRPM(drive.MOTOR_LEFT, ramp_target_rpm_left);
+}
+
 void updateSpeedRamp() {
-  if (ramp_target_rpm_right == motorRight.getTargetRPM() &&
-    ramp_target_rpm_left == motorLeft.getTargetRPM()) {
+  if (ramp_target_rpm_right == drive.getTargetRPM(drive.MOTOR_RIGHT) &&
+    ramp_target_rpm_left == drive.getTargetRPM(drive.MOTOR_LEFT)) {
     return;
   }
 
@@ -251,11 +257,6 @@ void setup() {
     return;
   }
 
-  setupMotors();
-  cfg.setWheelDia(params.get(cfg.PARAM_WHEEL_DIA_MM));  
-  cfg.setMaxWheelAccel(params.get(cfg.PARAM_MAX_WHEEL_ACCEL));  
-  cfg.setWheelBase(params.get(cfg.PARAM_WHEEL_BASE_MM));
-
   setupADC();
   setupLDS();
 
@@ -269,7 +270,20 @@ void setup() {
   
   if (startLDS() != LDS::RESULT_OK)
     blink_error_code(cfg.ERR_LDS_START);
-    //error_loop(cfg.ERR_LDS_START); 
+    //error_loop(cfg.ERR_LDS_START);
+  
+  drive.init(cfg.MOT_PWM_LEFT_PIN, cfg.MOT_PWM_RIGHT_PIN,
+    cfg.MOT_CW_LEFT_PIN, cfg.MOT_CW_RIGHT_PIN,
+    cfg.MOT_FG_LEFT_PIN, cfg.MOT_FG_RIGHT_PIN);
+
+  drive.resetEncoders();
+  drive.setMaxRPM(String(params.get(cfg.PARAM_MOTOR_MAX_RPM)).toFloat()
+    * cfg.MOTOR_MAX_RPM_DERATE);
+  drive.setEncoderPPR(String(params.get(cfg.PARAM_WHEEL_PPR)).toFloat());
+
+  cfg.setWheelDia(params.get(cfg.PARAM_WHEEL_DIA_MM));  
+  cfg.setMaxWheelAccel(params.get(cfg.PARAM_MAX_WHEEL_ACCEL));  
+  cfg.setWheelBase(params.get(cfg.PARAM_WHEEL_BASE_MM));
 }
 
 void setupADC() {
@@ -525,9 +539,9 @@ void spinTelem(bool force_pub) {
   digitalWrite(cfg.LED_PIN, !digitalRead(cfg.LED_PIN));
   //if (++telem_pub_count % 5 == 0) {
     //Serial.print("RPM L ");
-    //Serial.print(motorLeft.getCurrentRPM());
+    //Serial.print(drive.getCurrentRPM(drive.MOTOR_LEFT));
     //Serial.print(" R ");
-    //Serial.println(motorRight.getCurrentRPM());
+    //Serial.println(drive.getCurrentRPM(drive.MOTOR_RIGHT));
   //}
 
   stat_sum_spin_telem_period_us += step_time_us;
@@ -563,7 +577,7 @@ void publishTelem(unsigned long step_time_us) {
   telem_msg.stamp.sec = tv.tv_sec;
   telem_msg.stamp.nanosec = tv.tv_nsec;
 
-  float joint_pos_delta[MOTOR_COUNT];
+  float joint_pos_delta[drive.MOTOR_COUNT];
   float step_time = 1e-6 * (float)step_time_us;
 
   long rssi_dbm = WiFi.RSSI();
@@ -583,14 +597,15 @@ void publishTelem(unsigned long step_time_us) {
   //Serial.print(voltage_mv);
   //Serial.println("mV");
 
-  for (unsigned char i = 0; i < MOTOR_COUNT; i++) {
-    joint[i].pos = i == 0 ? motorLeft.getShaftAngle() : motorRight.getShaftAngle();
+  for (unsigned char i = 0; i < drive.MOTOR_COUNT; i++) {
+    joint[i].pos = drive.getShaftAngle(i);
     joint_pos_delta[i] = joint[i].pos - joint_prev_pos[i];
     joint[i].vel = joint_pos_delta[i] / step_time;    
     joint_prev_pos[i] = joint[i].pos;
   }
 
-  calcOdometry(step_time_us, joint_pos_delta[0], joint_pos_delta[1]);
+  calcOdometry(step_time_us, joint_pos_delta[drive.MOTOR_LEFT],
+    joint_pos_delta[drive.MOTOR_RIGHT]);
 
   RCSOFTCHECK(rcl_publish(&telem_pub, &telem_msg, NULL));
   telem_msg.lds.size = 0;
@@ -696,14 +711,14 @@ void lds_motor_pin_callback(float value, LDS::lds_pin_t lds_pin) {
   */
   
   int pin = (lds_pin == LDS::LDS_MOTOR_EN_PIN) ?
-    cfg.LDS_EN_PIN : cfg.LDS_PWM_PIN;
+    cfg.LDS_MOTOR_EN_PIN : cfg.LDS_MOTOR_PWM_PIN;
 
   if (value <= LDS::DIR_INPUT) {
     // Configure pin direction
     if (value == LDS::DIR_OUTPUT_PWM) {
-      //pinMode(pin, OUTPUT);
-      //ledcSetup(cfg.LDS_PWM_CHANNEL, cfg.LDS_PWM_FREQ, cfg.LDS_PWM_BITS);
-      ledcAttachPin(pin, cfg.LDS_PWM_CHANNEL);
+      pinMode(pin, OUTPUT);
+      ledcSetup(cfg.LDS_MOTOR_PWM_CHANNEL, cfg.LDS_MOTOR_PWM_FREQ, cfg.LDS_MOTOR_PWM_BITS);
+      ledcAttachPin(pin, cfg.LDS_MOTOR_PWM_CHANNEL);
     } else
       pinMode(pin, (value == LDS::DIR_INPUT) ? INPUT : OUTPUT);
     return;
@@ -712,8 +727,8 @@ void lds_motor_pin_callback(float value, LDS::lds_pin_t lds_pin) {
   if (value < LDS::VALUE_PWM) // set constant output
     digitalWrite(pin, (value == LDS::VALUE_HIGH) ? HIGH : LOW);
   else { // set PWM duty cycle
-    int pwm_value = ((1<<cfg.LDS_PWM_BITS)-1)*value;
-    ledcWrite(cfg.LDS_PWM_CHANNEL, pwm_value);
+    int pwm_value = ((1<<cfg.LDS_MOTOR_PWM_BITS)-1)*value;
+    ledcWrite(cfg.LDS_MOTOR_PWM_CHANNEL, pwm_value);
   }
 }
 
@@ -732,8 +747,8 @@ void spinPing() {
 void loop() {
   if (WiFi.status() != WL_CONNECTED) {
     lds->stop();
-    motorLeft.setRPM(0);
-    motorRight.setRPM(0);
+    drive.setRPM(drive.MOTOR_RIGHT, 0);
+    drive.setRPM(drive.MOTOR_LEFT, 0);
     return;
   }
 
@@ -750,8 +765,7 @@ void loop() {
   spinTelem(false);
   spinPing();
   updateSpeedRamp(); // update ramp less frequently?
-  motorLeft.update();
-  motorRight.update();
+  drive.update();
 }
 
 void resetSettings() {
@@ -790,14 +804,14 @@ void resetTelemMsg() {
   telem_msg.odom_vel_yaw = 0;
   
   telem_msg.joint.data = joint;
-  telem_msg.joint.capacity = MOTOR_COUNT;
-  telem_msg.joint.size = MOTOR_COUNT;
+  telem_msg.joint.capacity = drive.MOTOR_COUNT;
+  telem_msg.joint.size = drive.MOTOR_COUNT;
 
   telem_msg.lds.data = lds_buf;
   telem_msg.lds.capacity = cfg.LDS_BUF_LEN;
   telem_msg.lds.size = 0;
 
-  for (int i = 0; i < MOTOR_COUNT; i++) {
+  for (int i = 0; i < drive.MOTOR_COUNT; i++) {
     joint[i].pos = 0;
     joint[i].vel = 0;
     joint_prev_pos[i] = 0;
@@ -908,8 +922,6 @@ void lds_error_callback(LDS::result_t code, String aux_info) {
 }
 
 void setupLDS() {
-  ledcSetup(cfg.LDS_PWM_CHANNEL, cfg.LDS_PWM_FREQ, cfg.LDS_PWM_BITS);
-
   const char * model = params.get(cfg.PARAM_LDS_MODEL);
   Serial.print("LDS model ");
   Serial.print(model);
