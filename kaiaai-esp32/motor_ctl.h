@@ -44,7 +44,7 @@ class MotorController {
 
   protected:
     volatile long int encoder;
-    bool encoder_reversed;
+    bool encoderReversed;
 
     void setPWM(float value);
     SetPWMCallback set_pwm_callback;
@@ -67,19 +67,24 @@ class MotorController {
     long int encPrev;
     bool setPointHasChanged;
     bool motorReversed;
-    bool encoderReversed;
     unsigned long tickSampleTimePrev;
     bool switchingCw;
 
+    long int getEncoder() {
+      return encoderReversed ? -encoder : encoder;
+    }
+
   public:
     void tickSignedEncoder(bool increment) {
-      if (increment ^ encoder_reversed)
+//      if (increment ^ encoderReversed)
+      if (increment)
         encoder++;
       else
         encoder--;      
     }
     void tickUnsignedEncoder() {
-      if (cw ^ encoder_reversed)
+//      if (cw ^ encoderReversed)
+      if (cw)
         encoder++;
       else
         encoder--;

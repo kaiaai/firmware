@@ -731,8 +731,7 @@ void spinPing() {
 void loop() {
   if (WiFi.status() != WL_CONNECTED) {
     lds->stop();
-    motorLeft.setRPM(0);
-    motorRight.setRPM(0);
+    setMotorSpeeds(0, 0);
     return;
   }
 
@@ -748,7 +747,7 @@ void loop() {
 
   spinTelem(false);
   spinPing();
-  updateSpeedRamp(); // update ramp less frequently?
+  updateSpeedRamp();
   motorLeft.update();
   motorRight.update();
 }
@@ -940,11 +939,11 @@ void setupLDS() {
                   if (strcmp(model, "3IROBOTIX DELTA 2A") == 0) {
                     lds = new LDS_DELTA_2A_230400();
                   } else {
-                    if (strcmp(model, "LDLIDAR DELTA 2B") == 0) {
+                    if (strcmp(model, "3IROBOTIX DELTA 2B") == 0) {
                       lds = new LDS_DELTA_2B();
                     } else {
-                      if (strcmp(model, "LDLIDAR LD14P") == 0) {
-                        lds = new LDS_LDLIDAR_LD14P();
+                      if (strcmp(model, "LDROBOT LD14P") == 0) {
+                        lds = new LDS_LDROBOT_LD14P();
                       } else {
                         if (strcmp(model, "YDLIDAR X4") != 0)
                           Serial.print(" not recognized, defaulting to YDLIDAR X4");

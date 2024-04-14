@@ -66,7 +66,7 @@ void MotorController::setPWM(float value) {
   }
   
   if (set_pwm_callback)
-    set_pwm_callback(this, motorReversed ? -value : value);
+    set_pwm_callback(this, value);
 
   pwm = value;
   cw = cw_new;
@@ -74,7 +74,7 @@ void MotorController::setPWM(float value) {
 
 float MotorController::getShaftAngle() {
 //  return TWO_PI * encoder / encoderTPR;
-  return TWO_PI * encoder * encoderTPR_reciprocal;
+  return TWO_PI * getEncoder() * encoderTPR_reciprocal;
 }
 
 void MotorController::setMaxRPM(float rpm) {
@@ -99,11 +99,11 @@ float MotorController::getMaxRPM() {
 }
 
 float MotorController::getCurrentRPM() {
-  return measuredRPM;
+  return motorReversed ? -measuredRPM : measuredRPM;
 }
 
 float MotorController::getTargetRPM() {
-  return targetRPM;
+  return motorReversed ? -targetRPM : targetRPM;
 }
 
 void MotorController::resetEncoders() {
@@ -125,6 +125,7 @@ void MotorController::getPIDConfig(float &kp, float &ki, float &kd, float &perio
 }
 
 bool MotorController::setRPM(float rpm) {
+  rpm = motorReversed ? -rpm : rpm;
   if (targetRPM == rpm)
     return false;
 
@@ -153,14 +154,16 @@ void MotorController::update() {
     return;
 
   tickSampleTimePrev = tickTime;
-  
-  long int encNow = encoder;
+
+  long int encNow = getEncoder();
   long int encDelta = encNow - encPrev;
   encPrev = encNow;
   float ticksPerMicroSec = ((float) encDelta) / ((float) tickTimeDelta);
   measuredRPM = ticksPerMicroSec * ticksPerMicroSecToRPM;
 
   setPointHasChanged = false;
+
+  Serial.println(encNow);
 
   if ((encoderType == ENCODER_UNSIGNED) && (encDelta == 0))
     switchingCw = false;
