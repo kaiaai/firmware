@@ -334,15 +334,15 @@ function restoreConfig() {
 		</div>
 		<div class="col-75">
           <select name="motor_model" id="motor_model" required onchange="populateProps('motor_model_div', this);">
+            <optgroup label="Brushed">
+              <option value="12V_280RPM_234.3PPR_TB6612FNG">25GA-370 12V 280RPM 234.3PPR TB6612FNG</option>
+            </optgroup>
             <optgroup label="Brushless">
               <option value="24V_200RPM_270PPR_PWM_CW_FG">CHR-GM25-BL2418 24V 200RPM 270PPR</option>
               <option value="24V_245RPM_630PPR_PWM_CW_FG">JGA25-BL2418 24V 245RPM 630PPR</option>
               <option value="24V_260RPM_204PPR_PWM_CW_FG">CHR-GM25-BL2418 24V 260RPM 204PPR</option>
               <option value="24V_408RPM_127.8PPR_PWM_CW_FG">JGA25-BL2418 24V 408RPM 127.8PPR</option>
               <option value="24V_450RPM_120PPR_PWM_CW_FG">CHR-GM25-BL2418 24V 450RPM 120PPR</option>
-            </optgroup>
-              <optgroup label="Brushed">
-                <option value="12V_280RPM_234.3PPR_TB6612FNG">25GA-370 12V 280RPM 234.3PPR TB6612FNG</option>
             </optgroup>
             <option value="CUSTOM">CUSTOM RPM, PPR, Voltage, Controller</option>
           </select>
