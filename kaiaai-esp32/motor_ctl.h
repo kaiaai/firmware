@@ -31,8 +31,8 @@ class MotorController {
     void resetEncoders();
     void update();
     float getShaftAngle();
-    void setMotorDirection(bool reversed);
-    void setEncoderDirection(bool reversed);
+    void reverseMotor(bool reversed);
+    void reverseEncoder(bool reversed);
     void setMaxRPM(float rpm);
     void setEncoderPPR(float ppr);
     void setPIDConfig(float kp, float ki, float kd, float period, bool on_error);
@@ -41,6 +41,9 @@ class MotorController {
     float getTargetRPM();
     float getMaxRPM();
     void enablePID(bool en);
+    long int getEncoder() {
+      return encoderReversed ? -encoder : encoder;
+    }
 
   protected:
     volatile long int encoder;
@@ -69,10 +72,6 @@ class MotorController {
     bool motorReversed;
     unsigned long tickSampleTimePrev;
     bool switchingCw;
-
-    long int getEncoder() {
-      return encoderReversed ? -encoder : encoder;
-    }
 
   public:
     void tickSignedEncoder(bool increment) {

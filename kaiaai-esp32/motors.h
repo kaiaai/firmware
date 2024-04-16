@@ -69,31 +69,40 @@ void setMotorPWM(MotorController *motor_controller, float pwm) {
   uint8_t in2_pin = is_right ? cfg.MOT_IN2_RIGHT_PIN : cfg.MOT_IN2_LEFT_PIN;
 
   pwm = pwm > 1 ? 1 : pwm;
+  pwm_value = round(max_pwm*(1 - abs(pwm)));
 
   switch(motorDriverType) {
     case MOT_DRIVER_PWM_CW:
-      pwm_value = round(max_pwm*(1 - abs(pwm)));
       ledcWrite(pwm_channel, pwm_value);
       digitalWrite (cw_pin, pwm ? LOW : HIGH);
+      //Serial.print(", MOT_DRIVER_PWM_CW ");
+      //Serial.println(pwm_value);
       break;
 
     default:
+      //Serial.print(", MOT_IN1_IN2 ");
       if (pwm == 0) {
         // Hard brake
         digitalWrite(in1_pin, HIGH);
         digitalWrite(in2_pin, HIGH);
+        //Serial.println("hard brake");
         return;
       } else if (pwm < -1) {
         // Soft brake
         digitalWrite(in1_pin, LOW);
         digitalWrite(in2_pin, LOW);
+        //Serial.println("soft brake");
         return;
       }
       
-      pwm_value = max_pwm*abs(pwm);
+      uint8_t in1 = pwm > 0 ? in1_pin : in2_pin;
+      uint8_t in2 = pwm > 0 ? in2_pin : in1_pin;
+      
+      ledcAttachPin(in2, pwm_channel);
       ledcWrite(pwm_channel, pwm_value);
-      ledcAttachPin(pwm > 0 ? in2_pin : in1_pin, pwm_channel);
-      digitalWrite(pwm > 0 ? in1_pin : in2_pin, HIGH); 
+      pinMode(in1, OUTPUT);
+      digitalWrite(in1, HIGH); 
+      //Serial.println(pwm_value);
     break;
   }
 }
@@ -178,14 +187,18 @@ void setupMotors() {
   }
   Serial.println();
 
-  float value = String(params.get(cfg.PARAM_MOTOR_MAX_RPM)).toFloat() *
-    cfg.MOTOR_MAX_RPM_DERATE;
+  float value = String(params.get(cfg.PARAM_MOTOR_MAX_RPM)).toFloat();
+  Serial.print("Motor Max RPM ");
+  Serial.print(value);
+  value = value * cfg.MOTOR_MAX_RPM_DERATE;
   motorLeft.setMaxRPM(value);
   motorRight.setMaxRPM(value);
 
   value = String(params.get(cfg.PARAM_WHEEL_PPR)).toFloat();
   motorLeft.setEncoderPPR(value);
   motorRight.setEncoderPPR(value);
+  Serial.print(", encoder PPR ");
+  Serial.println(value);
 
   //motorLeft.setPIDConfig(0.001, 0.001, 0, 0.03, false);
   //motorRight.setPIDConfig(0.001, 0.001, 0, 0.03, false);
@@ -203,11 +216,11 @@ void setupMotors() {
   setMotorPWM(&motorRight, 0);
 }
 
-void setMotorSpeeds(float rpm_right, float rpm_left) {
+void setMotorSpeeds(float rpm_left, float rpm_right) {
   motorRight.setRPM(rpm_right);
   motorLeft.setRPM(rpm_left);
-  Serial.print("setMotorSpeeds ");
-  Serial.print(rpm_right);
-  Serial.print(" ");
-  Serial.println(rpm_left);
+//  Serial.print("setMotorSpeeds ");
+//  Serial.print(rpm_right);
+//  Serial.print(" ");
+//  Serial.println(rpm_left);
 }

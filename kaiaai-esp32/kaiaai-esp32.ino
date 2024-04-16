@@ -168,7 +168,7 @@ void twist_sub_callback(const void *msgin) {
   }
 
   if (!ramp_enabled) {
-    setMotorSpeeds(ramp_target_rpm_right, ramp_target_rpm_left);
+    setMotorSpeeds(ramp_target_rpm_left, ramp_target_rpm_right);
     return;
   }
 
@@ -220,7 +220,7 @@ void updateSpeedRamp() {
     rpm_left = ramp_target_rpm_left;
   }
 
-  setMotorSpeeds(rpm_right, rpm_left);
+  setMotorSpeeds(rpm_left, rpm_right);
 }
 
 void setup() {
@@ -236,14 +236,15 @@ void setup() {
   delay(1000);
   if (isBootButtonPressed(cfg.RESET_SETTINGS_HOLD_MS)) {
     params.init();
-    resetSettings();
+    resetParams();
   }
 
   if (!params.init())
     blink_error_code(cfg.ERR_SPIFFS_INIT);
 
   if (!params.load() ||
-    !initWiFi(params.get(cfg.PARAM_SSID), params.get(cfg.PARAM_PASS))) {
+      !initWiFi(params.get(cfg.PARAM_SSID), params.get(cfg.PARAM_PASS)))
+  {
     digitalWrite(cfg.LED_PIN, HIGH);
 
     AP ap;
@@ -262,6 +263,10 @@ void setup() {
   set_microros_wifi_transports(params.get(cfg.PARAM_DEST_IP),
     String(params.get(cfg.PARAM_DEST_PORT)).toInt());
 
+  //motorLeft.reverseEncoder(true);
+  //setMotorSpeeds(100, 80);
+  //setMotorPWM(&motorLeft, -0.7);
+  //return;
   delay(2000);
 
   initRos();
@@ -729,6 +734,7 @@ void spinPing() {
 }
 
 void loop() {
+
   if (WiFi.status() != WL_CONNECTED) {
     lds->stop();
     setMotorSpeeds(0, 0);
@@ -748,11 +754,20 @@ void loop() {
   spinTelem(false);
   spinPing();
   updateSpeedRamp();
+
   motorLeft.update();
   motorRight.update();
+//  Serial.print(motorLeft.getCurrentRPM());
+//  Serial.print("\t");
+//  Serial.print(motorRight.getCurrentRPM());
+//  Serial.print("\t");
+//  Serial.print(motorLeft.getEncoder());
+//  Serial.print("\t");
+//  Serial.println(motorRight.getEncoder());
+//  delay(20);
 }
 
-void resetSettings() {
+void resetParams() {
   Serial.println("** Factory reset **");
   params.purge();
   digitalWrite(cfg.LED_PIN, HIGH);

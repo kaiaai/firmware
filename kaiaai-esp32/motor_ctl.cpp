@@ -38,7 +38,7 @@ void MotorController::init(encoder_type_t encoder_type) {
   pidUpdatePeriodUs = (unsigned int) round(updatePeriodSec * 1e6);
   pid.SetOutputLimits(-1, 1);
 
-  pwm = 1; // force update
+  pwm = 1.1; // force update
   enablePID(true);
 }
 
@@ -47,7 +47,6 @@ void MotorController::setPWMCallback(SetPWMCallback set_pwm_callback) {
 }
 
 void MotorController::setPWM(float value) {
-
   if ((encoderType == ENCODER_UNSIGNED) && switchingCw)
     return;
 
@@ -55,7 +54,7 @@ void MotorController::setPWM(float value) {
     return;
 
   bool cw_new = (pwm >= 0);
-
+  
   if ((encoderType == ENCODER_UNSIGNED) &&
    ((pwm > 0 && value < 0) || (pwm < 0 && value > 0))) {
     // when cw/ccw changes, stop pwm:=0, verify 0 enc pulses
@@ -137,11 +136,11 @@ bool MotorController::setRPM(float rpm) {
   return within_limit;
 }
 
-void MotorController::setEncoderDirection(bool reversed) {
+void MotorController::reverseEncoder(bool reversed) {
   encoderReversed = reversed;
 }
 
-void MotorController::setMotorDirection(bool reversed) {
+void MotorController::reverseMotor(bool reversed) {
   motorReversed = reversed;
 }
 
@@ -162,8 +161,6 @@ void MotorController::update() {
   measuredRPM = ticksPerMicroSec * ticksPerMicroSecToRPM;
 
   setPointHasChanged = false;
-
-  Serial.println(encNow);
 
   if ((encoderType == ENCODER_UNSIGNED) && (encDelta == 0))
     switchingCw = false;

@@ -22,6 +22,7 @@ protected:
   uint16_t len;
 
   static constexpr char * FILE_PATH = (char *)"/config.txt";
+  static constexpr char * FILE_PATH_OLD = (char *)"/config.old";
 
 public:
   PARAM_FILE(char* const* param_names, String * param_values, uint16_t len) {
@@ -30,11 +31,12 @@ public:
     this->len = len;
   }
 
-  bool load() {
+  bool load(bool old_config = false) {
+    const char * CONFIG_PATH = old_config ? FILE_PATH_OLD : FILE_PATH;
     Serial.print("Reading file ");
-    Serial.print(FILE_PATH);
+    Serial.print(CONFIG_PATH);
     
-    File file = SPIFFS.open(FILE_PATH);
+    File file = SPIFFS.open(CONFIG_PATH);
     if (!file || file.isDirectory()) {
       Serial.println(" - file open failed");
       return false;
@@ -141,6 +143,13 @@ public:
     return param_value[idx].c_str();
   }
 
+  const char * getName(const uint16_t idx) {
+    if (idx >= len)
+      return "";
+  
+    return param_name[idx];
+  }
+
   const char * getByName(const char * pname) {
     int16_t idx = nameToIndex(pname);
     if (idx < 0 || idx >= len)
@@ -163,6 +172,8 @@ public:
   }
   
   bool purge() {
-    return SPIFFS.remove(FILE_PATH);
+    SPIFFS.remove(FILE_PATH_OLD);
+    return SPIFFS.rename(FILE_PATH, FILE_PATH_OLD);
+//    return SPIFFS.remove(FILE_PATH);
   }
 };
