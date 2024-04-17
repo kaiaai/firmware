@@ -25,7 +25,9 @@ extern PARAM_FILE params;
 
 enum motor_driver_t {
   MOT_DRIVER_PWM_CW,
-  MOT_DRIVER_IN1_IN2_TB6612FNG,
+  MOT_DRIVER_TB6612FNG,
+  MOT_DRIVER_L298N,
+  MOT_DRIVER_DRV8871,
 };
 enum motor_encoder_t {
   MOT_ENCODER_FG,
@@ -74,12 +76,9 @@ void setMotorPWM(MotorController *motor_controller, float pwm) {
     case MOT_DRIVER_PWM_CW:
       ledcWrite(pwm_channel, pwm_value);
       digitalWrite (cw_pin, pwm ? LOW : HIGH);
-      //Serial.print(", MOT_DRIVER_PWM_CW ");
-      //Serial.println(pwm_value);
       break;
 
     default:
-      //Serial.print(", MOT_IN1_IN2 ");
       if (pwm == 0) {
         // Hard brake
         digitalWrite(in1_pin, HIGH);
@@ -101,7 +100,6 @@ void setMotorPWM(MotorController *motor_controller, float pwm) {
       ledcWrite(pwm_channel, pwm_value);
       pinMode(in1, OUTPUT);
       digitalWrite(in1, HIGH); 
-      //Serial.println(pwm_value);
     break;
   }
 }
@@ -166,10 +164,14 @@ void setupMotors() {
 
   if (strcmp(motor_driver_type, "PWM_CW") == 0) {
     setupDriver(MOT_DRIVER_PWM_CW);
+  } else if (strcmp(motor_driver_type, "L298N") == 0) {
+    setupDriver(MOT_DRIVER_L298N);
+  } else if (strcmp(motor_driver_type, "DRV8871") == 0) {
+    setupDriver(MOT_DRIVER_DRV8871);
   } else {
-    if (strcmp(motor_driver_type, "IN1_IN2_TB6612FNG") != 0)
-      Serial.print(" not recognized, defaulting to IN1_IN2_TB6612FNG");
-    setupDriver(MOT_DRIVER_IN1_IN2_TB6612FNG);
+    if (strcmp(motor_driver_type, "TB6612FNG") != 0)
+      Serial.print(" not recognized, defaulting to TB6612FNG");
+    setupDriver(MOT_DRIVER_TB6612FNG);
   }
   Serial.println();
   

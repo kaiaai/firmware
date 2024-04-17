@@ -118,7 +118,7 @@ protected:
     "MAKERSPET_LOKI", "MAKERSPET_LOKI", "YDLIDAR X4",
     "204.2", "159.063", "12V_280RPM_234.3PPR_TB6612FNG",
     "67", "2.0", "280", "234.3", "12",
-    "IN1_IN2_TB6612FNG", "ENCA_ENCB_QUAD", "NONE", "NONE",
+    "TB6612FNG", "ENCA_ENCB_QUAD", "NONE", "NONE",
     "0.001", "0.001", "0", "ON_MEASUREMENT", "30"};
   char* PARAM_NAME[PARAM_COUNT] = {(char *)"ssid", (char *)"pass",
     (char *)"dest_ip", (char *)"dest_port", (char *)"robot_model",

@@ -192,7 +192,7 @@ function restoreConfig(config) {
       const motor_max_rpm = [200, 245, 260, 408, 450, 225, 280];
       const wheel_ppr = [270, 630, 204, 127.8, 120, 120, 234.3];
       const motor_voltage = [24, 24, 24, 24, 24, 12, 12];
-      const motor_driver_type = ['PWM_CW', 'PWM_CW', 'PWM_CW', 'PWM_CW', 'PWM_CW', 'PWM_CW', 'IN1_IN2_TB6612FNG'];
+      const motor_driver_type = ['PWM_CW', 'PWM_CW', 'PWM_CW', 'PWM_CW', 'PWM_CW', 'PWM_CW', 'TB6612FNG'];
       const motor_encoder_type = ['FG', 'FG', 'FG', 'FG', 'FG', 'FG', 'ENCA_ENCB_QUAD'];
 
 	  document.getElementById('motor_max_rpm').value = motor_max_rpm[idx];
@@ -422,8 +422,10 @@ function restoreConfig(config) {
 		<div class="col-75">
           <div class="sub_input">
           <select name="motor_driver_type" id="motor_driver_type" required>
-            <option value="IN1_IN2_TB6612FNG">TB6612FNG IN1/IN2 input signals</option>
-            <option value="PWM_CW">PWM/CW input signals (including brushless)</option>
+            <option value="TB6612FNG">TB6612FNG PWMA=PWMB=STDBY=HIGH</option>
+            <option value="L298N">L298N ENA=ENB=HIGH</option>
+            <option value="DRV8871">DRV8871</option>
+            <option value="PWM_CW">PWM/CW (including brushless)</option>
           </select>
           </div>
         </div>
