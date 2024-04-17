@@ -115,18 +115,22 @@ public: // Misc constants
 
 protected:
   String param_value[PARAM_COUNT] = {"", "", "", "8888",
-    "MAKERSPET_LOKI", "YDLIDAR X4", "204.2", "159.063", "67", "2.0", "200", "270", "12", "brushed"};
+    "MAKERSPET_LOKI", "MAKERSPET_LOKI", "YDLIDAR X4",
+    "204.2", "159.063", "12V_280RPM_234.3PPR_TB6612FNG",
+    "67", "2.0", "280", "234.3", "12",
+    "IN1_IN2_TB6612FNG", "ENCA_ENCB_QUAD", "NONE", "NONE",
+    "0.001", "0.001", "0", "ON_MEASUREMENT", "30"};
   char* PARAM_NAME[PARAM_COUNT] = {(char *)"ssid", (char *)"pass",
     (char *)"dest_ip", (char *)"dest_port", (char *)"robot_model",
     (char *)"robot_model_name", (char *)"lds_model", (char *)"motor_model",
     (char *)"base_dia", (char *)"wheel_base",
     (char *)"wheel_dia", (char *)"max_wheel_accel",
     (char *)"motor_max_rpm", (char *)"wheel_ppr", (char *)"motor_voltage",
-    (char *)"motor_driver_type", (char *)"motor_encoder_type"},
-    (char *)"motor_direction_reversed"}, (char *)"motor_encoder_reversed",
+    (char *)"motor_driver_type", (char *)"motor_encoder_type",
+    (char *)"motor_direction_reversed", (char *)"motor_encoder_reversed",
     (char *)"motor_pid_kp", (char *)"motor_pid_ki",
     (char *)"motor_pid_kd", (char *)"motor_pid_mode",
-    (char *)"motor_pid_period_ms";
+    (char *)"motor_pid_period_ms"};
 
 public:
   static const uint8_t ERR_REBOOT_BLINK_CYCLES = 3; // Blink out an error a few times, then reboot

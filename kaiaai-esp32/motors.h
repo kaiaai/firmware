@@ -199,14 +199,47 @@ void setupMotors() {
   Serial.print(", encoder PPR ");
   Serial.println(value);
 
-  //motorLeft.setPIDConfig(0.001, 0.001, 0, 0.03, false);
-  //motorRight.setPIDConfig(0.001, 0.001, 0, 0.03, false);
+  float kp = String(params.get(cfg.PARAM_MOTOR_PID_KP)).toFloat();
+  float ki = String(params.get(cfg.PARAM_MOTOR_PID_KI)).toFloat();
+  float kd = String(params.get(cfg.PARAM_MOTOR_PID_KD)).toFloat();
+  float period = 0.001f * String(params.get(cfg.PARAM_MOTOR_PID_PERIOD_MS)).toFloat();
+  const char * pid_mode = params.get(cfg.PARAM_MOTOR_PID_MODE);
+  bool on_error = strcmp(pid_mode, "ON_ERROR") == 0;
 
-  //motorLeft.setMotorDirection(true);
-  //motorRight.setMotorDirection(true);
+  motorLeft.setPIDConfig(kp, ki, kd, period, on_error);
+  motorRight.setPIDConfig(kp, ki, kd, period, on_error);
 
-  //motorLeft.setEncoderDirection(true);
-  //motorRight.setEncoderDirection(true);
+  const char * motor_reversed = params.get(cfg.PARAM_MOTOR_DIRECTION_REVERSED);
+  bool motor_reversed_left = false;
+  bool motor_reversed_right = false;
+
+  if (strcmp(motor_reversed, "LEFT") == 0) {
+    motor_reversed_left = true;
+  } else if (strcmp(motor_reversed, "RIGHT") == 0) {
+    motor_reversed_right = true;
+  } else if (strcmp(motor_reversed, "BOTH") == 0) {
+    motor_reversed_left = true;
+    motor_reversed_right = true;    
+  }
+
+  motorLeft.reverseMotor(motor_reversed_left);
+  motorRight.reverseMotor(motor_reversed_right);
+
+  const char * encoder_reversed = params.get(cfg.PARAM_MOTOR_ENCODER_REVERSED);
+  bool encoder_reversed_left = false;
+  bool encoder_reversed_right = false;
+
+  if (strcmp(encoder_reversed, "LEFT") == 0) {
+    encoder_reversed_left = true;
+  } else if (strcmp(encoder_reversed, "RIGHT") == 0) {
+    encoder_reversed_right = true;
+  } else if (strcmp(encoder_reversed, "BOTH") == 0) {
+    encoder_reversed_left = true;
+    encoder_reversed_right = true;    
+  }
+
+  motorLeft.reverseEncoder(encoder_reversed_left);
+  motorRight.reverseEncoder(encoder_reversed_right);
 
   motorLeft.setPWMCallback(setMotorPWM);
   motorRight.setPWMCallback(setMotorPWM);
