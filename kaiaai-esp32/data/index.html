@@ -40,7 +40,18 @@ label {
   display: inline-block;
 }
 
-input[type=submit], button {
+.clickable {
+  cursor:pointer;
+  color:blue;
+}
+
+.clickable:hover {
+  cursor:hand;  
+  color:#0096FF;
+  text-decoration:underline;
+}
+
+input[type=submit], input[type=reset], button {
   color: #FEFCFB;
   background-color: #034078;
   text-align: center;
@@ -56,8 +67,7 @@ input[type=submit]:hover, button:hover {
   background-color: #45a049;
 }
 
-button:disabled,
-button[disabled]{
+button:disabled, button[disabled] {
   border: 1px solid #999999;
   background-color: #cccccc;
   color: #666666;
@@ -98,8 +108,6 @@ button[disabled]{
   <title>Kaia.ai Robot Configurator</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 <script>
-var config = {};
-
 fetch("/config.old")
   .then(function(response) {
     if (!response.ok) {
@@ -111,19 +119,20 @@ fetch("/config.old")
 	    x.disabled = false;
         var lines = text.split('\n');
 		//console.log(lines);
+        var config = {};
         for (var idx = 0; idx < lines.length-1;) {
 	      param_name = lines[idx++];
 	      param_value = lines[idx++];
           //console.log(`${param_name}: ${param_value}`);
 		  config[param_name] = param_value;
         }
+		restoreConfig(config)
       });
 	}
   });
 
-function restoreConfig() {
+function restoreConfig(config) {
   //console.log('Restoring config');
-  
   document.getElementById("robot_model").value = "CUSTOM";
   for (const key in config) {
     //console.log(key);
@@ -143,6 +152,28 @@ function restoreConfig() {
 	  }
     }
   }
+  function showToggle(id) {
+	var x = document.getElementById(id);
+    //console.log(id, enable, x.style.display);
+	if (x.style.display === "none") {
+      x.style.display = "";
+	  return false;
+	} else {
+	  if (x.style.display !== "none") {
+        x.style.display = "none";
+		return true;
+	  }
+    }
+  }
+  function toggleAdvancedMotorProps() {
+    var is_visible = showToggle('motor_advanced_div');
+	var x = document.getElementById('motor_model_label');
+	if (is_visible) {
+	  x.innerHTML = "Motor Model &#9205";
+	} else {
+	  x.innerHTML = "Motor Model &#9207";
+	}
+  }
   function populateProps(id, select) {
     idx = select.selectedIndex;
 	is_custom = (idx == select.length - 1);
@@ -161,14 +192,14 @@ function restoreConfig() {
       const motor_max_rpm = [200, 245, 260, 408, 450, 280];
       const wheel_ppr = [270, 630, 204, 127.8, 120, 234.3];
       const motor_voltage = [24, 24, 24, 24, 24, 12];
-      const motor_driver = ['PWM_CW', 'PWM_CW', 'PWM_CW', 'PWM_CW', 'PWM_CW', 'IN1_IN2_TB6612FNG'];
-      const motor_encoder = ['FG', 'FG', 'FG', 'FG', 'FG', 'ENCA_ENCB_QUAD'];
+      const motor_driver_type = ['PWM_CW', 'PWM_CW', 'PWM_CW', 'PWM_CW', 'PWM_CW', 'IN1_IN2_TB6612FNG'];
+      const motor_encoder_type = ['FG', 'FG', 'FG', 'FG', 'FG', 'ENCA_ENCB_QUAD'];
 
 	  document.getElementById('motor_max_rpm').value = motor_max_rpm[idx];
 	  document.getElementById('wheel_ppr').value = wheel_ppr[idx];
 	  document.getElementById('motor_voltage').value = motor_voltage[idx];
-	  document.getElementById('motor_driver').value = motor_driver[idx];
-	  document.getElementById('motor_encoder').value = motor_encoder[idx];
+	  document.getElementById('motor_driver_type').value = motor_driver[idx];
+	  document.getElementById('motor_encoder_type').value = motor_encoder_type[idx];
 	}
   }
   </script>
@@ -242,7 +273,7 @@ function restoreConfig() {
         </div>
       </div>
 
-      <div id="robot_model_div" class="advanced_props" style="display:none">
+      <div id="robot_model_div" style="display:none">
 	  <div class="row">
 	    <div class="col-25">
           <label for="robot_model_name">Model name</label>
@@ -330,7 +361,7 @@ function restoreConfig() {
 	  <legend>Motors</legend>
 	  <div class="row">
 	    <div class="col-25">
-          <label for="motor_model">Motor model</label>
+          <label for="motor_model" class="clickable" id="motor_model_label" onclick="toggleAdvancedMotorProps()">Motor Model &#9205;</label>
 		</div>
 		<div class="col-75">
           <select name="motor_model" id="motor_model" required onchange="populateProps('motor_model_div', this);">
@@ -344,12 +375,12 @@ function restoreConfig() {
               <option value="24V_408RPM_127.8PPR_PWM_CW_FG">JGA25-BL2418 24V 408RPM 127.8PPR</option>
               <option value="24V_450RPM_120PPR_PWM_CW_FG">CHR-GM25-BL2418 24V 450RPM 120PPR</option>
             </optgroup>
-            <option value="CUSTOM">CUSTOM RPM, PPR, Voltage, Controller</option>
+            <option value="CUSTOM">CUSTOM RPM, PPR, Voltage, Driver, Encoder</option>
           </select>
         </div>
       </div>
 
-      <div id="motor_model_div" class="advanced_props" style="display:none">
+      <div id="motor_model_div" style="display:none">
 	  <div class="row">
 	    <div class="col-25">
           <label for="motor_max_rpm">Motor max RPM</label>
@@ -385,11 +416,11 @@ function restoreConfig() {
 
 	  <div class="row">
 	    <div class="col-25">
-          <label for="motor_driver">Motor Driver</label>
+          <label for="motor_driver_type">Motor Driver</label>
 		</div>
 		<div class="col-75">
           <div class="sub_input">
-          <select name="motor_driver" id="motor_driver" required>
+          <select name="motor_driver_type" id="motor_driver_type" required>
             <option value="IN1_IN2_TB6612FNG">TB6612FNG IN1/IN2 input signals</option>
             <option value="PWM_CW">PWM/CW input signals (including brushless)</option>
           </select>
@@ -399,11 +430,11 @@ function restoreConfig() {
 
 	  <div class="row">
 	    <div class="col-25">
-          <label for="motor_encoder">Motor Encoder</label>
+          <label for="motor_encoder_type">Motor Encoder</label>
 		</div>
 		<div class="col-75">
           <div class="sub_input">
-          <select name="motor_encoder" id="motor_encoder" required>
+          <select name="motor_encoder_type" id="motor_encoder_type" required>
             <option value="ENCA_ENCB_QUAD">Quadrature ENC_A/ENC_B output signals</option>
             <option value="FG">FG output signal (including brushless)</option>
           </select>
@@ -411,12 +442,98 @@ function restoreConfig() {
         </div>
       </div>
       </div>
+
+      <div id="motor_advanced_div" style="display:none">
+
+
+	  <div class="row">
+	    <div class="col-25">
+          <label for="motor_direction_reversed">Rotation Direction</label>
+		</div>
+		<div class="col-75">
+          <div class="sub_input">
+          <select name="motor_direction_reversed" id="motor_direction_reversed" required>
+            <option value="NONE">Not reversed</option>
+            <option value="LEFT">Left motor reversed</option>
+            <option value="RIGHT">Right motor reversed</option>
+            <option value="BOTH">Both motors reversed</option>
+          </select>
+          </div>
+        </div>
+      </div>
+
+
+	  <div class="row">
+	    <div class="col-25">
+          <label for="encoder_direction_reversed">Encoder Direction</label>
+		</div>
+		<div class="col-75">
+          <div class="sub_input">
+          <select name="encoder_direction_reversed" id="encoder_direction_reversed" required>
+            <option value="NONE">Not reversed</option>
+            <option value="LEFT">Left motor encoder reversed</option>
+            <option value="RIGHT">Right motor encoder reversed</option>
+            <option value="BOTH">Both motor encoders reversed</option>
+          </select>
+          </div>
+        </div>
+      </div>
+
+	  <div class="row">
+	    <div class="col-25">
+          <label for="motor_pid_kp">PID Kp</label>
+		</div>
+		<div class="col-75">
+          <div class="sub_input">
+          <input type="number" id="motor_pid_kp" name="motor_pid_kp" value="0.001" required inputmode="numeric">
+          </div>
+        </div>
+      </div>
+
+	  <div class="row">
+	    <div class="col-25">
+          <label for="motor_pid_ki">PID Ki</label>
+		</div>
+		<div class="col-75">
+          <div class="sub_input">
+          <input type="number" id="motor_pid_ki" name="motor_pid_ki" value="0.001" required inputmode="numeric">
+          </div>
+        </div>
+      </div>
+
+	  <div class="row">
+	    <div class="col-25">
+          <label for="motor_pid_kd">PID Kd</label>
+		</div>
+		<div class="col-75">
+          <div class="sub_input">
+          <input type="number" id="motor_pid_kd" name="motor_pid_kd" value="0" required inputmode="numeric">
+          </div>
+        </div>
+      </div>
+
+	  <div class="row">
+	    <div class="col-25">
+          <label for="motor_pid_mode">PID Mode</label>
+		</div>
+		<div class="col-75">
+          <div class="sub_input">
+          <select name="motor_pid_mode" id="motor_pid_mode" required>
+            <option value="ON_MEASUREMENT">On Measurement</option>
+            <option value="ON_ERROR">On Error</option>
+          </select>
+          </div>
+        </div>
+      </div>
+
+	  </div>
+
       </fieldset>
       <br>
       <div class="row">
 		<center>
-        <button type="button" id="restore_config" onclick="restoreConfig()" disabled>Restore Configuration</button>
-        <input type ="submit" value ="Configure and Connect">
+        <input type="reset" id="reset" value="Reset">
+        <input type ="submit" value="Configure and Connect">
         </center>
       </div>
     </form>

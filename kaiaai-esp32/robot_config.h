@@ -85,8 +85,15 @@ public:
     PARAM_MOTOR_MAX_RPM,
     PARAM_WHEEL_PPR,
     PARAM_MOTOR_VOLTAGE,
-    PARAM_MOTOR_DRIVER,
-    PARAM_MOTOR_ENCODER,
+    PARAM_MOTOR_DRIVER_TYPE,
+    PARAM_MOTOR_ENCODER_TYPE,
+    PARAM_MOTOR_DIRECTION_REVERSED,
+    PARAM_MOTOR_ENCODER_REVERSED,
+    PARAM_MOTOR_PID_KP,
+    PARAM_MOTOR_PID_KI,
+    PARAM_MOTOR_PID_KD,
+    PARAM_MOTOR_PID_MODE,
+    PARAM_MOTOR_PID_PERIOD_MS,
     PARAM_COUNT,
   };
 
@@ -115,7 +122,11 @@ protected:
     (char *)"base_dia", (char *)"wheel_base",
     (char *)"wheel_dia", (char *)"max_wheel_accel",
     (char *)"motor_max_rpm", (char *)"wheel_ppr", (char *)"motor_voltage",
-    (char *)"motor_driver", (char *)"motor_encoder"};
+    (char *)"motor_driver_type", (char *)"motor_encoder_type"},
+    (char *)"motor_direction_reversed"}, (char *)"motor_encoder_reversed",
+    (char *)"motor_pid_kp", (char *)"motor_pid_ki",
+    (char *)"motor_pid_kd", (char *)"motor_pid_mode",
+    (char *)"motor_pid_period_ms";
 
 public:
   static const uint8_t ERR_REBOOT_BLINK_CYCLES = 3; // Blink out an error a few times, then reboot

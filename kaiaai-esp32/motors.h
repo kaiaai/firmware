@@ -33,7 +33,6 @@ enum motor_encoder_t {
 };
 
 motor_driver_t motorDriverType;
-motor_encoder_t motorEncoderType;
 
 void IRAM_ATTR unsignedEncoderLeftISR() {
   motorLeft.tickUnsignedEncoder();
@@ -107,8 +106,8 @@ void setMotorPWM(MotorController *motor_controller, float pwm) {
   }
 }
 
-void setupEncoders(motor_encoder_t motor_encoder) {
-  switch(motor_encoder) {
+void setupEncoders(motor_encoder_t motor_encoder_type) {
+  switch(motor_encoder_type) {
     case MOT_ENCODER_ENCA_ENCB_QUAD:
       motorLeft.init(MotorController::ENCODER_SIGNED);
       motorRight.init(MotorController::ENCODER_SIGNED);
@@ -134,8 +133,8 @@ void setupEncoders(motor_encoder_t motor_encoder) {
   }
 }
 
-void setupDriver(motor_driver_t motor_driver) {
-  motorDriverType = motor_driver;
+void setupDriver(motor_driver_t motor_driver_type) {
+  motorDriverType = motor_driver_type;
 
   switch(motorDriverType) {
     case MOT_DRIVER_PWM_CW:
@@ -161,27 +160,27 @@ void setupDriver(motor_driver_t motor_driver) {
 }
 
 void setupMotors() {
-  const char * motor_driver = params.get(cfg.PARAM_MOTOR_DRIVER);
+  const char * motor_driver_type = params.get(cfg.PARAM_MOTOR_DRIVER_TYPE);
   Serial.print("Motor driver type ");
-  Serial.print(motor_driver);
+  Serial.print(motor_driver_type);
 
-  if (strcmp(motor_driver, "PWM_CW") == 0) {
+  if (strcmp(motor_driver_type, "PWM_CW") == 0) {
     setupDriver(MOT_DRIVER_PWM_CW);
   } else {
-    if (strcmp(motor_driver, "IN1_IN2_TB6612FNG") != 0)
+    if (strcmp(motor_driver_type, "IN1_IN2_TB6612FNG") != 0)
       Serial.print(" not recognized, defaulting to IN1_IN2_TB6612FNG");
     setupDriver(MOT_DRIVER_IN1_IN2_TB6612FNG);
   }
   Serial.println();
   
-  const char * motor_encoder = params.get(cfg.PARAM_MOTOR_ENCODER);
+  const char * motor_encoder_type = params.get(cfg.PARAM_MOTOR_ENCODER_TYPE);
   Serial.print("Motor encoder type ");
-  Serial.print(motor_encoder);
+  Serial.print(motor_encoder_type);
 
-  if (strcmp(motor_encoder, "FG") == 0) {
+  if (strcmp(motor_encoder_type, "FG") == 0) {
     setupEncoders(MOT_ENCODER_FG);
   } else {
-    if (strcmp(motor_encoder, "ENCA_ENCB_QUAD") != 0)
+    if (strcmp(motor_encoder_type, "ENCA_ENCB_QUAD") != 0)
       Serial.print(" not recognized, defaulting to ENCA_ENCB_QUAD");
     setupEncoders(MOT_ENCODER_ENCA_ENCB_QUAD);
   }
