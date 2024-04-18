@@ -88,10 +88,14 @@ void MotorController::enablePID(bool en) {
 void MotorController::setEncoderPPR(float ppr) {
   if (ppr <= 0)
     return;
-  encoderTPR = ticksPerPulse*ppr;
+  encoderPPR = ppr;
+  encoderTPR = ticksPerPulse*encoderPPR;
   encoderTPR_reciprocal = 1.0f / encoderTPR;
-//  ticksPerMicroSecToRPM = 1e6 * 60.0 / tpr;
   ticksPerMicroSecToRPM = 1e6 * 60.0 * encoderTPR_reciprocal;
+}
+
+float MotorController::getEncoderPPR() {
+  return encoderPPR;
 }
 
 float MotorController::getEncoderTPR() {

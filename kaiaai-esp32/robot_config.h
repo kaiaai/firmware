@@ -153,11 +153,30 @@ public:
   static const uint32_t UROS_TIME_SYNC_TIMEOUT_MS = 1000;
   static const uint32_t UROS_PARAMS_UPDATE_PERIOD_US = 500*1000;
 
-  // Parameters
+  // ROS Parameters
+  const uint8_t UROS_PARAM_COUNT = 19;
   static constexpr char * UROS_PARAM_LIDAR_SCAN_FREQ_TARGET = (char *)"lidar.scan.freq.target";
   static constexpr char * UROS_PARAM_LIDAR_SCAN_FREQ_CURRENT = (char *)"lidar.scan.freq.current";
   static constexpr char * UROS_PARAM_MOTOR_LEFT_ENCODER_CURRENT = (char *)"motor.left.encoder.current";
   static constexpr char * UROS_PARAM_MOTOR_RIGHT_ENCODER_CURRENT = (char *)"motor.right.encoder.current";
+
+  static constexpr char * UROS_PARAM_MOTOR_LEFT_ENCODER_PPR = (char *)"motor.left.encoder.ppr";
+  static constexpr char * UROS_PARAM_MOTOR_LEFT_ENCODER_TPR = (char *)"motor.left.encoder.tpr";
+  static constexpr char * UROS_PARAM_MOTOR_LEFT_RPM_MAX_DERATED = (char *)"motor.left.rpm.max.derated";
+  static constexpr char * UROS_PARAM_MOTOR_LEFT_RPM_CURRENT = (char *)"motor.left.rpm.current";
+  static constexpr char * UROS_PARAM_MOTOR_LEFT_RPM_TARGET = (char *)"motor.left.rpm.target";
+
+  static constexpr char * UROS_PARAM_MOTOR_RIGHT_ENCODER_PPR = (char *)"motor.right.encoder.ppr";
+  static constexpr char * UROS_PARAM_MOTOR_RIGHT_ENCODER_TPR = (char *)"motor.right.encoder.tpr";
+  static constexpr char * UROS_PARAM_MOTOR_RIGHT_RPM_MAX_DERATED = (char *)"motor.right.rpm.max.derated";
+  static constexpr char * UROS_PARAM_MOTOR_RIGHT_RPM_CURRENT = (char *)"motor.right.rpm.current";
+  static constexpr char * UROS_PARAM_MOTOR_RIGHT_RPM_TARGET = (char *)"motor.right.rpm.target";
+
+  static constexpr char * UROS_PARAM_MOTOR_PID_KP = (char *)"motor.left.pid.kp";
+  static constexpr char * UROS_PARAM_MOTOR_PID_KI = (char *)"motor.left.pid.ki";
+  static constexpr char * UROS_PARAM_MOTOR_PID_KD = (char *)"motor.left.pid.kd";
+  static constexpr char * UROS_PARAM_MOTOR_PID_ON_ERROR = (char *)"motor.left.pid.on_error";
+  static constexpr char * UROS_PARAM_MOTOR_PID_PERIOD = (char *)"motor.left.pid.period";
 
   // Param defaults
   static constexpr double UROS_PARAM_LIDAR_SCAN_FREQ_TARGET_DEFAULT = 0;

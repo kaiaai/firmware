@@ -41,6 +41,7 @@ class MotorController {
     float getTargetRPM();
     float getMaxRPM();
     float getEncoderTPR();
+    float getEncoderPPR();
     void enablePID(bool en);
     long int getEncoderValue() {
       return encoderReversed ? -encoder : encoder;
@@ -61,6 +62,7 @@ class MotorController {
     bool cw;
 
     uint8_t ticksPerPulse;
+    float encoderPPR;
     float encoderTPR;
     float encoderTPR_reciprocal;
     float ticksPerMicroSecToRPM;

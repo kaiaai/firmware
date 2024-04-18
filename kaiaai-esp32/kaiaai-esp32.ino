@@ -308,7 +308,7 @@ bool set_param_callback(const char * param_name, const char * param_value) {
   return false;
 }
 
-static inline void initRos() {
+void initRos() {
   allocator = rcl_get_default_allocator();
 
   rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
@@ -374,7 +374,7 @@ static inline void initRos() {
   // RCLC_PARAMETER_MAX_STRING_LENGTH = 50
   const rclc_parameter_options_t rclc_param_options = {
       .notify_changed_over_dds = false,
-      .max_params = 10,
+      .max_params = cfg.UROS_PARAM_COUNT,
       .allow_undeclared_parameters = false,
       .low_mem_mode = true };
   
@@ -395,7 +395,7 @@ static inline void initRos() {
   RCCHECK(rclc_executor_add_parameter_server(&executor, &param_server,
     on_param_changed), cfg.ERR_UROS_EXEC);;
 
-  /* ROS parameters */
+  // ROS parameters
   RCCHECK(rclc_add_parameter(&param_server, cfg.UROS_PARAM_LIDAR_SCAN_FREQ_TARGET,
     RCLC_PARAMETER_DOUBLE), cfg.ERR_UROS_PARAM);
   //RCCHECK(rclc_add_parameter_constraint_double(&param_server, cfg.UROS_PARAM_LIDAR_SCAN_FREQ_TARGET,
@@ -416,22 +416,74 @@ static inline void initRos() {
   RCCHECK(rclc_set_parameter_read_only(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_ENCODER_CURRENT,
     true), cfg.ERR_UROS_PARAM);
 
+  RCCHECK(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_ENCODER_PPR,
+    RCLC_PARAMETER_DOUBLE), cfg.ERR_UROS_PARAM);
 
-  //RCCHECK(rclc_add_parameter(&param_server, "param_bool", RCLC_PARAMETER_BOOL), cfg.ERR_UROS_PARAM);
+  RCCHECK(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_ENCODER_PPR,
+    RCLC_PARAMETER_DOUBLE), cfg.ERR_UROS_PARAM);
 
-  //RCCHECK(rclc_parameter_set_bool(&param_server, "param_bool", false), cfg.ERR_UROS_PARAM);
-  //RCCHECK(rclc_parameter_set_int(&param_server, "param_int", 10), cfg.ERR_UROS_PARAM);
+  RCCHECK(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_ENCODER_TPR,
+    RCLC_PARAMETER_DOUBLE), cfg.ERR_UROS_PARAM);
+  RCCHECK(rclc_set_parameter_read_only(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_ENCODER_TPR,
+    true), cfg.ERR_UROS_PARAM);
+
+  RCCHECK(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_ENCODER_TPR,
+    RCLC_PARAMETER_DOUBLE), cfg.ERR_UROS_PARAM);
+  RCCHECK(rclc_set_parameter_read_only(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_ENCODER_TPR,
+    true), cfg.ERR_UROS_PARAM);
+
+  RCCHECK(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_RPM_MAX_DERATED,
+    RCLC_PARAMETER_DOUBLE), cfg.ERR_UROS_PARAM);
+  RCCHECK(rclc_set_parameter_read_only(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_RPM_MAX_DERATED,
+    true), cfg.ERR_UROS_PARAM);
+
+  RCCHECK(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_RPM_MAX_DERATED,
+    RCLC_PARAMETER_DOUBLE), cfg.ERR_UROS_PARAM);
+  RCCHECK(rclc_set_parameter_read_only(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_RPM_MAX_DERATED,
+    true), cfg.ERR_UROS_PARAM);
+
+  RCCHECK(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_RPM_CURRENT,
+    RCLC_PARAMETER_DOUBLE), cfg.ERR_UROS_PARAM);
+  RCCHECK(rclc_set_parameter_read_only(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_RPM_CURRENT,
+    true), cfg.ERR_UROS_PARAM);
+
+  RCCHECK(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_RPM_CURRENT,
+    RCLC_PARAMETER_DOUBLE), cfg.ERR_UROS_PARAM);
+  RCCHECK(rclc_set_parameter_read_only(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_RPM_CURRENT,
+    true), cfg.ERR_UROS_PARAM);
+
+  RCCHECK(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_RPM_TARGET,
+    RCLC_PARAMETER_DOUBLE), cfg.ERR_UROS_PARAM);
+  RCCHECK(rclc_set_parameter_read_only(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_RPM_TARGET,
+    true), cfg.ERR_UROS_PARAM);
+
+  RCCHECK(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_RPM_TARGET,
+    RCLC_PARAMETER_DOUBLE), cfg.ERR_UROS_PARAM);
+  RCCHECK(rclc_set_parameter_read_only(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_RPM_TARGET,
+    true), cfg.ERR_UROS_PARAM);
+
+  RCCHECK(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_PID_KP,
+    RCLC_PARAMETER_DOUBLE), cfg.ERR_UROS_PARAM);
+
+  RCCHECK(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_PID_KI,
+    RCLC_PARAMETER_DOUBLE), cfg.ERR_UROS_PARAM);
+
+  RCCHECK(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_PID_KD,
+    RCLC_PARAMETER_DOUBLE), cfg.ERR_UROS_PARAM);
+
+  RCCHECK(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_PID_ON_ERROR,
+    RCLC_PARAMETER_BOOL), cfg.ERR_UROS_PARAM);
+
+  RCCHECK(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_PID_PERIOD,
+    RCLC_PARAMETER_DOUBLE), cfg.ERR_UROS_PARAM);
 
   //rclc_add_parameter_description(&param_server, "param_int", "Second parameter", "Only even numbers");
   //RCCHECK(rclc_add_parameter_constraint_integer(&param_server, "param_int", -10, 120, 2), cfg.ERR_UROS_PARAM);
-
   //rclc_add_parameter_description(&param_server, "param_double", "Third parameter", "");
-  //RCCHECK(rclc_set_parameter_read_only(&param_server, "param_double", true), cfg.ERR_UROS_PARAM);
   
   //bool param_bool;
   //int64_t param_int;
   //double param_double;
-
   //RCCHECK(rclc_parameter_get_bool(&param_server, "param_bool", &param_bool), cfg.ERR_UROS_PARAM);
   //RCCHECK(rclc_parameter_get_int(&param_server, "param_int", &param_int), cfg.ERR_UROS_PARAM);
   //RCCHECK(rclc_parameter_get_double(&param_server, "param_double", &param_double), cfg.ERR_UROS_PARAM);
@@ -749,14 +801,12 @@ void spinPing() {
 }
 
 void updateROSParams() {
-  // TODO slow down updates
-  if (!ros_params_changed)
-    return;
-
-  unsigned long time_now_us = esp_timer_get_time();
-  unsigned long step_time_us = time_now_us - ros_params_update_prev_time_us;
-  if (step_time_us < cfg.UROS_PARAMS_UPDATE_PERIOD_US)
-    return;
+  if (!ros_params_changed) {
+    unsigned long time_now_us = esp_timer_get_time();
+    unsigned long step_time_us = time_now_us - ros_params_update_prev_time_us;
+    if (step_time_us < cfg.UROS_PARAMS_UPDATE_PERIOD_US)
+      return;
+  }
   
   ros_params_changed = false;
 
@@ -771,6 +821,55 @@ void updateROSParams() {
 
   RCCHECK(rclc_parameter_set_int(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_ENCODER_CURRENT,
     motorRight.getEncoderValue()), cfg.ERR_UROS_PARAM);
+
+  RCCHECK(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_ENCODER_PPR,
+    motorLeft.getEncoderPPR()), cfg.ERR_UROS_PARAM);
+
+  RCCHECK(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_ENCODER_PPR,
+    motorRight.getEncoderPPR()), cfg.ERR_UROS_PARAM);
+
+  RCCHECK(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_ENCODER_TPR,
+    motorLeft.getEncoderTPR()), cfg.ERR_UROS_PARAM);
+
+  RCCHECK(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_ENCODER_TPR,
+    motorRight.getEncoderTPR()), cfg.ERR_UROS_PARAM);
+
+  RCCHECK(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_RPM_MAX_DERATED,
+    motorLeft.getMaxRPM()), cfg.ERR_UROS_PARAM);
+
+  RCCHECK(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_RPM_MAX_DERATED,
+    motorRight.getMaxRPM()), cfg.ERR_UROS_PARAM);
+
+  RCCHECK(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_RPM_CURRENT,
+    motorLeft.getCurrentRPM()), cfg.ERR_UROS_PARAM);
+
+  RCCHECK(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_RPM_CURRENT,
+    motorRight.getCurrentRPM()), cfg.ERR_UROS_PARAM);
+
+  RCCHECK(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_RPM_TARGET,
+    motorLeft.getTargetRPM()), cfg.ERR_UROS_PARAM);
+
+  RCCHECK(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_RPM_TARGET,
+    motorRight.getTargetRPM()), cfg.ERR_UROS_PARAM);
+
+  float kp, ki, kd, period;
+  bool on_error;
+  motorLeft.getPIDConfig(kp, ki, kd, period, on_error);
+
+  RCCHECK(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_PID_KP,
+    kp), cfg.ERR_UROS_PARAM);
+
+  RCCHECK(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_PID_KI,
+    ki), cfg.ERR_UROS_PARAM);
+
+  RCCHECK(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_PID_KD,
+    kd), cfg.ERR_UROS_PARAM);
+
+  RCCHECK(rclc_parameter_set_bool(&param_server, cfg.UROS_PARAM_MOTOR_PID_ON_ERROR,
+    on_error), cfg.ERR_UROS_PARAM);
+
+  RCCHECK(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_PID_KD,
+    period), cfg.ERR_UROS_PARAM);
 }
 
 void loop() {
