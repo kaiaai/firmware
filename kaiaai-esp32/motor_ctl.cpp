@@ -14,11 +14,12 @@
 
 #include "motor_ctl.h"
 
-void MotorController::init(encoder_type_t encoder_type) {
+void MotorController::init(encoder_type_t encoder_type, uint8_t ticks_per_pulse) {
 
   encoderType = encoder_type;
   resetEncoders();
   setMaxRPM(200);
+  ticksPerPulse = ticks_per_pulse;
   setEncoderPPR(45.0*6);
 
   targetRPM = 0;
@@ -73,7 +74,7 @@ void MotorController::setPWM(float value) {
 
 float MotorController::getShaftAngle() {
 //  return TWO_PI * encoder / encoderTPR;
-  return TWO_PI * getEncoder() * encoderTPR_reciprocal;
+  return TWO_PI * getEncoderValue() * encoderTPR_reciprocal;
 }
 
 void MotorController::setMaxRPM(float rpm) {
@@ -87,10 +88,14 @@ void MotorController::enablePID(bool en) {
 void MotorController::setEncoderPPR(float ppr) {
   if (ppr <= 0)
     return;
-  float tpr = 2*ppr; // two edges per pulse
-  encoderTPR_reciprocal = 1.0f / tpr;
+  encoderTPR = ticksPerPulse*ppr;
+  encoderTPR_reciprocal = 1.0f / encoderTPR;
 //  ticksPerMicroSecToRPM = 1e6 * 60.0 / tpr;
   ticksPerMicroSecToRPM = 1e6 * 60.0 * encoderTPR_reciprocal;
+}
+
+float MotorController::getEncoderTPR() {
+  return encoderTPR;
 }
 
 float MotorController::getMaxRPM() {
@@ -154,7 +159,7 @@ void MotorController::update() {
 
   tickSampleTimePrev = tickTime;
 
-  long int encNow = getEncoder();
+  long int encNow = getEncoderValue();
   long int encDelta = encNow - encPrev;
   encPrev = encNow;
   float ticksPerMicroSec = ((float) encDelta) / ((float) tickTimeDelta);

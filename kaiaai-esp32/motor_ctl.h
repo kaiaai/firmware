@@ -25,7 +25,7 @@ class MotorController {
       ENCODER_SIGNED,
     };
 
-    void init(encoder_type_t encoder_type);
+    void init(encoder_type_t encoder_type, uint8_t ticks_per_pulse);
     void setPWMCallback(SetPWMCallback callback);
     bool setRPM(float rpm);
     void resetEncoders();
@@ -40,8 +40,9 @@ class MotorController {
     float getCurrentRPM();
     float getTargetRPM();
     float getMaxRPM();
+    float getEncoderTPR();
     void enablePID(bool en);
-    long int getEncoder() {
+    long int getEncoderValue() {
       return encoderReversed ? -encoder : encoder;
     }
 
@@ -56,17 +57,16 @@ class MotorController {
     float targetRPM;
     float measuredRPM;
     float pwm;
+    float maxRPM;
     bool cw;
 
-    //float encoderTPR;
-    float maxRPM;
+    uint8_t ticksPerPulse;
     float encoderTPR;
-    unsigned int pidUpdatePeriodUs;
     float encoderTPR_reciprocal;
-    encoder_type_t encoderType;
     float ticksPerMicroSecToRPM;
 
-    long int encDelta;
+    unsigned int pidUpdatePeriodUs;
+    encoder_type_t encoderType;
     long int encPrev;
     bool setPointHasChanged;
     bool motorReversed;

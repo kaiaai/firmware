@@ -28,8 +28,8 @@ public:
   static const uint8_t BAT_ADC_PIN = 36;
 
   // LiDAR
-  static const uint8_t LDS_PWM_PIN = 15;
-  static const uint8_t LDS_EN_PIN = 19;
+  static const uint8_t LIDAR_PWM_PIN = 15;
+  static const uint8_t LIDAR_EN_PIN = 19;
   
   // Brushless motors
   static const uint8_t MOT_PWM_LEFT_PIN = 33;
@@ -55,19 +55,20 @@ public:
   enum pwm_channel {
     MOT_PWM_LEFT_CHANNEL = 0,
     MOT_PWM_RIGHT_CHANNEL = 1,
-    LDS_PWM_CHANNEL = 2,
+    LIDAR_PWM_CHANNEL = 2,
   };
   static const uint16_t MOT_PWM_FREQ = 20000; // 15..25KHz
   static const uint8_t MOT_PWM_BITS = 10;
 
-  static const uint32_t LDS_PWM_FREQ = 10000;
-  static const uint8_t LDS_PWM_BITS = 11;
+  static const uint32_t LIDAR_PWM_FREQ = 10000;
+  static const uint8_t LIDAR_PWM_BITS = 11;
 
   static const uint32_t RESET_SETTINGS_HOLD_MS = 10000; // Hold BOOT button to reset WiFi
-  static constexpr double LDS_SCAN_FREQ_DEFAULT = 0;
 
   static const uint8_t BAT_ADC_MULTIPLIER = 11; // resistor divider reciprocal
   static const uint16_t BAT_PRESENT_MV_MIN = 4000;
+
+  static constexpr float MOT_MAX_RPM_DERATE = 0.9f;
 
   enum param_name_index {
     PARAM_SSID,
@@ -76,7 +77,7 @@ public:
     PARAM_DEST_PORT,
     PARAM_ROBOT_MODEL,
     PARAM_ROBOT_MODEL_NAME,
-    PARAM_LDS_MODEL,
+    PARAM_LIDAR_MODEL,
     PARAM_MOTOR_MODEL,
     PARAM_BASE_DIA_MM,
     PARAM_WHEEL_BASE_MM,
@@ -100,7 +101,7 @@ public:
 public: // Misc constants
     enum error_blink_count { // ESP32 blinks when firmware init fails
     ERR_WIFI_CONN = 1,
-    ERR_LDS_START = 2,
+    ERR_LIDAR_START = 2,
     ERR_UROS_AGENT_CONN = 3,
     ERR_WIFI_LOST = 4,
     ERR_UROS_INIT = 5,
@@ -122,7 +123,7 @@ protected:
     "0.001", "0.001", "0", "ON_MEASUREMENT", "30"};
   char* PARAM_NAME[PARAM_COUNT] = {(char *)"ssid", (char *)"pass",
     (char *)"dest_ip", (char *)"dest_port", (char *)"robot_model",
-    (char *)"robot_model_name", (char *)"lds_model", (char *)"motor_model",
+    (char *)"robot_model_name", (char *)"lidar_model", (char *)"motor_model",
     (char *)"base_dia", (char *)"wheel_base",
     (char *)"wheel_dia", (char *)"max_wheel_accel",
     (char *)"motor_max_rpm", (char *)"wheel_ppr", (char *)"motor_voltage",
@@ -147,13 +148,22 @@ public:
   static constexpr char * UROS_LOG_TOPIC_NAME = (char *)"rosout";
   static constexpr char * UROS_CMD_VEL_TOPIC_NAME = (char *)"cmd_vel";
   //#define UROS_NODE_NAME UROS_ROBOT_MODEL
-  static const uint32_t UROS_PING_PUB_PERIOD_MS = 10000;
-  static const uint32_t UROS_TELEM_PUB_PERIOD_MS = 50;
+  static const uint32_t UROS_PING_PUB_PERIOD_US = 10*1000*1000;
+  static const uint32_t UROS_TELEM_PUB_PERIOD_US = 50*1000;
   static const uint32_t UROS_TIME_SYNC_TIMEOUT_MS = 1000;
-  static constexpr char * UROS_PARAM_LDS_SCAN_FREQ = (char *)"lds.scan_freq";
+  static const uint32_t UROS_PARAMS_UPDATE_PERIOD_US = 500*1000;
 
-  static const uint16_t LDS_BUF_LEN = 400;
-  static const uint16_t LDS_SERIAL_RX_BUF_LEN = 1024;
+  // Parameters
+  static constexpr char * UROS_PARAM_LIDAR_SCAN_FREQ_TARGET = (char *)"lidar.scan.freq.target";
+  static constexpr char * UROS_PARAM_LIDAR_SCAN_FREQ_CURRENT = (char *)"lidar.scan.freq.current";
+  static constexpr char * UROS_PARAM_MOTOR_LEFT_ENCODER_CURRENT = (char *)"motor.left.encoder.current";
+  static constexpr char * UROS_PARAM_MOTOR_RIGHT_ENCODER_CURRENT = (char *)"motor.right.encoder.current";
+
+  // Param defaults
+  static constexpr double UROS_PARAM_LIDAR_SCAN_FREQ_TARGET_DEFAULT = 0;
+
+  static const uint16_t LIDAR_BUF_LEN = 400;
+  static const uint16_t LIDAR_SERIAL_RX_BUF_LEN = 1024;
 
   static const uint32_t WIFI_CONN_TIMEOUT_MS = 30000;
   static constexpr char * PARAM_AP_WIFI_SSID = (char *) "MAKERSPET";

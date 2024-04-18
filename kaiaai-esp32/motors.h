@@ -56,6 +56,18 @@ void IRAM_ATTR quadEncoderARightISR() {
   motorRight.tickSignedEncoder(enc_a != enc_b);
 }
 
+void IRAM_ATTR quadEncoderBLeftISR() {
+  byte enc_a = digitalRead(cfg.MOT_ENC_A_LEFT_PIN);
+  byte enc_b = digitalRead(cfg.MOT_ENC_B_LEFT_PIN);
+  motorLeft.tickSignedEncoder(enc_a == enc_b);
+}
+
+void IRAM_ATTR quadEncoderBRightISR() {
+  byte enc_a = digitalRead(cfg.MOT_ENC_A_RIGHT_PIN);
+  byte enc_b = digitalRead(cfg.MOT_ENC_B_RIGHT_PIN);
+  motorRight.tickSignedEncoder(enc_a == enc_b);
+}
+
 void setMotorPWM(MotorController *motor_controller, float pwm) {
   Serial.print("setMotorPWM ");
   bool is_right = motor_controller == &motorRight;
@@ -107,20 +119,22 @@ void setMotorPWM(MotorController *motor_controller, float pwm) {
 void setupEncoders(motor_encoder_t motor_encoder_type) {
   switch(motor_encoder_type) {
     case MOT_ENCODER_ENCA_ENCB_QUAD:
-      motorLeft.init(MotorController::ENCODER_SIGNED);
-      motorRight.init(MotorController::ENCODER_SIGNED);
+      motorLeft.init(MotorController::ENCODER_SIGNED, 4);
+      motorRight.init(MotorController::ENCODER_SIGNED, 4);
 
       pinMode(cfg.MOT_ENC_A_LEFT_PIN, INPUT);
       pinMode(cfg.MOT_ENC_B_LEFT_PIN, INPUT);
       attachInterrupt(cfg.MOT_ENC_A_LEFT_PIN, quadEncoderALeftISR, CHANGE);
+      attachInterrupt(cfg.MOT_ENC_B_LEFT_PIN, quadEncoderBLeftISR, CHANGE);
     
       pinMode(cfg.MOT_ENC_A_RIGHT_PIN, INPUT);
       pinMode(cfg.MOT_ENC_B_RIGHT_PIN, INPUT);
       attachInterrupt(cfg.MOT_ENC_A_RIGHT_PIN, quadEncoderARightISR, CHANGE);
+      attachInterrupt(cfg.MOT_ENC_B_RIGHT_PIN, quadEncoderBRightISR, CHANGE);
       break;
     default:
-      motorLeft.init(MotorController::ENCODER_UNSIGNED);
-      motorRight.init(MotorController::ENCODER_UNSIGNED);
+      motorLeft.init(MotorController::ENCODER_UNSIGNED, 2);
+      motorRight.init(MotorController::ENCODER_UNSIGNED, 2);
    
       pinMode(cfg.MOT_FG_LEFT_PIN, INPUT);
       attachInterrupt(cfg.MOT_FG_LEFT_PIN, unsignedEncoderLeftISR, CHANGE);
@@ -189,17 +203,22 @@ void setupMotors() {
   Serial.println();
 
   float value = String(params.get(cfg.PARAM_MOTOR_MAX_RPM)).toFloat();
-  Serial.print("Motor Max RPM ");
+  Serial.print("Motor Max RPM=");
   Serial.print(value);
   value = value * cfg.MOTOR_MAX_RPM_DERATE;
-  motorLeft.setMaxRPM(value);
-  motorRight.setMaxRPM(value);
+  float max_RPM_derated = value * cfg.MOT_MAX_RPM_DERATE;
+  motorLeft.setMaxRPM(max_RPM_derated);
+  motorRight.setMaxRPM(max_RPM_derated);
+  Serial.print(" derated Max RPM=");
+  Serial.print(max_RPM_derated);
 
   value = String(params.get(cfg.PARAM_WHEEL_PPR)).toFloat();
   motorLeft.setEncoderPPR(value);
   motorRight.setEncoderPPR(value);
-  Serial.print(", encoder PPR ");
-  Serial.println(value);
+  Serial.print(", encoder PPR=");
+  Serial.print(value);
+  Serial.print(" TPR="); // encoder ticks per revolution
+  Serial.println(value * motorLeft.getEncoderTPR());
 
   float kp = String(params.get(cfg.PARAM_MOTOR_PID_KP)).toFloat();
   float ki = String(params.get(cfg.PARAM_MOTOR_PID_KI)).toFloat();
