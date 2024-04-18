@@ -36,12 +36,21 @@ class MotorController {
     void setMaxRPM(float rpm);
     void setEncoderPPR(float ppr);
     void setPIDConfig(float kp, float ki, float kd, float period, bool on_error);
-    void getPIDConfig(float &kp, float &ki, float &kd, float &period, bool &on_error);
+    void setPIDKp(float kp);
+    void setPIDKi(float ki);
+    void setPIDKd(float kd);
+    void setPIDPeriod(float period);
+    void setPIDOnError(bool on_error);
     float getCurrentRPM();
     float getTargetRPM();
     float getMaxRPM();
     float getEncoderTPR();
     float getEncoderPPR();
+    float getPIDKp();
+    float getPIDKi();
+    float getPIDKd();
+    float getPIDPeriod();
+    bool getPIDOnError();
     void enablePID(bool en);
     long int getEncoderValue() {
       return encoderReversed ? -encoder : encoder;

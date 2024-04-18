@@ -178,8 +178,6 @@ public:
   static constexpr char * UROS_PARAM_MOTOR_PID_ON_ERROR = (char *)"motor.left.pid.on_error";
   static constexpr char * UROS_PARAM_MOTOR_PID_PERIOD = (char *)"motor.left.pid.period";
 
-  // Param defaults
-  static constexpr double UROS_PARAM_LIDAR_SCAN_FREQ_TARGET_DEFAULT = 0;
 
   static const uint16_t LIDAR_BUF_LEN = 400;
   static const uint16_t LIDAR_SERIAL_RX_BUF_LEN = 1024;

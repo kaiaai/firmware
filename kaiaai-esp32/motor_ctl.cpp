@@ -32,11 +32,11 @@ void MotorController::init(encoder_type_t encoder_type, uint8_t ticks_per_pulse)
   encoderReversed = false;
   cw = true;
 
-  float updatePeriodSec = 0.03;
+  float pidPeriod = 0.03;
+  pidUpdatePeriodUs = (unsigned int) round(pidPeriod * 1e6);
   pid.Init(&measuredRPM, &pidPWM, &targetRPM, 0.001, 0.001, 0,
-    updatePeriodSec, PID::P_ON_M, PID::DIRECT);
+    pidPeriod, PID::P_ON_M, PID::DIRECT);
 
-  pidUpdatePeriodUs = (unsigned int) round(updatePeriodSec * 1e6);
   pid.SetOutputLimits(-1, 1);
 
   pwm = 1.1; // force update
@@ -122,14 +122,47 @@ void MotorController::resetEncoders() {
 void MotorController::setPIDConfig(float kp, float ki, float kd, float period, bool on_error) {
   pidUpdatePeriodUs = (unsigned int) round(period * 1e6);
   pid.SetTunings(kp, ki, kd, on_error ? PID::P_ON_E : PID::P_ON_M);
+  pid.SetReferenceSampleTime(period);
 }
 
-void MotorController::getPIDConfig(float &kp, float &ki, float &kd, float &period, bool &on_error) {
-  kp = pid.GetKp();
-  ki = pid.GetKi();
-  kd = pid.GetKd();
-  period = pidUpdatePeriodUs * 1e-6;
-  on_error = !pid.isOnError();
+void MotorController::setPIDKp(float kp) {
+  setPIDConfig(kp, getPIDKi(), getPIDKd(), getPIDPeriod(), getPIDOnError());
+}
+
+void MotorController::setPIDKi(float ki) {
+  setPIDConfig(getPIDKp(), ki, getPIDKd(), getPIDPeriod(), getPIDOnError());
+}
+
+void MotorController::setPIDKd(float kd) {
+  setPIDConfig(getPIDKp(), getPIDKi(), kd, getPIDPeriod(), getPIDOnError());
+}
+
+void MotorController::setPIDPeriod(float period) {
+  setPIDConfig(getPIDKp(), getPIDKi(), getPIDKd(), period, getPIDOnError());
+}
+
+void MotorController::setPIDOnError(bool on_error) {
+  setPIDConfig(getPIDKp(), getPIDKi(), getPIDKd(), getPIDPeriod(), on_error);
+}
+
+float MotorController::getPIDKp() {
+  return pid.GetKp();
+}
+
+float MotorController::getPIDKi() {
+  return pid.GetKi();
+}
+
+float MotorController::getPIDKd() {
+  return pid.GetKd();
+}
+
+float MotorController::getPIDPeriod() {
+  return pid.GetReferenceSampleTime();
+}
+
+bool MotorController::getPIDOnError() {
+  return pid.isOnError();
 }
 
 bool MotorController::setRPM(float rpm) {

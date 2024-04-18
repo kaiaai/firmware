@@ -393,7 +393,7 @@ void initRos() {
     &twist_msg, &twist_sub_callback, ON_NEW_DATA), cfg.ERR_UROS_EXEC);
 
   RCCHECK(rclc_executor_add_parameter_server(&executor, &param_server,
-    on_param_changed), cfg.ERR_UROS_EXEC);;
+    on_ros_param_changed), cfg.ERR_UROS_EXEC);;
 
   // ROS parameters
   RCCHECK(rclc_add_parameter(&param_server, cfg.UROS_PARAM_LIDAR_SCAN_FREQ_TARGET,
@@ -493,7 +493,7 @@ void initRos() {
   updateROSParams();
 }
 
-bool on_param_changed(const Parameter * old_param, const Parameter * new_param, void * context) {
+bool on_ros_param_changed(const Parameter * old_param, const Parameter * new_param, void * context) {
   (void) context;
 
   if (old_param == NULL || new_param == NULL) {
@@ -509,6 +509,11 @@ bool on_param_changed(const Parameter * old_param, const Parameter * new_param, 
       Serial.print(old_param->value.bool_value);
       Serial.print(" to ");
       Serial.println(new_param->value.bool_value);
+      if (strcmp(old_param->name.data, cfg.UROS_PARAM_MOTOR_PID_ON_ERROR) == 0) {
+        motorLeft.setPIDOnError(new_param->value.bool_value);
+        motorRight.setPIDOnError(new_param->value.bool_value);
+      }
+      ros_params_changed = true;
       break;
     case RCLC_PARAMETER_INT:
       Serial.print(old_param->value.integer_value);
@@ -520,10 +525,31 @@ bool on_param_changed(const Parameter * old_param, const Parameter * new_param, 
       Serial.print(" to ");
       Serial.println(new_param->value.double_value);
 
-      if (strcmp(old_param->name.data, cfg.UROS_PARAM_LIDAR_SCAN_FREQ_TARGET) == 0) {
-        lidar->setScanTargetFreqHz(new_param->value.double_value);
-        ros_params_changed = true;
+      if (strcmp(old_param->name.data, cfg.UROS_PARAM_LIDAR_SCAN_FREQ_TARGET) == 0)
+        lidar->setScanTargetFreqHz(float(new_param->value.double_value));
+      else if (strcmp(old_param->name.data, cfg.UROS_PARAM_MOTOR_LEFT_ENCODER_PPR) == 0) {
+        // TODO copy to config
+        motorLeft.setEncoderPPR(float(new_param->value.double_value));
+      } else if (strcmp(old_param->name.data, cfg.UROS_PARAM_MOTOR_RIGHT_ENCODER_PPR) == 0) {
+        // TODO copy to config
+        motorRight.setEncoderPPR(float(new_param->value.double_value));
+      } else if (strcmp(old_param->name.data, cfg.UROS_PARAM_MOTOR_PID_KP) == 0) {
+        // TODO copy to config
+        motorLeft.setPIDKp(float(new_param->value.double_value));
+        motorRight.setPIDKp(float(new_param->value.double_value));
+      } else if (strcmp(old_param->name.data, cfg.UROS_PARAM_MOTOR_PID_KI) == 0) {
+        // TODO copy to config
+        motorLeft.setPIDKi(float(new_param->value.double_value));
+        motorRight.setPIDKi(float(new_param->value.double_value));
+      } else if (strcmp(old_param->name.data, cfg.UROS_PARAM_MOTOR_PID_KD) == 0) {
+        // TODO copy to config
+        motorLeft.setPIDKd(float(new_param->value.double_value));
+        motorRight.setPIDKd(float(new_param->value.double_value));
+      } else if (strcmp(old_param->name.data, cfg.UROS_PARAM_MOTOR_PID_PERIOD) == 0) {
+        motorLeft.setPIDPeriod(float(new_param->value.double_value));
+        motorRight.setPIDPeriod(float(new_param->value.double_value));
       }
+      ros_params_changed = true;
       break;
     default:
       break;
@@ -852,24 +878,20 @@ void updateROSParams() {
   RCCHECK(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_RPM_TARGET,
     motorRight.getTargetRPM()), cfg.ERR_UROS_PARAM);
 
-  float kp, ki, kd, period;
-  bool on_error;
-  motorLeft.getPIDConfig(kp, ki, kd, period, on_error);
-
   RCCHECK(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_PID_KP,
-    kp), cfg.ERR_UROS_PARAM);
+    motorLeft.getPIDKp()), cfg.ERR_UROS_PARAM);
 
   RCCHECK(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_PID_KI,
-    ki), cfg.ERR_UROS_PARAM);
+    motorLeft.getPIDKi()), cfg.ERR_UROS_PARAM);
 
   RCCHECK(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_PID_KD,
-    kd), cfg.ERR_UROS_PARAM);
+    motorLeft.getPIDKd()), cfg.ERR_UROS_PARAM);
 
   RCCHECK(rclc_parameter_set_bool(&param_server, cfg.UROS_PARAM_MOTOR_PID_ON_ERROR,
-    on_error), cfg.ERR_UROS_PARAM);
+    motorLeft.getPIDOnError()), cfg.ERR_UROS_PARAM);
 
   RCCHECK(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_PID_KD,
-    period), cfg.ERR_UROS_PARAM);
+    motorLeft.getPIDPeriod()), cfg.ERR_UROS_PARAM);
 }
 
 void loop() {
