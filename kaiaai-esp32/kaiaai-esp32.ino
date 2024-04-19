@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// TODO make ROS2 properties  
-
 #ifndef ESP32
   #error This code runs on ESP32
 #endif
@@ -22,48 +20,25 @@
 #include "util.h"
 #include <WiFi.h>
 #include <stdio.h>
-#include <micro_ros_kaia.h>
 #include <HardwareSerial.h>
-#include <rcl/rcl.h>
-#include <rcl/error_handling.h>
-#include <rclc/rclc.h>
-#include <rclc/executor.h>
-#include <kaiaai_msgs/msg/kaiaai_telemetry2.h>
-#include <geometry_msgs/msg/twist.h>
-#include <rcl_interfaces/msg/log.h>
-#include <rmw_microros/rmw_microros.h>
-//#include <rmw_microros/discovery.h>
-#include <rclc_parameter/rclc_parameter.h>
 #include "motors.h"
 #include "ap.h"
 #include "param_file.h"
 #include "lds_all_models.h"
-
-#if !defined(IS_MICRO_ROS_KAIA_MIN_VERSION) || !IS_MICRO_ROS_KAIA_MIN_VERSION(2,0,7,4)
-#error "Please upgrade micro_ros_kaia library version"
-#endif
+#include "ros.h"
 
 #define RCCHECK(fn,E) { rcl_ret_t temp_rc = fn; \
   if((temp_rc != RCL_RET_OK)){error_loop((E));}}
 #define RCSOFTCHECK(fn) { rcl_ret_t temp_rc = fn; \
   if((temp_rc != RCL_RET_OK)){Serial.println("RCSOFTCHECK failed");}}
+#define BLCHECK(fn) { CONFIG::error_blink_count temp_cnt = fn; \
+  if((temp_cnt != CONFIG::ERR_NONE)){error_loop((temp_cnt));}}
 
 CONFIG cfg;
 PARAM_FILE params(cfg.getParamNames(), cfg.getParamValues(), cfg.PARAM_COUNT); // temp hack
 LDS *lidar;
 
-rcl_publisher_t telem_pub;
-rcl_publisher_t log_pub;
-rcl_subscription_t twist_sub;
-kaiaai_msgs__msg__KaiaaiTelemetry2 telem_msg;
-geometry_msgs__msg__Twist twist_msg;
-rclc_support_t support;
-rcl_allocator_t allocator;
-rclc_executor_t executor;
-rcl_node_t node;
-rclc_parameter_server_t param_server;
-bool ros_params_changed = false;
-
+bool ros_config_params_changed = false;
 HardwareSerial LdSerial(2); // TX 17, RX 16
 
 kaiaai_msgs__msg__JointPosVel joint[MOTOR_COUNT];
@@ -222,60 +197,6 @@ void updateSpeedRamp() {
   setMotorSpeeds(rpm_left, rpm_right);
 }
 
-void setup() {
-  Serial.begin(115200);
-
-  pinMode(cfg.LED_PIN, OUTPUT);
-  digitalWrite(cfg.LED_PIN, HIGH);
-
-  Serial.println();
-  Serial.print("Kaia.ai firmware version ");
-  Serial.println(cfg.FW_VERSION);
-
-  delay(1000);
-  if (isBootButtonPressed(cfg.RESET_SETTINGS_HOLD_MS)) {
-    params.init();
-    resetParams();
-  }
-
-  if (!params.init())
-    blink_error_code(cfg.ERR_SPIFFS_INIT);
-
-  if (!params.load() ||
-      !initWiFi(params.get(cfg.PARAM_SSID), params.get(cfg.PARAM_PASS)))
-  {
-    digitalWrite(cfg.LED_PIN, HIGH);
-
-    AP ap;
-    ap.obtainConfig(cfg.PARAM_AP_WIFI_SSID, set_param_callback);
-    return;
-  }
-
-  setupMotors();
-  cfg.setWheelDia(params.get(cfg.PARAM_WHEEL_DIA_MM));  
-  cfg.setMaxWheelAccel(params.get(cfg.PARAM_MAX_WHEEL_ACCEL));  
-  cfg.setWheelBase(params.get(cfg.PARAM_WHEEL_BASE_MM));
-
-  setupADC();
-  setupLIDAR();
-
-  set_microros_wifi_transports(params.get(cfg.PARAM_DEST_IP),
-    String(params.get(cfg.PARAM_DEST_PORT)).toInt());
-
-  //motorLeft.reverseEncoder(true);
-  //setMotorSpeeds(100, 80);
-  //setMotorPWM(&motorLeft, -0.7);
-  //return;
-  delay(2000);
-
-  initRos();
-  Serial.println("Micro-ROS initialized");
-  
-  if (startLIDAR() != LDS::RESULT_OK)
-    blink_error_code(cfg.ERR_LIDAR_START);
-    //error_loop(cfg.ERR_LIDAR_START); 
-}
-
 void setupADC() {
 
   if (!adcAttachPin(cfg.BAT_ADC_PIN))
@@ -309,253 +230,13 @@ bool set_param_callback(const char * param_name, const char * param_value) {
 }
 
 void initRos() {
-  allocator = rcl_get_default_allocator();
+  BLCHECK(setupMicroROS(&twist_sub_callback));
 
-  rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
-  RCCHECK(rcl_init_options_init(&init_options, allocator), cfg.ERR_UROS_INIT);
-
-  rmw_init_options_t* rmw_options = rcl_init_options_get_rmw_init_options(&init_options);
-
-  // https://github.com/micro-ROS/micro-ROS-demos/blob/iron/rclc/autodiscover_agent/main.c
-  // https://micro.ros.org/blog/2020/09/30/discovery/
-  // https://micro.ros.org/docs/api/rmw/
-  // https://github.com/micro-ROS/rmw_microxrcedds/blob/iron/rmw_microxrcedds_c/include/rmw_microros/discovery.h
-  // https://github.com/micro-ROS/rmw_microxrcedds/blob/iron/rmw_microxrcedds_c/src/rmw_microros/discovery.c
-  // Auto discover micro-ROS agent
-  // RMW_UXRCE_TRANSPORT=custom
-  // RMW_UXRCE_TRANSPORT_UDP
-  //Serial.print("micro-ROS agent ");
-  //if (rmw_uros_discover_agent(rmw_options) == RCL_RET_OK) {
-  //  Serial.println("not ");
-  //}
-  //Serial.print("found");
-
-  RCCHECK(rmw_uros_options_set_client_key(cfg.UROS_CLIENT_KEY, rmw_options),
-    cfg.ERR_UROS_INIT); // TODO multiple bots
-
-  Serial.print(F("Connecting to Micro-ROS agent "));
-  Serial.print(params.get(cfg.PARAM_DEST_IP));
-  Serial.print(" ... ");
-
-  //RCCHECK(rclc_support_init(&support, 0, NULL, &allocator), cfg.ERR_UROS_AGENT_CONN);
-  //RCCHECK(rclc_support_init_with_options(&support, 0, NULL,
-  //  &init_options, &allocator), cfg.ERR_UROS_AGENT_CONN);
-  rcl_ret_t temp_rc = rclc_support_init_with_options(&support, 0, NULL,
-    &init_options, &allocator);
-  if (temp_rc != RCL_RET_OK) {
-    Serial.println("failed");
-    error_loop(cfg.ERR_UROS_AGENT_CONN);
-  }
-  Serial.println("success");
-
-  syncRosTime();
-  printCurrentTime();
-
-  // https://micro.ros.org/docs/tutorials/programming_rcl_rclc/node/
-  RCCHECK(rclc_node_init_default(&node, params.get(cfg.PARAM_ROBOT_MODEL_NAME),
-    "", &support), cfg.ERR_UROS_NODE);
-
-  RCCHECK(rclc_subscription_init_default(&twist_sub, &node,
-    ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist),
-    cfg.UROS_CMD_VEL_TOPIC_NAME), cfg.ERR_UROS_PUBSUB);
-
-  RCCHECK(rclc_publisher_init_best_effort(&telem_pub, &node,
-    ROSIDL_GET_MSG_TYPE_SUPPORT(kaiaai_msgs, msg, KaiaaiTelemetry2),
-    cfg.UROS_TELEM_TOPIC_NAME), cfg.ERR_UROS_PUBSUB);
-
-  RCCHECK(rclc_publisher_init_default(&log_pub, &node,
-    ROSIDL_GET_MSG_TYPE_SUPPORT(rcl_interfaces, msg, Log),
-    cfg.UROS_LOG_TOPIC_NAME), cfg.ERR_UROS_PUBSUB);
-
-  // https://github.com/ros2/rclc/blob/humble/rclc_examples/src/example_parameter_server.c
-  // Request size limited to one parameter on Set, Get, Get types and Describe services.
-  // List parameter request has no prefixes enabled nor depth.
-  // Parameter description strings not allowed, rclc_add_parameter_description is disabled.
-  // RCLC_PARAMETER_MAX_STRING_LENGTH = 50
-  const rclc_parameter_options_t rclc_param_options = {
-      .notify_changed_over_dds = false,
-      .max_params = cfg.UROS_PARAM_COUNT,
-      .allow_undeclared_parameters = false,
-      .low_mem_mode = true };
-  
-  //RCCHECK(rclc_parameter_server_init_default(&param_server, &node), cfg.ERR_UROS_PARAM);
-  temp_rc = rclc_parameter_server_init_with_option(&param_server, &node, &rclc_param_options);
-  if (temp_rc != RCL_RET_OK) {
-    Serial.println("Micro-ROS parameter server init failed.");
-    Serial.println("Make sure micro_ros_kaia library version is latest.");
-    error_loop(cfg.ERR_UROS_PARAM);
-  }
-
-  RCCHECK(rclc_executor_init(&executor, &support.context,
-    RCLC_EXECUTOR_PARAMETER_SERVER_HANDLES + 1, &allocator), cfg.ERR_UROS_EXEC);
-
-  RCCHECK(rclc_executor_add_subscription(&executor, &twist_sub,
-    &twist_msg, &twist_sub_callback, ON_NEW_DATA), cfg.ERR_UROS_EXEC);
-
-  RCCHECK(rclc_executor_add_parameter_server(&executor, &param_server,
-    on_ros_param_changed), cfg.ERR_UROS_EXEC);;
-
-  // ROS parameters
-  RCCHECK(rclc_add_parameter(&param_server, cfg.UROS_PARAM_LIDAR_SCAN_FREQ_TARGET,
-    RCLC_PARAMETER_DOUBLE), cfg.ERR_UROS_PARAM);
-  //RCCHECK(rclc_add_parameter_constraint_double(&param_server, cfg.UROS_PARAM_LIDAR_SCAN_FREQ_TARGET,
-  //  -1.0, 1.0, 0), cfg.ERR_UROS_PARAM);
-
-  RCCHECK(rclc_add_parameter(&param_server, cfg.UROS_PARAM_LIDAR_SCAN_FREQ_CURRENT,
-    RCLC_PARAMETER_DOUBLE), cfg.ERR_UROS_PARAM);
-  RCCHECK(rclc_set_parameter_read_only(&param_server, cfg.UROS_PARAM_LIDAR_SCAN_FREQ_CURRENT,
-    true), cfg.ERR_UROS_PARAM);
-
-  RCCHECK(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_ENCODER_CURRENT,
-    RCLC_PARAMETER_INT), cfg.ERR_UROS_PARAM);
-  RCCHECK(rclc_set_parameter_read_only(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_ENCODER_CURRENT,
-    true), cfg.ERR_UROS_PARAM);
-
-  RCCHECK(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_ENCODER_CURRENT,
-    RCLC_PARAMETER_INT), cfg.ERR_UROS_PARAM);
-  RCCHECK(rclc_set_parameter_read_only(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_ENCODER_CURRENT,
-    true), cfg.ERR_UROS_PARAM);
-
-  RCCHECK(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_ENCODER_PPR,
-    RCLC_PARAMETER_DOUBLE), cfg.ERR_UROS_PARAM);
-
-  RCCHECK(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_ENCODER_PPR,
-    RCLC_PARAMETER_DOUBLE), cfg.ERR_UROS_PARAM);
-
-  RCCHECK(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_ENCODER_TPR,
-    RCLC_PARAMETER_DOUBLE), cfg.ERR_UROS_PARAM);
-  RCCHECK(rclc_set_parameter_read_only(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_ENCODER_TPR,
-    true), cfg.ERR_UROS_PARAM);
-
-  RCCHECK(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_ENCODER_TPR,
-    RCLC_PARAMETER_DOUBLE), cfg.ERR_UROS_PARAM);
-  RCCHECK(rclc_set_parameter_read_only(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_ENCODER_TPR,
-    true), cfg.ERR_UROS_PARAM);
-
-  RCCHECK(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_RPM_MAX_DERATED,
-    RCLC_PARAMETER_DOUBLE), cfg.ERR_UROS_PARAM);
-  RCCHECK(rclc_set_parameter_read_only(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_RPM_MAX_DERATED,
-    true), cfg.ERR_UROS_PARAM);
-
-  RCCHECK(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_RPM_MAX_DERATED,
-    RCLC_PARAMETER_DOUBLE), cfg.ERR_UROS_PARAM);
-  RCCHECK(rclc_set_parameter_read_only(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_RPM_MAX_DERATED,
-    true), cfg.ERR_UROS_PARAM);
-
-  RCCHECK(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_RPM_CURRENT,
-    RCLC_PARAMETER_DOUBLE), cfg.ERR_UROS_PARAM);
-  RCCHECK(rclc_set_parameter_read_only(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_RPM_CURRENT,
-    true), cfg.ERR_UROS_PARAM);
-
-  RCCHECK(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_RPM_CURRENT,
-    RCLC_PARAMETER_DOUBLE), cfg.ERR_UROS_PARAM);
-  RCCHECK(rclc_set_parameter_read_only(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_RPM_CURRENT,
-    true), cfg.ERR_UROS_PARAM);
-
-  RCCHECK(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_RPM_TARGET,
-    RCLC_PARAMETER_DOUBLE), cfg.ERR_UROS_PARAM);
-  RCCHECK(rclc_set_parameter_read_only(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_RPM_TARGET,
-    true), cfg.ERR_UROS_PARAM);
-
-  RCCHECK(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_RPM_TARGET,
-    RCLC_PARAMETER_DOUBLE), cfg.ERR_UROS_PARAM);
-  RCCHECK(rclc_set_parameter_read_only(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_RPM_TARGET,
-    true), cfg.ERR_UROS_PARAM);
-
-  RCCHECK(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_PID_KP,
-    RCLC_PARAMETER_DOUBLE), cfg.ERR_UROS_PARAM);
-
-  RCCHECK(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_PID_KI,
-    RCLC_PARAMETER_DOUBLE), cfg.ERR_UROS_PARAM);
-
-  RCCHECK(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_PID_KD,
-    RCLC_PARAMETER_DOUBLE), cfg.ERR_UROS_PARAM);
-
-  RCCHECK(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_PID_ON_ERROR,
-    RCLC_PARAMETER_BOOL), cfg.ERR_UROS_PARAM);
-
-  RCCHECK(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_PID_PERIOD,
-    RCLC_PARAMETER_DOUBLE), cfg.ERR_UROS_PARAM);
-
-  //rclc_add_parameter_description(&param_server, "param_int", "Second parameter", "Only even numbers");
-  //RCCHECK(rclc_add_parameter_constraint_integer(&param_server, "param_int", -10, 120, 2), cfg.ERR_UROS_PARAM);
-  //rclc_add_parameter_description(&param_server, "param_double", "Third parameter", "");
-  
-  //bool param_bool;
-  //int64_t param_int;
-  //double param_double;
-  //RCCHECK(rclc_parameter_get_bool(&param_server, "param_bool", &param_bool), cfg.ERR_UROS_PARAM);
-  //RCCHECK(rclc_parameter_get_int(&param_server, "param_int", &param_int), cfg.ERR_UROS_PARAM);
-  //RCCHECK(rclc_parameter_get_double(&param_server, "param_double", &param_double), cfg.ERR_UROS_PARAM);
+  BLCHECK(addROSParams());
+  ros_config_params_changed = true;
+  updateROSParams();
 
   resetTelemMsg();
-  ros_params_changed = true;
-  updateROSParams();
-}
-
-bool on_ros_param_changed(const Parameter * old_param, const Parameter * new_param, void * context) {
-  (void) context;
-
-  if (old_param == NULL || new_param == NULL) {
-    Serial.println("old_param == NULL || new_param == NULL");
-    return false;
-  }
-
-  Serial.print("Parameter ");
-  Serial.print(old_param->name.data);
-  Serial.print(" modified ");
-  switch (old_param->value.type) {
-    case RCLC_PARAMETER_BOOL:
-      Serial.print(old_param->value.bool_value);
-      Serial.print(" to ");
-      Serial.println(new_param->value.bool_value);
-      if (strcmp(old_param->name.data, cfg.UROS_PARAM_MOTOR_PID_ON_ERROR) == 0) {
-        motorLeft.setPIDOnError(new_param->value.bool_value);
-        motorRight.setPIDOnError(new_param->value.bool_value);
-      }
-      ros_params_changed = true;
-      break;
-    case RCLC_PARAMETER_INT:
-      Serial.print(old_param->value.integer_value);
-      Serial.print(" to ");
-      Serial.println(new_param->value.integer_value);
-      break;
-    case RCLC_PARAMETER_DOUBLE:
-      Serial.print(old_param->value.double_value);
-      Serial.print(" to ");
-      Serial.println(new_param->value.double_value);
-
-      if (strcmp(old_param->name.data, cfg.UROS_PARAM_LIDAR_SCAN_FREQ_TARGET) == 0)
-        lidar->setScanTargetFreqHz(float(new_param->value.double_value));
-      else if (strcmp(old_param->name.data, cfg.UROS_PARAM_MOTOR_LEFT_ENCODER_PPR) == 0) {
-        // TODO copy to config
-        motorLeft.setEncoderPPR(float(new_param->value.double_value));
-      } else if (strcmp(old_param->name.data, cfg.UROS_PARAM_MOTOR_RIGHT_ENCODER_PPR) == 0) {
-        // TODO copy to config
-        motorRight.setEncoderPPR(float(new_param->value.double_value));
-      } else if (strcmp(old_param->name.data, cfg.UROS_PARAM_MOTOR_PID_KP) == 0) {
-        // TODO copy to config
-        motorLeft.setPIDKp(float(new_param->value.double_value));
-        motorRight.setPIDKp(float(new_param->value.double_value));
-      } else if (strcmp(old_param->name.data, cfg.UROS_PARAM_MOTOR_PID_KI) == 0) {
-        // TODO copy to config
-        motorLeft.setPIDKi(float(new_param->value.double_value));
-        motorRight.setPIDKi(float(new_param->value.double_value));
-      } else if (strcmp(old_param->name.data, cfg.UROS_PARAM_MOTOR_PID_KD) == 0) {
-        // TODO copy to config
-        motorLeft.setPIDKd(float(new_param->value.double_value));
-        motorRight.setPIDKd(float(new_param->value.double_value));
-      } else if (strcmp(old_param->name.data, cfg.UROS_PARAM_MOTOR_PID_PERIOD) == 0) {
-        motorLeft.setPIDPeriod(float(new_param->value.double_value));
-        motorRight.setPIDPeriod(float(new_param->value.double_value));
-      }
-      ros_params_changed = true;
-      break;
-    default:
-      break;
-  }
-
-  return true;
 }
 
 static inline bool initWiFi(String ssid, String passw) {
@@ -827,71 +508,15 @@ void spinPing() {
 }
 
 void updateROSParams() {
-  if (!ros_params_changed) {
-    unsigned long time_now_us = esp_timer_get_time();
-    unsigned long step_time_us = time_now_us - ros_params_update_prev_time_us;
-    if (step_time_us < cfg.UROS_PARAMS_UPDATE_PERIOD_US)
-      return;
+  if (ros_config_params_changed) {
+    ros_config_params_changed = false;
+    BLCHECK(updateROSConfigParams());
   }
-  
-  ros_params_changed = false;
 
-  RCCHECK(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_LIDAR_SCAN_FREQ_TARGET,
-    lidar->getTargetScanFreqHz()), cfg.ERR_UROS_PARAM);
-
-  RCCHECK(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_LIDAR_SCAN_FREQ_CURRENT,
-    lidar->getCurrentScanFreqHz()), cfg.ERR_UROS_PARAM);
-
-  RCCHECK(rclc_parameter_set_int(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_ENCODER_CURRENT,
-    motorLeft.getEncoderValue()), cfg.ERR_UROS_PARAM);
-
-  RCCHECK(rclc_parameter_set_int(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_ENCODER_CURRENT,
-    motorRight.getEncoderValue()), cfg.ERR_UROS_PARAM);
-
-  RCCHECK(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_ENCODER_PPR,
-    motorLeft.getEncoderPPR()), cfg.ERR_UROS_PARAM);
-
-  RCCHECK(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_ENCODER_PPR,
-    motorRight.getEncoderPPR()), cfg.ERR_UROS_PARAM);
-
-  RCCHECK(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_ENCODER_TPR,
-    motorLeft.getEncoderTPR()), cfg.ERR_UROS_PARAM);
-
-  RCCHECK(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_ENCODER_TPR,
-    motorRight.getEncoderTPR()), cfg.ERR_UROS_PARAM);
-
-  RCCHECK(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_RPM_MAX_DERATED,
-    motorLeft.getMaxRPM()), cfg.ERR_UROS_PARAM);
-
-  RCCHECK(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_RPM_MAX_DERATED,
-    motorRight.getMaxRPM()), cfg.ERR_UROS_PARAM);
-
-  RCCHECK(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_RPM_CURRENT,
-    motorLeft.getCurrentRPM()), cfg.ERR_UROS_PARAM);
-
-  RCCHECK(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_RPM_CURRENT,
-    motorRight.getCurrentRPM()), cfg.ERR_UROS_PARAM);
-
-  RCCHECK(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_RPM_TARGET,
-    motorLeft.getTargetRPM()), cfg.ERR_UROS_PARAM);
-
-  RCCHECK(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_RPM_TARGET,
-    motorRight.getTargetRPM()), cfg.ERR_UROS_PARAM);
-
-  RCCHECK(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_PID_KP,
-    motorLeft.getPIDKp()), cfg.ERR_UROS_PARAM);
-
-  RCCHECK(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_PID_KI,
-    motorLeft.getPIDKi()), cfg.ERR_UROS_PARAM);
-
-  RCCHECK(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_PID_KD,
-    motorLeft.getPIDKd()), cfg.ERR_UROS_PARAM);
-
-  RCCHECK(rclc_parameter_set_bool(&param_server, cfg.UROS_PARAM_MOTOR_PID_ON_ERROR,
-    motorLeft.getPIDOnError()), cfg.ERR_UROS_PARAM);
-
-  RCCHECK(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_PID_KD,
-    motorLeft.getPIDPeriod()), cfg.ERR_UROS_PARAM);
+  unsigned long time_now_us = esp_timer_get_time();
+  unsigned long step_time_us = time_now_us - ros_params_update_prev_time_us;
+  if (step_time_us >= cfg.UROS_PARAMS_UPDATE_PERIOD_US)
+    BLCHECK(updateROSRealTimeParams());
 }
 
 void loop() {
@@ -967,34 +592,6 @@ void resetTelemMsg() {
 
   telem_msg.battery_mv = 0;
   telem_msg.wifi_rssi_dbm = 0;
-}
-
-void syncRosTime() {
-  const int timeout_ms = cfg.UROS_TIME_SYNC_TIMEOUT_MS;
-
-  Serial.print("Syncing time ... ");
-  RCCHECK(rmw_uros_sync_session(timeout_ms), cfg.ERR_UROS_TIME_SYNC);
-  // https://micro.ros.org/docs/api/rmw/
-  int64_t time_ms = rmw_uros_epoch_millis();
-  
-  if (time_ms > 0) {
-    time_t time_seconds = time_ms*0.001;
-    time_t time_micro_seconds = (time_ms - time_seconds*1000)*1000; 
-    
-    // https://gist.github.com/igrr/d7db8a78170bf6981f2e606b42c4361c
-    setenv("TZ", "GMT0", 1);
-    tzset();
-    
-    // https://github.com/espressif/arduino-esp32/blob/master/cores/esp32/esp32-hal-time.c
-    timeval epoch = {time_seconds, time_micro_seconds};
-    if (settimeofday((const timeval*)&epoch, NULL) != 0)
-      Serial.println("settimeofday() error");
-    else
-      Serial.println("OK");
-  } else {
-    Serial.print("rmw_uros_sync_session() failed, error code: ");
-    Serial.println((int) time_ms);
-  }
 }
 
 //static inline void logMsgInfo(char* msg) {
@@ -1182,4 +779,58 @@ void error_loop(int n_blinks){
   Serial.flush();
 
   ESP.restart();
+}
+
+void setup() {
+  Serial.begin(115200);
+
+  pinMode(cfg.LED_PIN, OUTPUT);
+  digitalWrite(cfg.LED_PIN, HIGH);
+
+  Serial.println();
+  Serial.print("Kaia.ai firmware version ");
+  Serial.println(cfg.FW_VERSION);
+
+  delay(1000);
+  if (isBootButtonPressed(cfg.RESET_SETTINGS_HOLD_MS)) {
+    params.init();
+    resetParams();
+  }
+
+  if (!params.init())
+    blink_error_code(cfg.ERR_SPIFFS_INIT);
+
+  if (!params.load() ||
+      !initWiFi(params.get(cfg.PARAM_SSID), params.get(cfg.PARAM_PASS)))
+  {
+    digitalWrite(cfg.LED_PIN, HIGH);
+
+    AP ap;
+    ap.obtainConfig(cfg.PARAM_AP_WIFI_SSID, set_param_callback);
+    return;
+  }
+
+  setupMotors();
+  cfg.setWheelDia(params.get(cfg.PARAM_WHEEL_DIA_MM));  
+  cfg.setMaxWheelAccel(params.get(cfg.PARAM_MAX_WHEEL_ACCEL));  
+  cfg.setWheelBase(params.get(cfg.PARAM_WHEEL_BASE_MM));
+
+  setupADC();
+  setupLIDAR();
+
+  set_microros_wifi_transports(params.get(cfg.PARAM_DEST_IP),
+    String(params.get(cfg.PARAM_DEST_PORT)).toInt());
+
+  //motorLeft.reverseEncoder(true);
+  //setMotorSpeeds(100, 80);
+  //setMotorPWM(&motorLeft, -0.7);
+  //return;
+  delay(2000);
+
+  initRos();
+  Serial.println("Micro-ROS initialized");
+  
+  if (startLIDAR() != LDS::RESULT_OK)
+    blink_error_code(cfg.ERR_LIDAR_START);
+    //error_loop(cfg.ERR_LIDAR_START); 
 }

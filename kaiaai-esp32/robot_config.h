@@ -99,7 +99,8 @@ public:
   };
 
 public: // Misc constants
-    enum error_blink_count { // ESP32 blinks when firmware init fails
+  enum error_blink_count { // ESP32 blinks when firmware init fails
+    ERR_NONE = 0,
     ERR_WIFI_CONN = 1,
     ERR_LIDAR_START = 2,
     ERR_UROS_AGENT_CONN = 3,
