@@ -30,11 +30,11 @@ HardwareSerial LdSerial(2); // TX 17, RX 16
 
 void spinTelem(bool);
 
-size_t lds_serial_write_callback(const uint8_t * buffer, size_t length) {
+size_t lidar_serial_write_callback(const uint8_t * buffer, size_t length) {
   return LdSerial.write(buffer, length);
 }
 
-int lds_serial_read_callback() {
+int lidar_serial_read_callback() {
 /*
   static int i=0;
 
@@ -54,7 +54,7 @@ int lds_serial_read_callback() {
   return LdSerial.read();
 }
 
-void lds_scan_point_callback(float angle_deg, float distance_mm, float quality,
+void lidar_scan_point_callback(float angle_deg, float distance_mm, float quality,
   bool scan_completed) {
 /*
   static int i = 0;
@@ -84,7 +84,7 @@ void lds_scan_point_callback(float angle_deg, float distance_mm, float quality,
 */
 }
 
-void lds_packet_callback(uint8_t * packet, uint16_t packet_length, bool scan_completed) {
+void lidar_packet_callback(uint8_t * packet, uint16_t packet_length, bool scan_completed) {
   bool packet_sent = false;
 //  Serial.println('-');
   while (packet_length-- > 0) {
@@ -100,7 +100,7 @@ void lds_packet_callback(uint8_t * packet, uint16_t packet_length, bool scan_com
     spinTelem(true); // Opional, reduce lag a little
 }
 
-void lds_motor_pin_callback(float value, LDS::lds_pin_t lds_pin) {
+void lidar_motor_pin_callback(float value, LDS::lds_pin_t lds_pin) {
   /*
   Serial.print("LDS pin ");
   Serial.print(lidar->pinIDToString(lds_pin));
@@ -135,14 +135,14 @@ void lds_motor_pin_callback(float value, LDS::lds_pin_t lds_pin) {
   }
 }
 
-void lds_info_callback(LDS::info_t code, String info) {
+void lidar_info_callback(LDS::info_t code, String info) {
   Serial.print("LDS info ");
   Serial.print(lidar->infoCodeToString(code));
   Serial.print(": ");
   Serial.println(info);
 }
 
-void lds_error_callback(LDS::result_t code, String aux_info) {
+void lidar_error_callback(LDS::result_t code, String aux_info) {
   if (code != LDS::ERROR_NOT_READY) {
     String s = "LDS ";
     s = s + String(lidar->resultCodeToString(code));
@@ -211,13 +211,13 @@ void setupLIDAR() {
   }
   Serial.println();
     
-  lidar->setScanPointCallback(lds_scan_point_callback);
-  lidar->setPacketCallback(lds_packet_callback);
-  lidar->setSerialWriteCallback(lds_serial_write_callback);
-  lidar->setSerialReadCallback(lds_serial_read_callback);
-  lidar->setMotorPinCallback(lds_motor_pin_callback);
-  lidar->setInfoCallback(lds_info_callback);
-  lidar->setErrorCallback(lds_error_callback);
+  lidar->setScanPointCallback(lidar_scan_point_callback);
+  lidar->setPacketCallback(lidar_packet_callback);
+  lidar->setSerialWriteCallback(lidar_serial_write_callback);
+  lidar->setSerialReadCallback(lidar_serial_read_callback);
+  lidar->setMotorPinCallback(lidar_motor_pin_callback);
+  lidar->setInfoCallback(lidar_info_callback);
+  lidar->setErrorCallback(lidar_error_callback);
 
   Serial.print("LIDAR RX buffer size "); // default 128 hw + 256 sw
   Serial.flush();
