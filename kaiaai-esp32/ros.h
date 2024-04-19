@@ -49,9 +49,11 @@ rclc_parameter_server_t param_server;
 #define RCL_RET(fn) { rcl_ret_t temp_rc = fn; \
   if(temp_rc != RCL_RET_OK)return temp_rc;}
 #define RCL_ERR(fn,E) { rcl_ret_t temp_rc = fn; \
-  if((temp_rc != RCL_RET_OK))return((E));}
+  if(temp_rc != RCL_RET_OK)return E;}
+#define RCL_PAR(fn) { rcl_ret_t temp_rc = fn; \
+  if(temp_rc != RCL_RET_OK)return CONFIG::ERR_UROS_PARAM;}
 #define RCSOFTCHECK(fn) { rcl_ret_t temp_rc = fn; \
-  if((temp_rc != RCL_RET_OK)){Serial.println("RCSOFTCHECK failed");}}
+  if(temp_rc != RCL_RET_OK)Serial.println("RCSOFTCHECK failed");}
 
 bool on_ros_param_changed(const Parameter * old_param, const Parameter * new_param, void * context) {
   (void) context;
@@ -219,106 +221,129 @@ CONFIG::error_blink_count setupMicroROS(rclc_subscription_callback_t twist_sub_c
     return CONFIG::ERR_UROS_PARAM;
   }
 
-  RCL_ERR(rclc_executor_init(&executor, &support.context, RCLC_EXECUTOR_PARAMETER_SERVER_HANDLES + 1, &allocator), CONFIG::ERR_UROS_EXEC);
+  RCL_ERR(rclc_executor_init(&executor, &support.context,
+    RCLC_EXECUTOR_PARAMETER_SERVER_HANDLES + 1, &allocator), CONFIG::ERR_UROS_EXEC);
 
-  RCL_ERR(rclc_executor_add_subscription(&executor, &twist_sub, &twist_msg, twist_sub_callback, ON_NEW_DATA), CONFIG::ERR_UROS_EXEC);
+  RCL_ERR(rclc_executor_add_subscription(&executor, &twist_sub, &twist_msg,
+    twist_sub_callback, ON_NEW_DATA), CONFIG::ERR_UROS_EXEC);
 
-  RCL_ERR(rclc_executor_add_parameter_server(&executor, &param_server, on_ros_param_changed), CONFIG::ERR_UROS_EXEC);
+  RCL_ERR(rclc_executor_add_parameter_server(&executor, &param_server,
+    on_ros_param_changed), CONFIG::ERR_UROS_EXEC);
 
   return CONFIG::ERR_NONE;
 }
 
 CONFIG::error_blink_count addROSParams() {
-  RCL_ERR(rclc_add_parameter(&param_server, cfg.UROS_PARAM_LIDAR_SCAN_FREQ_TARGET, RCLC_PARAMETER_DOUBLE), CONFIG::ERR_UROS_PARAM);
-  //RCL_ERR(rclc_add_parameter_constraint_double(&param_server, cfg.UROS_PARAM_LIDAR_SCAN_FREQ_TARGET, -1.0, 1.0, 0), CONFIG::ERR_UROS_PARAM);
+  RCL_PAR(rclc_add_parameter(&param_server, cfg.UROS_PARAM_LIDAR_SCAN_FREQ_TARGET, RCLC_PARAMETER_DOUBLE));
+  //RCL_PAR(rclc_add_parameter_constraint_double(&param_server, cfg.UROS_PARAM_LIDAR_SCAN_FREQ_TARGET, -1.0, 1.0, 0));
 
-  RCL_ERR(rclc_add_parameter(&param_server, cfg.UROS_PARAM_LIDAR_SCAN_FREQ_CURRENT, RCLC_PARAMETER_DOUBLE), CONFIG::ERR_UROS_PARAM);
-  RCL_ERR(rclc_set_parameter_read_only(&param_server, cfg.UROS_PARAM_LIDAR_SCAN_FREQ_CURRENT, true), CONFIG::ERR_UROS_PARAM);
+  RCL_PAR(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_PID_KP, RCLC_PARAMETER_DOUBLE));
+  RCL_PAR(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_PID_KI, RCLC_PARAMETER_DOUBLE));
+  RCL_PAR(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_PID_KD, RCLC_PARAMETER_DOUBLE));
+  RCL_PAR(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_PID_ON_ERROR, RCLC_PARAMETER_BOOL));
+  RCL_PAR(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_PID_PERIOD, RCLC_PARAMETER_DOUBLE));
 
-  RCL_ERR(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_ENCODER_CURRENT, RCLC_PARAMETER_INT), CONFIG::ERR_UROS_PARAM);
-  RCL_ERR(rclc_set_parameter_read_only(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_ENCODER_CURRENT, true), CONFIG::ERR_UROS_PARAM);
+  // Read-only
+  RCL_PAR(rclc_add_parameter(&param_server, cfg.UROS_PARAM_LIDAR_SCAN_FREQ_CURRENT, RCLC_PARAMETER_DOUBLE));
+  RCL_PAR(rclc_set_parameter_read_only(&param_server, cfg.UROS_PARAM_LIDAR_SCAN_FREQ_CURRENT, true));
 
-  RCL_ERR(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_ENCODER_CURRENT, RCLC_PARAMETER_INT), CONFIG::ERR_UROS_PARAM);
-  RCL_ERR(rclc_set_parameter_read_only(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_ENCODER_CURRENT, true), CONFIG::ERR_UROS_PARAM);
+  RCL_PAR(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_ENCODER_CURRENT, RCLC_PARAMETER_INT));
+  RCL_PAR(rclc_set_parameter_read_only(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_ENCODER_CURRENT, true));
 
-  RCL_ERR(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_ENCODER_PPR, RCLC_PARAMETER_DOUBLE), CONFIG::ERR_UROS_PARAM);
+  RCL_PAR(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_ENCODER_CURRENT, RCLC_PARAMETER_INT));
+  RCL_PAR(rclc_set_parameter_read_only(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_ENCODER_CURRENT, true));
 
-  RCL_ERR(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_ENCODER_PPR, RCLC_PARAMETER_DOUBLE), CONFIG::ERR_UROS_PARAM);
+  RCL_PAR(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_ENCODER_PPR, RCLC_PARAMETER_DOUBLE));
+  RCL_PAR(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_ENCODER_PPR, RCLC_PARAMETER_DOUBLE));
 
-  RCL_ERR(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_ENCODER_TPR, RCLC_PARAMETER_DOUBLE), CONFIG::ERR_UROS_PARAM);
-  RCL_ERR(rclc_set_parameter_read_only(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_ENCODER_TPR, true), CONFIG::ERR_UROS_PARAM);
+  RCL_PAR(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_ENCODER_TPR, RCLC_PARAMETER_DOUBLE));
+  RCL_PAR(rclc_set_parameter_read_only(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_ENCODER_TPR, true));
 
-  RCL_ERR(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_ENCODER_TPR, RCLC_PARAMETER_DOUBLE), CONFIG::ERR_UROS_PARAM);
-  RCL_ERR(rclc_set_parameter_read_only(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_ENCODER_TPR, true), CONFIG::ERR_UROS_PARAM);
+  RCL_PAR(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_ENCODER_TPR, RCLC_PARAMETER_DOUBLE));
+  RCL_PAR(rclc_set_parameter_read_only(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_ENCODER_TPR, true));
 
-  RCL_ERR(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_RPM_MAX_DERATED, RCLC_PARAMETER_DOUBLE), CONFIG::ERR_UROS_PARAM);
-  RCL_ERR(rclc_set_parameter_read_only(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_RPM_MAX_DERATED, true), CONFIG::ERR_UROS_PARAM);
+  RCL_PAR(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_RPM_MAX_DERATED, RCLC_PARAMETER_DOUBLE));
+  RCL_PAR(rclc_set_parameter_read_only(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_RPM_MAX_DERATED, true));
 
-  RCL_ERR(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_RPM_MAX_DERATED, RCLC_PARAMETER_DOUBLE), CONFIG::ERR_UROS_PARAM);
-  RCL_ERR(rclc_set_parameter_read_only(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_RPM_MAX_DERATED, true), CONFIG::ERR_UROS_PARAM);
+  RCL_PAR(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_RPM_MAX_DERATED, RCLC_PARAMETER_DOUBLE));
+  RCL_PAR(rclc_set_parameter_read_only(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_RPM_MAX_DERATED, true));
 
-  RCL_ERR(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_RPM_CURRENT, RCLC_PARAMETER_DOUBLE), CONFIG::ERR_UROS_PARAM);
-  RCL_ERR(rclc_set_parameter_read_only(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_RPM_CURRENT, true), CONFIG::ERR_UROS_PARAM);
+  RCL_PAR(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_RPM_CURRENT, RCLC_PARAMETER_DOUBLE));
+  RCL_PAR(rclc_set_parameter_read_only(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_RPM_CURRENT, true));
 
-  RCL_ERR(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_RPM_CURRENT, RCLC_PARAMETER_DOUBLE), CONFIG::ERR_UROS_PARAM);
-  RCL_ERR(rclc_set_parameter_read_only(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_RPM_CURRENT, true), CONFIG::ERR_UROS_PARAM);
+  RCL_PAR(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_RPM_CURRENT, RCLC_PARAMETER_DOUBLE));
+  RCL_PAR(rclc_set_parameter_read_only(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_RPM_CURRENT, true));
 
-  RCL_ERR(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_RPM_TARGET, RCLC_PARAMETER_DOUBLE), CONFIG::ERR_UROS_PARAM);
-  RCL_ERR(rclc_set_parameter_read_only(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_RPM_TARGET, true), CONFIG::ERR_UROS_PARAM);
+  RCL_PAR(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_RPM_TARGET, RCLC_PARAMETER_DOUBLE));
+  RCL_PAR(rclc_set_parameter_read_only(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_RPM_TARGET, true));
 
-  RCL_ERR(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_RPM_TARGET, RCLC_PARAMETER_DOUBLE), CONFIG::ERR_UROS_PARAM);
-  RCL_ERR(rclc_set_parameter_read_only(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_RPM_TARGET, true), CONFIG::ERR_UROS_PARAM);
+  RCL_PAR(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_RPM_TARGET, RCLC_PARAMETER_DOUBLE));
+  RCL_PAR(rclc_set_parameter_read_only(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_RPM_TARGET, true));
 
-  RCL_ERR(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_PID_KP, RCLC_PARAMETER_DOUBLE), CONFIG::ERR_UROS_PARAM);
+  RCL_PAR(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MAX_WHEEL_ACCEL, RCLC_PARAMETER_DOUBLE));
+  RCL_PAR(rclc_set_parameter_read_only(&param_server, cfg.UROS_PARAM_MAX_WHEEL_ACCEL, true));
 
-  RCL_ERR(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_PID_KI, RCLC_PARAMETER_DOUBLE), CONFIG::ERR_UROS_PARAM);
+  RCL_PAR(rclc_add_parameter(&param_server, cfg.UROS_PARAM_BASE_DIA, RCLC_PARAMETER_DOUBLE));
+  RCL_PAR(rclc_set_parameter_read_only(&param_server, cfg.UROS_PARAM_BASE_DIA, true));
 
-  RCL_ERR(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_PID_KD, RCLC_PARAMETER_DOUBLE), CONFIG::ERR_UROS_PARAM);
+  RCL_PAR(rclc_add_parameter(&param_server, cfg.UROS_PARAM_WHEEL_BASE, RCLC_PARAMETER_DOUBLE));
+  RCL_PAR(rclc_set_parameter_read_only(&param_server, cfg.UROS_PARAM_WHEEL_BASE, true));
 
-  RCL_ERR(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_PID_ON_ERROR, RCLC_PARAMETER_BOOL), CONFIG::ERR_UROS_PARAM);
-
-  RCL_ERR(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_PID_PERIOD, RCLC_PARAMETER_DOUBLE), CONFIG::ERR_UROS_PARAM);
+  RCL_PAR(rclc_add_parameter(&param_server, cfg.UROS_PARAM_BASE_WHEEL_DIA, RCLC_PARAMETER_DOUBLE));
+  RCL_PAR(rclc_set_parameter_read_only(&param_server, cfg.UROS_PARAM_BASE_WHEEL_DIA, true));
 
   //rclc_add_parameter_description(&param_server, "param_int", "Second parameter", "Only even numbers");
-  //RCL_ERR(rclc_add_parameter_constraint_integer(&param_server, "param_int", -10, 120, 2), CONFIG::ERR_UROS_PARAM);
+  //RCL_PAR(rclc_add_parameter_constraint_integer(&param_server, "param_int", -10, 120, 2));
   //rclc_add_parameter_description(&param_server, "param_double", "Third parameter", "");
   
   //bool param_bool;
   //int64_t param_int;
   //double param_double;
-  //RCL_ERR(rclc_parameter_get_bool(&param_server, "param_bool", &param_bool), CONFIG::ERR_UROS_PARAM);
-  //RCL_ERR(rclc_parameter_get_int(&param_server, "param_int", &param_int), CONFIG::ERR_UROS_PARAM);
-  //RCL_ERR(rclc_parameter_get_double(&param_server, "param_double", &param_double), CONFIG::ERR_UROS_PARAM);
+  //RCL_PAR(rclc_parameter_get_bool(&param_server, "param_bool", &param_bool));
+  //RCL_PAR(rclc_parameter_get_int(&param_server, "param_int", &param_int));
+  //RCL_PAR(rclc_parameter_get_double(&param_server, "param_double", &param_double));
   return CONFIG::ERR_NONE;
 }
 
 CONFIG::error_blink_count updateROSRealTimeParams() {
   // Frequently changed
-  RCL_ERR(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_LIDAR_SCAN_FREQ_TARGET, lidar->getTargetScanFreqHz()), CONFIG::ERR_UROS_PARAM);
-  RCL_ERR(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_LIDAR_SCAN_FREQ_CURRENT, lidar->getCurrentScanFreqHz()), CONFIG::ERR_UROS_PARAM);
-  RCL_ERR(rclc_parameter_set_int(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_ENCODER_CURRENT, motorLeft.getEncoderValue()), CONFIG::ERR_UROS_PARAM);
-  RCL_ERR(rclc_parameter_set_int(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_ENCODER_CURRENT, motorRight.getEncoderValue()), CONFIG::ERR_UROS_PARAM);
+  RCL_PAR(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_LIDAR_SCAN_FREQ_CURRENT, lidar->getCurrentScanFreqHz()));
+  RCL_PAR(rclc_parameter_set_int(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_ENCODER_CURRENT, motorLeft.getEncoderValue()));
+  RCL_PAR(rclc_parameter_set_int(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_ENCODER_CURRENT, motorRight.getEncoderValue()));
 
   return CONFIG::ERR_NONE;
 }
 
 CONFIG::error_blink_count updateROSConfigParams() {
 
-  RCL_ERR(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_ENCODER_PPR, motorLeft.getEncoderPPR()), CONFIG::ERR_UROS_PARAM);
-  RCL_ERR(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_ENCODER_PPR, motorRight.getEncoderPPR()), CONFIG::ERR_UROS_PARAM);
-  RCL_ERR(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_ENCODER_TPR, motorLeft.getEncoderTPR()), CONFIG::ERR_UROS_PARAM);
-  RCL_ERR(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_ENCODER_TPR, motorRight.getEncoderTPR()), CONFIG::ERR_UROS_PARAM);
-  RCL_ERR(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_RPM_MAX_DERATED, motorLeft.getMaxRPM()), CONFIG::ERR_UROS_PARAM);
-  RCL_ERR(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_RPM_MAX_DERATED, motorRight.getMaxRPM()), CONFIG::ERR_UROS_PARAM);
-  RCL_ERR(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_RPM_CURRENT, motorLeft.getCurrentRPM()), CONFIG::ERR_UROS_PARAM);
-  RCL_ERR(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_RPM_CURRENT, motorRight.getCurrentRPM()), CONFIG::ERR_UROS_PARAM);
-  RCL_ERR(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_RPM_TARGET, motorLeft.getTargetRPM()), CONFIG::ERR_UROS_PARAM);
-  RCL_ERR(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_RPM_TARGET, motorRight.getTargetRPM()), CONFIG::ERR_UROS_PARAM);
-  RCL_ERR(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_PID_KP, motorLeft.getPIDKp()), CONFIG::ERR_UROS_PARAM);
-  RCL_ERR(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_PID_KI, motorLeft.getPIDKi()), CONFIG::ERR_UROS_PARAM);
-  RCL_ERR(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_PID_KD, motorLeft.getPIDKd()), CONFIG::ERR_UROS_PARAM);
-  RCL_ERR(rclc_parameter_set_bool(&param_server, cfg.UROS_PARAM_MOTOR_PID_ON_ERROR, motorLeft.getPIDOnError()), CONFIG::ERR_UROS_PARAM);
-  RCL_ERR(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_PID_KD, motorLeft.getPIDPeriod()), CONFIG::ERR_UROS_PARAM);
+  RCL_PAR(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_LIDAR_SCAN_FREQ_TARGET, lidar->getTargetScanFreqHz()));
+  RCL_PAR(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_ENCODER_PPR, motorLeft.getEncoderPPR()));
+  RCL_PAR(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_ENCODER_PPR, motorRight.getEncoderPPR()));
+  RCL_PAR(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_ENCODER_TPR, motorLeft.getEncoderTPR()));
+  RCL_PAR(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_ENCODER_TPR, motorRight.getEncoderTPR()));
+  RCL_PAR(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_RPM_MAX_DERATED, motorLeft.getMaxRPM()));
+  RCL_PAR(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_RPM_MAX_DERATED, motorRight.getMaxRPM()));
+  RCL_PAR(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_RPM_CURRENT, motorLeft.getCurrentRPM()));
+  RCL_PAR(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_RPM_CURRENT, motorRight.getCurrentRPM()));
+  RCL_PAR(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_LEFT_RPM_TARGET, motorLeft.getTargetRPM()));
+  RCL_PAR(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_RPM_TARGET, motorRight.getTargetRPM()));
+  RCL_PAR(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_PID_KP, motorLeft.getPIDKp()));
+  RCL_PAR(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_PID_KI, motorLeft.getPIDKi()));
+  RCL_PAR(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_PID_KD, motorLeft.getPIDKd()));
+  RCL_PAR(rclc_parameter_set_bool(&param_server, cfg.UROS_PARAM_MOTOR_PID_ON_ERROR, motorLeft.getPIDOnError()));
+  RCL_PAR(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_PID_KD, motorLeft.getPIDPeriod()));
+
+  RCL_PAR(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MAX_WHEEL_ACCEL,
+    String(params.get(cfg.PARAM_MAX_WHEEL_ACCEL)).toFloat()));
+
+  RCL_PAR(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_BASE_DIA,
+    String(params.get(cfg.PARAM_BASE_DIA)).toFloat()));
+
+  RCL_PAR(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_WHEEL_BASE,
+    String(params.get(cfg.PARAM_WHEEL_BASE)).toFloat()));
+
+  RCL_PAR(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_BASE_WHEEL_DIA,
+    String(params.get(cfg.PARAM_BASE_WHEEL_DIA)).toFloat()));
 
   return CONFIG::ERR_NONE;
 }

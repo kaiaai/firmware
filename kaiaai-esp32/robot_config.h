@@ -79,9 +79,9 @@ public:
     PARAM_ROBOT_MODEL_NAME,
     PARAM_LIDAR_MODEL,
     PARAM_MOTOR_MODEL,
-    PARAM_BASE_DIA_MM,
-    PARAM_WHEEL_BASE_MM,
-    PARAM_WHEEL_DIA_MM,
+    PARAM_BASE_DIA,
+    PARAM_WHEEL_BASE,
+    PARAM_BASE_WHEEL_DIA,
     PARAM_MAX_WHEEL_ACCEL,
     PARAM_MOTOR_MAX_RPM,
     PARAM_WHEEL_PPR,
@@ -127,7 +127,7 @@ protected:
     (char *)"dest_ip", (char *)"dest_port", (char *)"robot_model",
     (char *)"robot_model_name", (char *)"lidar_model", (char *)"motor_model",
     (char *)"base_dia", (char *)"wheel_base",
-    (char *)"wheel_dia", (char *)"max_wheel_accel",
+    (char *)"base_wheel_dia", (char *)"max_wheel_accel",
     (char *)"motor_max_rpm", (char *)"wheel_ppr", (char *)"motor_voltage",
     (char *)"motor_driver_type", (char *)"motor_encoder_type",
     (char *)"motor_direction_reversed", (char *)"motor_encoder_reversed",
@@ -148,14 +148,13 @@ public:
   static constexpr char * UROS_TELEM_TOPIC_NAME = (char *)"telemetry";
   static constexpr char * UROS_LOG_TOPIC_NAME = (char *)"rosout";
   static constexpr char * UROS_CMD_VEL_TOPIC_NAME = (char *)"cmd_vel";
-  //#define UROS_NODE_NAME UROS_ROBOT_MODEL
   static const uint32_t UROS_PING_PUB_PERIOD_US = 10*1000*1000;
   static const uint32_t UROS_TELEM_PUB_PERIOD_US = 50*1000;
   static const uint32_t UROS_TIME_SYNC_TIMEOUT_MS = 1000;
   static const uint32_t UROS_PARAMS_UPDATE_PERIOD_US = 500*1000;
 
   // ROS Parameters
-  const uint8_t UROS_PARAM_COUNT = 19;
+  const uint8_t UROS_PARAM_COUNT = 23;
   static constexpr char * UROS_PARAM_LIDAR_SCAN_FREQ_TARGET = (char *)"lidar.scan.freq.target";
   static constexpr char * UROS_PARAM_LIDAR_SCAN_FREQ_CURRENT = (char *)"lidar.scan.freq.current";
   static constexpr char * UROS_PARAM_MOTOR_LEFT_ENCODER_CURRENT = (char *)"motor.left.encoder.current";
@@ -179,6 +178,10 @@ public:
   static constexpr char * UROS_PARAM_MOTOR_PID_ON_ERROR = (char *)"motor.left.pid.on_error";
   static constexpr char * UROS_PARAM_MOTOR_PID_PERIOD = (char *)"motor.left.pid.period";
 
+  static constexpr char * UROS_PARAM_MAX_WHEEL_ACCEL = (char *)"base.wheel.accel.max";
+  static constexpr char * UROS_PARAM_BASE_DIA = (char *)"base.diameter";
+  static constexpr char * UROS_PARAM_WHEEL_BASE = (char *)"base.wheel.distance";
+  static constexpr char * UROS_PARAM_BASE_WHEEL_DIA = (char *)"base.wheel.diameter";
 
   static const uint16_t LIDAR_BUF_LEN = 400;
   static const uint16_t LIDAR_SERIAL_RX_BUF_LEN = 1024;
@@ -205,8 +208,8 @@ public:
   }
 
   // Hack
-  void setWheelDia(const char * wheel_dia_mm_str) {
-    float wheel_dia = String(wheel_dia_mm_str).toFloat()*0.001;
+  void setWheelDia(const char * wheel_dia_str) {
+    float wheel_dia = String(wheel_dia_str).toFloat();
     
     wheel_radius = wheel_dia * 0.5;
     wheel_perim_len_div60 = PI * wheel_dia / 60;
@@ -218,8 +221,8 @@ public:
     speed_diff_to_us = 1e6/max_wheel_accel;
   }
   
-  void setWheelBase(const char * wheel_base_mm_str) {
-    float wheel_base = String(wheel_base_mm_str).toFloat()*0.001;
+  void setWheelBase(const char * wheel_base_str) {
+    float wheel_base = String(wheel_base_str).toFloat();
     wheel_base_recip = 1/wheel_base;
   }
   

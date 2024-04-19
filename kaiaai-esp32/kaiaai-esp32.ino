@@ -27,9 +27,9 @@
 #include "ros.h"
 
 #define RCCHECK(fn,E) { rcl_ret_t temp_rc = fn; \
-  if((temp_rc != RCL_RET_OK)){error_loop((E));}}
+  if(temp_rc != RCL_RET_OK)error_loop(E);}
 #define BLCHECK(fn) { CONFIG::error_blink_count temp_cnt = fn; \
-  if((temp_cnt != CONFIG::ERR_NONE)){error_loop((temp_cnt));}}
+  if(temp_cnt != CONFIG::ERR_NONE)error_loop(temp_cnt);}
 
 CONFIG cfg;
 PARAM_FILE params(cfg.getParamNames(), cfg.getParamValues(), cfg.PARAM_COUNT); // temp hack
@@ -524,9 +524,9 @@ void setup() {
   }
 
   setupMotors();
-  cfg.setWheelDia(params.get(cfg.PARAM_WHEEL_DIA_MM));  
+  cfg.setWheelDia(params.get(cfg.PARAM_BASE_WHEEL_DIA));  
   cfg.setMaxWheelAccel(params.get(cfg.PARAM_MAX_WHEEL_ACCEL));  
-  cfg.setWheelBase(params.get(cfg.PARAM_WHEEL_BASE_MM));
+  cfg.setWheelBase(params.get(cfg.PARAM_WHEEL_BASE));
 
   setupADC();
   setupLIDAR();

@@ -183,13 +183,15 @@ function restoreConfig(config) {
     show(id, is_custom);
 	if (id === 'robot_model_div' && !is_custom) {
 	  const robot_model_name = ["MAKERSPET_LOKI", "MAKERSPET_FIDO", "MAKERSPET_SNOOPY", "CUSTOM_MODEL"];
-      const base_dia = [204.2, 254.2, 300.0];
-      const wheel_base = [159.063, 214.322, 262.794];
+      const base_dia = [0.2042, 0.2542, 0.300];
+      const wheel_base = [0.159063, 0.214322, 0.262794];
+      const base_wheel_dia = [0.067, 0.067, 0.067];
 	  const max_wheel_accel = [2.0, 2.0, 2.0];
 
 	  document.getElementById('robot_model_name').value = robot_model_name[idx];
 	  document.getElementById('base_dia').value = base_dia[idx];
 	  document.getElementById('wheel_base').value = wheel_base[idx];
+	  document.getElementById('base_wheel_dia').value = base_wheel_dia[idx];
 	  document.getElementById('max_wheel_accel').value = max_wheel_accel[idx];
 	} else if (id === 'motor_model_div' && !is_custom) {
       const motor_max_rpm = [200, 245, 260, 408, 450, 225, 280];
@@ -220,7 +222,7 @@ function restoreConfig(config) {
           <label for="ssid">SSID 2.4GHz</label>
 		</div>
 		<div class="col-75">
-          <input type="text" id="ssid" name="ssid" minlength="1" maxlength="32" placeholder="my_2.4GHz_wifi" required>
+          <input type="text" id="ssid" name="ssid" minlength="1" maxlength="32" placeholder="my_2.4GHz_wifi" required title="Name of WiFi network for the robot to connect to. The local PC that runs ROS2, micro-ROS and Kaia.ai must be connected to this WiFi as well.">
         </div>
       </div>
 
@@ -230,7 +232,7 @@ function restoreConfig(config) {
 		</div>
 		<div class="col-75">
           <div class="sub_input">
-          <input type="password" id="pass" name="pass">
+          <input type="password" id="pass" name="pass" title="WiFi network password">
           </div>
         </div>
       </div>
@@ -243,7 +245,7 @@ function restoreConfig(config) {
           <div class="sub_input">
           <input type="text" minlength="7" maxlength="15" size="15"
             pattern="^((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$"
-            id="dest_ip" name="dest_ip" placeholder="192.168.1.200" required autocomplete="on">
+            id="dest_ip" name="dest_ip" placeholder="192.168.1.200" required autocomplete="on" title="IP of your local PC that is running Micro-ROS and ROS2">
           </div>
         </div>
       </div>
@@ -254,7 +256,7 @@ function restoreConfig(config) {
 		</div>
 		<div class="col-75">
           <div class="sub_input">
-          <input type="number" id="dest_port" min="0" max="65535" name="dest_port" value="8888" required inputmode="numeric">
+          <input type="number" id="dest_port" min="0" max="65535" name="dest_port" value="8888" required inputmode="numeric" title="Network port used by Micro-ROS on your local PC that is running ROS2">
           </div>
         </div>
       </div>
@@ -267,7 +269,7 @@ function restoreConfig(config) {
           <label for="robot_model">Robot model</label>
 		</div>
 		<div class="col-75">
-          <select name="robot_model" id="robot_model" required onchange="populateProps('robot_model_div', this);">
+          <select name="robot_model" id="robot_model" required onchange="populateProps('robot_model_div', this);" title="Kaia.ai-compatible robot models. Select CUSTOM if your model is not listed.">
               <option value="MAKERSPET_LOKI">MAKERSPET_LOKI</option>
               <option value="MAKERSPET_FIDO">MAKERSPET_FIDO</option>
               <option value="MAKERSPET_SNOOPY">MAKERSPET_SNOOPY</option>
@@ -290,44 +292,44 @@ function restoreConfig(config) {
 
 	  <div class="row">
 	    <div class="col-25">
-          <label for="base_dia">Base dia., mm</label>
+          <label for="base_dia">Base Diameter</label>
 		</div>
 		<div class="col-75">
           <div class="sub_input">
-          <input type="text" id="base_dia" name="base_dia" value="202" pattern="([0-9]+\.)?[0-9]+" title="Robot body outer diameter in millimeters" required maxlength="8" minlength="1" inputmode="decimal">
+          <input type="number" id="base_dia" name="base_dia" value="0.202" title="Robot body outer diameter in meters" step="0.001" required min="0.001" inputmode="decimal">
           </div>
         </div>
       </div>
 
 	  <div class="row">
 	    <div class="col-25">
-          <label for="wheel_base">Wheel base, mm</label>
+          <label for="wheel_base">Wheel Base</label>
 		</div>
 		<div class="col-75">
           <div class="sub_input">
-          <input type="text" id="wheel_base" name="wheel_base" value="159.063" pattern="([0-9]+\.)?[0-9]+" title="Distance between tire midpoints in millimeters" required maxlength="8" minlength="1" inputmode="decimal">
+          <input type="number" id="wheel_base" name="wheel_base" value="0.159063" title="Distance between tire midpoints in meters" step="0.001" required min="0.001" inputmode="decimal">
           </div>
         </div>
       </div>
 
 	  <div class="row">
 	    <div class="col-25">
-          <label for="wheel_dia">Wheel dia., mm</label>
+          <label for="base_wheel_dia">Wheel Diameter</label>
 		</div>
 		<div class="col-75">
           <div class="sub_input">
-          <input type="text" id="wheel_dia" name="wheel_dia" value="67" pattern="([0-9]+\.)?[0-9]+" title="Wheel diameter in millimeters" required maxlength="8" minlength="1" inputmode="decimal">
+          <input type="number" id="base_wheel_dia" name="base_wheel_dia" value="0.067" title="Wheel diameter in meters" step="0.001" required min="0.001" inputmode="decimal">
           </div>
         </div>
       </div>
 
 	  <div class="row">
 	    <div class="col-25">
-          <label for="max_wheel_accel">Max acceleration</label>
+          <label for="max_wheel_accel">Max Acceleration</label>
 		</div>
 		<div class="col-75">
           <div class="sub_input">
-          <input type="text" id="max_wheel_accel" name="max_wheel_accel" value="2.0" pattern="([0-9]+\.)?[0-9]+" title="Maximum wheel-vs-floor acceleration, m2/s" required maxlength="8" minlength="1" inputmode="decimal">
+          <input type="number" id="max_wheel_accel" name="max_wheel_accel" value="2.0" title="Maximum wheel-vs-floor acceleration, m2/s" step="0.001" required min="0.01" inputmode="decimal">
           </div>
         </div>
       </div>
@@ -341,7 +343,7 @@ function restoreConfig(config) {
           <label for="lidar_model">LiDAR Model</label>
 		</div>
 		<div class="col-75">
-          <select name="lidar_model" id="lidar_model" required>
+          <select name="lidar_model" id="lidar_model" required title="LiDAR manufacturer and model">
             <option value="YDLIDAR X4">YDLIDAR X4</option>
             <option value="YDLIDAR X3 PRO">YDLIDAR X3 PRO</option>
             <option value="YDLIDAR X3">YDLIDAR X3</option>
@@ -367,7 +369,7 @@ function restoreConfig(config) {
           <label for="motor_model" class="clickable" id="motor_model_label" onclick="toggleAdvancedMotorProps()">Motor Model &#9205;</label>
 		</div>
 		<div class="col-75">
-          <select name="motor_model" id="motor_model" required onchange="populateProps('motor_model_div', this);">
+          <select name="motor_model" id="motor_model" required onchange="populateProps('motor_model_div', this);" title="Select CUSTOM if your motor model is not listed">
             <optgroup label="Brushed">
               <option value="12V_280RPM_234.3PPR_TB6612FNG">25GA-370 12V 280RPM 234.3PPR TB6612FNG</option>
             </optgroup>
@@ -413,7 +415,7 @@ function restoreConfig(config) {
 		</div>
 		<div class="col-75">
           <div class="sub_input">
-          <input type="number" id="motor_voltage" name="motor_voltage" value="24" title="Motor voltage 9..24 volts" required min="9" max="24">
+          <input type="number" id="motor_voltage" name="motor_voltage" value="24" title="Motor voltage - depends on your board, motor and motor driver capabilities" required min="9" max="24">
           </div>
         </div>
       </div>
@@ -424,7 +426,7 @@ function restoreConfig(config) {
 		</div>
 		<div class="col-75">
           <div class="sub_input">
-          <select name="motor_driver_type" id="motor_driver_type" required>
+          <select name="motor_driver_type" id="motor_driver_type" required title="Motor driver IC or type">
             <option value="TB6612FNG">TB6612FNG PWMA=PWMB=STDBY=HIGH</option>
             <option value="L298N">L298N ENA=ENB=HIGH</option>
             <option value="DRV8871">DRV8871</option>
@@ -440,9 +442,9 @@ function restoreConfig(config) {
 		</div>
 		<div class="col-75">
           <div class="sub_input">
-          <select name="motor_encoder_type" id="motor_encoder_type" required>
-            <option value="ENCA_ENCB_QUAD">Quadrature ENC_A/ENC_B output signals</option>
-            <option value="FG">FG output signal (including brushless)</option>
+          <select name="motor_encoder_type" id="motor_encoder_type" required title="Quadrature encoder (provides the rotation direction) vs. single-output encoder (does not provide the direction)">
+            <option value="ENCA_ENCB_QUAD">Quadrature with ENC_A/ENC_B output signals</option>
+            <option value="FG">Single FG output signal</option>
           </select>
           </div>
         </div>
@@ -458,7 +460,7 @@ function restoreConfig(config) {
 		</div>
 		<div class="col-75">
           <div class="sub_input">
-          <select name="motor_direction_reversed" id="motor_direction_reversed" required>
+          <select name="motor_direction_reversed" id="motor_direction_reversed" required title="Swap motor rotation direction if motor is wired incorrectly">
             <option value="NONE">Not reversed</option>
             <option value="LEFT">Left motor reversed</option>
             <option value="RIGHT">Right motor reversed</option>
@@ -475,7 +477,7 @@ function restoreConfig(config) {
 		</div>
 		<div class="col-75">
           <div class="sub_input">
-          <select name="encoder_direction_reversed" id="encoder_direction_reversed" required>
+          <select name="encoder_direction_reversed" id="encoder_direction_reversed" required title="Swap encoder phases if motor encoder is wired incorrectly">
             <option value="NONE">Not reversed</option>
             <option value="LEFT">Left motor encoder reversed</option>
             <option value="RIGHT">Right motor encoder reversed</option>
@@ -491,7 +493,7 @@ function restoreConfig(config) {
 		</div>
 		<div class="col-75">
           <div class="sub_input">
-          <input type="number" id="motor_pid_kp" name="motor_pid_kp" value="0.001" step="0.0001" min="0" required inputmode="numeric">
+          <input type="number" id="motor_pid_kp" name="motor_pid_kp" value="0.001" step="0.0001" min="0" required inputmode="numeric" title="Motor controller PID Kp coefficient">
           </div>
         </div>
       </div>
@@ -502,7 +504,7 @@ function restoreConfig(config) {
 		</div>
 		<div class="col-75">
           <div class="sub_input">
-          <input type="number" id="motor_pid_ki" name="motor_pid_ki" value="0.001" step="0.0001" min="0" required inputmode="numeric">
+          <input type="number" id="motor_pid_ki" name="motor_pid_ki" value="0.001" step="0.0001" min="0" required inputmode="numeric" title="Motor controller PID Ki coefficient">
           </div>
         </div>
       </div>
@@ -513,7 +515,7 @@ function restoreConfig(config) {
 		</div>
 		<div class="col-75">
           <div class="sub_input">
-          <input type="number" id="motor_pid_kd" name="motor_pid_kd" value="0" step="0.0001" min="0" required inputmode="numeric">
+          <input type="number" id="motor_pid_kd" name="motor_pid_kd" value="0" step="0.0001" min="0" required inputmode="numeric" title="Motor controller PID Kd coefficient">
           </div>
         </div>
       </div>
@@ -524,7 +526,7 @@ function restoreConfig(config) {
 		</div>
 		<div class="col-75">
           <div class="sub_input">
-          <select name="motor_pid_mode" id="motor_pid_mode" required>
+          <select name="motor_pid_mode" id="motor_pid_mode" required title="Motor controller PID mode - proportional on error vs. proportional on measurement">
             <option value="ON_MEASUREMENT">On Measurement</option>
             <option value="ON_ERROR">On Error</option>
           </select>
@@ -534,11 +536,11 @@ function restoreConfig(config) {
 
 	  <div class="row">
 	    <div class="col-25">
-          <label for="motor_pid_period">PID Period, sec</label>
+          <label for="motor_pid_period">PID Period</label>
 		</div>
 		<div class="col-75">
           <div class="sub_input">
-          <input type="number" id="motor_pid_period" name="motor_pid_period" value="0.03" title="PID update period in seconds" required min="0.001" step="0.001" inputmode="numeric">
+          <input type="number" id="motor_pid_period" name="motor_pid_period" value="0.03" title="Motor controller PID update period in seconds" required min="0.001" step="0.001" inputmode="numeric">
           </div>
         </div>
       </div>
@@ -549,7 +551,7 @@ function restoreConfig(config) {
 		</div>
 		<div class="col-75">
           <div class="sub_input">
-          <input type="number" id="motor_max_rpm_derate" name="motor_max_rpm_derate" value="0.9" title="Motor max RPM derate factor" required min="0.1" max="1.0" step="0.01" inputmode="numeric">
+          <input type="number" id="motor_max_rpm_derate" name="motor_max_rpm_derate" value="0.9" title="Motor controller maximum RPM reduction factor" required min="0.1" max="1.0" step="0.01" inputmode="numeric">
           </div>
         </div>
       </div>
