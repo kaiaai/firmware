@@ -20,26 +20,21 @@
 #include "util.h"
 #include <WiFi.h>
 #include <stdio.h>
-#include <HardwareSerial.h>
 #include "motors.h"
 #include "ap.h"
 #include "param_file.h"
-#include "lds_all_models.h"
+#include "lidar.h"
 #include "ros.h"
 
 #define RCCHECK(fn,E) { rcl_ret_t temp_rc = fn; \
   if((temp_rc != RCL_RET_OK)){error_loop((E));}}
-#define RCSOFTCHECK(fn) { rcl_ret_t temp_rc = fn; \
-  if((temp_rc != RCL_RET_OK)){Serial.println("RCSOFTCHECK failed");}}
 #define BLCHECK(fn) { CONFIG::error_blink_count temp_cnt = fn; \
   if((temp_cnt != CONFIG::ERR_NONE)){error_loop((temp_cnt));}}
 
 CONFIG cfg;
 PARAM_FILE params(cfg.getParamNames(), cfg.getParamValues(), cfg.PARAM_COUNT); // temp hack
-LDS *lidar;
 
 bool ros_config_params_changed = false;
-HardwareSerial LdSerial(2); // TX 17, RX 16
 
 kaiaai_msgs__msg__JointPosVel joint[MOTOR_COUNT];
 float joint_prev_pos[MOTOR_COUNT] = {0};
@@ -59,30 +54,6 @@ bool ramp_enabled = true;
 
 unsigned long stat_sum_spin_telem_period_us = 0;
 unsigned long stat_max_spin_telem_period_us = 0;
-
-size_t lds_serial_write_callback(const uint8_t * buffer, size_t length) {
-  return LdSerial.write(buffer, length);
-}
-
-int lds_serial_read_callback() {
-/*
-  static int i=0;
-
-  int c = LdSerial.read();
-  if (c < 0)
-    return c;
-
-  if (c < 16)
-    Serial.print('0');
-  Serial.print(c, HEX);
-  if (i++ % 16 == 0)
-    Serial.println();
-  else
-    Serial.print(' ');
-  return c;
-*/
-  return LdSerial.read();
-}
 
 void twist_sub_callback(const void *msgin) {
   const geometry_msgs__msg__Twist * msg = (const geometry_msgs__msg__Twist *)msgin;
@@ -229,16 +200,6 @@ bool set_param_callback(const char * param_name, const char * param_value) {
   return false;
 }
 
-void initRos() {
-  BLCHECK(setupMicroROS(&twist_sub_callback));
-
-  BLCHECK(addROSParams());
-  ros_config_params_changed = true;
-  updateROSParams();
-
-  resetTelemMsg();
-}
-
 static inline bool initWiFi(String ssid, String passw) {
 
   if(ssid.length() == 0){
@@ -281,12 +242,6 @@ static inline bool initWiFi(String ssid, String passw) {
   Serial.print("IP ");
   Serial.println(WiFi.localIP());
   return true;
-}
-
-void serialPrintLnNonBlocking(const String s) {
-  uint16_t tx_room = (uint16_t) Serial.availableForWrite();
-  if (tx_room >= s.length())
-    Serial.println(s);
 }
 
 void spinTelem(bool force_pub) {
@@ -414,87 +369,6 @@ void calcOdometry(unsigned long step_time_us, float joint_pos_delta_right,
   telem_msg.odom_vel_yaw = d_yaw / d_time;
 }
 
-void lds_scan_point_callback(float angle_deg, float distance_mm, float quality,
-  bool scan_completed) {
-/*
-  static int i = 0;
-
-  if ((i++ % 20 == 0) || scan_completed) {
-    //Serial.print(i);
-    //Serial.print('\t');
-    Serial.print(angle_deg);
-    Serial.print('\t');
-    Serial.print(distance_mm);
-    if (scan_completed) {
-      Serial.print('\t');
-      Serial.println(millis());
-    } else
-      Serial.println();
-  }
-*/
-/*
-  if (scan_completed)
-    Serial.println();
-  
-  Serial.print(angle_deg);
-  Serial.print('\t');
-  Serial.print(distance_mm);
-  Serial.print('\t');
-  Serial.println(quality);
-*/
-}
-
-void lds_packet_callback(uint8_t * packet, uint16_t packet_length, bool scan_completed) {
-  bool packet_sent = false;
-//  Serial.println('-');
-  while (packet_length-- > 0) {
-    if (telem_msg.lds.size >= telem_msg.lds.capacity) {
-      spinTelem(true);
-      packet_sent = true;
-    }
-    telem_msg.lds.data[telem_msg.lds.size++] = *packet;
-    packet++;
-  }
-
-  if (scan_completed && !packet_sent && (telem_msg.lds.size > 0))
-    spinTelem(true); // Opional, reduce lag a little
-}
-
-void lds_motor_pin_callback(float value, LDS::lds_pin_t lds_pin) {
-  /*
-  Serial.print("LDS pin ");
-  Serial.print(lidar->pinIDToString(lds_pin));
-  Serial.print(" set ");
-  if (lds_pin > 0)
-    Serial.print(value); // PWM value
-  else
-    Serial.print(lidar->pinStateToString((LDS::lds_pin_state_t)value));
-  Serial.print(", RPM ");
-  Serial.println(lidar->getCurrentScanFreqHz());
-  */
-  
-  int pin = (lds_pin == LDS::LDS_MOTOR_EN_PIN) ?
-    cfg.LIDAR_EN_PIN : cfg.LIDAR_PWM_PIN;
-
-  if (value <= LDS::DIR_INPUT) {
-    // Configure pin direction
-    if (value == LDS::DIR_OUTPUT_PWM) {
-      //pinMode(pin, OUTPUT);
-      //ledcSetup(cfg.LIDAR_PWM_CHANNEL, cfg.LIDAR_PWM_FREQ, cfg.LIDAR_PWM_BITS);
-      ledcAttachPin(pin, cfg.LIDAR_PWM_CHANNEL);
-    } else
-      pinMode(pin, (value == LDS::DIR_INPUT) ? INPUT : OUTPUT);
-    return;
-  }
-
-  if (value < LDS::VALUE_PWM) // set constant output
-    digitalWrite(pin, (value == LDS::VALUE_HIGH) ? HIGH : LOW);
-  else { // set PWM duty cycle
-    int pwm_value = ((1<<cfg.LIDAR_PWM_BITS)-1)*value;
-    ledcWrite(cfg.LIDAR_PWM_CHANNEL, pwm_value);
-  }
-}
-
 void spinPing() {
   unsigned long time_now_us = esp_timer_get_time();
   unsigned long step_time_us = time_now_us - ping_prev_pub_time_us;
@@ -594,167 +468,6 @@ void resetTelemMsg() {
   telem_msg.wifi_rssi_dbm = 0;
 }
 
-//static inline void logMsgInfo(char* msg) {
-//  logMsg(msg, rcl_interfaces__msg__Log__INFO);
-//}
-
-void logMsg(char* msg, uint8_t severity_level) {
-  if (WiFi.status() != WL_CONNECTED) {
-    rcl_interfaces__msg__Log msgLog;
-    // https://docs.ros2.org/foxy/api/rcl_interfaces/msg/Log.html
-    // builtin_interfaces__msg__Time stamp;
-    struct timespec tv = {0, 0};
-    clock_gettime(CLOCK_REALTIME, &tv);
-    msgLog.stamp.sec = tv.tv_sec;
-    msgLog.stamp.nanosec = tv.tv_nsec;
-    
-    msgLog.level = severity_level;
-    msgLog.name.data = (char *)params.get(cfg.PARAM_ROBOT_MODEL_NAME);
-    msgLog.name.size = strlen(msgLog.name.data);
-    msgLog.msg.data = msg;
-    msgLog.msg.size = strlen(msgLog.msg.data);
-    //char fileName[] = __FILE__;
-    msgLog.file.data = (char*)""; // Source code file name
-    msgLog.file.size = strlen(msgLog.file.data);
-    msgLog.function.data = (char*)""; // Source code function name
-    msgLog.function.size = strlen(msgLog.function.data);
-    msgLog.line = 0; // Source code line number
-    RCSOFTCHECK(rcl_publish(&log_pub, &msgLog, NULL));
-  }
-  
-  String s = "UNDEFINED";
-  switch(severity_level) {
-    case rcl_interfaces__msg__Log__INFO:
-      s = "INFO";
-      break;
-    case rcl_interfaces__msg__Log__FATAL:
-      s = "FATAL";
-      break;
-    case rcl_interfaces__msg__Log__DEBUG:
-      s = "DEBUG";
-      break;
-    case rcl_interfaces__msg__Log__ERROR:
-      s = "ERROR";
-      break;
-    case rcl_interfaces__msg__Log__WARN:
-      s = "WARN";
-      break;
-  }
-  Serial.print("LOG_");
-  Serial.print(s);
-  Serial.print(": ");
-  Serial.println(msg);
-}
-
-void lds_info_callback(LDS::info_t code, String info) {
-  Serial.print("LDS info ");
-  Serial.print(lidar->infoCodeToString(code));
-  Serial.print(": ");
-  Serial.println(info);
-}
-
-void lds_error_callback(LDS::result_t code, String aux_info) {
-  if (code != LDS::ERROR_NOT_READY) {
-    String s = "LDS ";
-    s = s + String(lidar->resultCodeToString(code));
-
-    if (aux_info.length() > 0) {
-      s = s + ": ";
-      s = s + String(aux_info);
-    }
-    serialPrintLnNonBlocking(s);
-  }
-}
-
-void setupLIDAR() {
-  ledcSetup(cfg.LIDAR_PWM_CHANNEL, cfg.LIDAR_PWM_FREQ, cfg.LIDAR_PWM_BITS);
-
-  const char * model = params.get(cfg.PARAM_LIDAR_MODEL);
-  Serial.print("LIDAR model ");
-  Serial.print(model);
-
-  if (strcmp(model, "NEATO XV11") == 0) {
-    lidar = new LDS_NEATO_XV11();
-  } else {
-    if (strcmp(model, "SLAMTEC RPLIDAR A1") == 0) {
-      lidar = new LDS_RPLIDAR_A1();
-    } else {
-      if (strcmp(model, "LDS02RR") == 0) {
-        lidar = new LDS_LDS02RR();
-      } else {
-        if (strcmp(model, "YDLIDAR X2/X2L") == 0) {
-          lidar = new LDS_YDLIDAR_X2_X2L();
-        } else {
-          if (strcmp(model, "YDLIDAR X3") == 0) {
-            lidar = new LDS_YDLIDAR_X3();
-          } else {
-            if (strcmp(model, "YDLIDAR X3 PRO") == 0) {
-              lidar = new LDS_YDLIDAR_X3_PRO();
-            } else {
-              if (strcmp(model, "3IROBOTIX DELTA 2G") == 0) {
-                lidar = new LDS_DELTA_2G();
-              } else {
-                if (strcmp(model, "3IROBOTIX DELTA 2A 115200") == 0) {
-                  lidar = new LDS_DELTA_2A_115200();
-                } else {
-                  if (strcmp(model, "3IROBOTIX DELTA 2A") == 0) {
-                    lidar = new LDS_DELTA_2A_230400();
-                  } else {
-                    if (strcmp(model, "3IROBOTIX DELTA 2B") == 0) {
-                      lidar = new LDS_DELTA_2B();
-                    } else {
-                      if (strcmp(model, "LDROBOT LD14P") == 0) {
-                        lidar = new LDS_LDROBOT_LD14P();
-                      } else {
-                        if (strcmp(model, "YDLIDAR X4") != 0)
-                          Serial.print(" not recognized, defaulting to YDLIDAR X4");
-                        lidar = new LDS_YDLIDAR_X4();
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-  Serial.println();
-    
-  lidar->setScanPointCallback(lds_scan_point_callback);
-  lidar->setPacketCallback(lds_packet_callback);
-  lidar->setSerialWriteCallback(lds_serial_write_callback);
-  lidar->setSerialReadCallback(lds_serial_read_callback);
-  lidar->setMotorPinCallback(lds_motor_pin_callback);
-  lidar->setInfoCallback(lds_info_callback);
-  lidar->setErrorCallback(lds_error_callback);
-
-  Serial.print("LIDAR RX buffer size "); // default 128 hw + 256 sw
-  Serial.flush();
-  Serial.print(LdSerial.setRxBufferSize(cfg.LIDAR_SERIAL_RX_BUF_LEN)); // before .begin()
-  uint32_t baud_rate = lidar->getSerialBaudRate();
-  Serial.print(", baud rate ");
-  Serial.println(baud_rate);
-
-  LdSerial.begin(baud_rate);
-  lidar->init();
-  //while (LdSerial.read() >= 0);  
-
-  lidar->stop();
-}
-
-LDS::result_t startLIDAR() {  
-  LDS::result_t result = lidar->start();
-  Serial.print("startLIDAR() result: ");
-  Serial.println(lidar->resultCodeToString(result));
-
-  if (result < 0)
-    Serial.println("Is the LiDAR connected to ESP32 and powerd up?");
-
-  return result;
-}
-
 void blink_error_code(int n_blinks) {
   unsigned int i = 0;
   while(i++ < cfg.ERR_REBOOT_BLINK_CYCLES){
@@ -827,10 +540,15 @@ void setup() {
   //return;
   delay(2000);
 
-  initRos();
+  BLCHECK(setupMicroROS(&twist_sub_callback));
+  BLCHECK(addROSParams());
+  ros_config_params_changed = true;
+  updateROSParams();
   Serial.println("Micro-ROS initialized");
+
+  resetTelemMsg();
   
   if (startLIDAR() != LDS::RESULT_OK)
     blink_error_code(cfg.ERR_LIDAR_START);
-    //error_loop(cfg.ERR_LIDAR_START); 
+    //error_loop(cfg.ERR_LIDAR_START);
 }

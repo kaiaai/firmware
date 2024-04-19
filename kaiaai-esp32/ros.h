@@ -50,6 +50,8 @@ rclc_parameter_server_t param_server;
   if(temp_rc != RCL_RET_OK)return temp_rc;}
 #define RCL_ERR(fn,E) { rcl_ret_t temp_rc = fn; \
   if((temp_rc != RCL_RET_OK))return((E));}
+#define RCSOFTCHECK(fn) { rcl_ret_t temp_rc = fn; \
+  if((temp_rc != RCL_RET_OK)){Serial.println("RCSOFTCHECK failed");}}
 
 bool on_ros_param_changed(const Parameter * old_param, const Parameter * new_param, void * context) {
   (void) context;
@@ -319,4 +321,56 @@ CONFIG::error_blink_count updateROSConfigParams() {
   RCL_ERR(rclc_parameter_set_double(&param_server, cfg.UROS_PARAM_MOTOR_PID_KD, motorLeft.getPIDPeriod()), CONFIG::ERR_UROS_PARAM);
 
   return CONFIG::ERR_NONE;
+}
+
+//void logMsgInfo(char* msg) {
+//  logMsg(msg, rcl_interfaces__msg__Log__INFO);
+//}
+
+void logMsg(char* msg, uint8_t severity_level) {
+  if (WiFi.status() != WL_CONNECTED) {
+    rcl_interfaces__msg__Log msgLog;
+    // https://docs.ros2.org/foxy/api/rcl_interfaces/msg/Log.html
+    // builtin_interfaces__msg__Time stamp;
+    struct timespec tv = {0, 0};
+    clock_gettime(CLOCK_REALTIME, &tv);
+    msgLog.stamp.sec = tv.tv_sec;
+    msgLog.stamp.nanosec = tv.tv_nsec;
+    
+    msgLog.level = severity_level;
+    msgLog.name.data = (char *)params.get(cfg.PARAM_ROBOT_MODEL_NAME);
+    msgLog.name.size = strlen(msgLog.name.data);
+    msgLog.msg.data = msg;
+    msgLog.msg.size = strlen(msgLog.msg.data);
+    //char fileName[] = __FILE__;
+    msgLog.file.data = (char*)""; // Source code file name
+    msgLog.file.size = strlen(msgLog.file.data);
+    msgLog.function.data = (char*)""; // Source code function name
+    msgLog.function.size = strlen(msgLog.function.data);
+    msgLog.line = 0; // Source code line number
+    RCSOFTCHECK(rcl_publish(&log_pub, &msgLog, NULL));
+  }
+  
+  String s = "UNDEFINED";
+  switch(severity_level) {
+    case rcl_interfaces__msg__Log__INFO:
+      s = "INFO";
+      break;
+    case rcl_interfaces__msg__Log__FATAL:
+      s = "FATAL";
+      break;
+    case rcl_interfaces__msg__Log__DEBUG:
+      s = "DEBUG";
+      break;
+    case rcl_interfaces__msg__Log__ERROR:
+      s = "ERROR";
+      break;
+    case rcl_interfaces__msg__Log__WARN:
+      s = "WARN";
+      break;
+  }
+  Serial.print("LOG_");
+  Serial.print(s);
+  Serial.print(": ");
+  Serial.println(msg);
 }
