@@ -94,7 +94,8 @@ public:
     PARAM_MOTOR_PID_KI,
     PARAM_MOTOR_PID_KD,
     PARAM_MOTOR_PID_MODE,
-    PARAM_MOTOR_PID_PERIOD_MS,
+    PARAM_MOTOR_PID_PERIOD,
+    PARAM_MOTOR_MAX_RPM_DERATE,
     PARAM_COUNT,
   };
 
@@ -121,7 +122,7 @@ protected:
     "204.2", "159.063", "12V_280RPM_234.3PPR_TB6612FNG",
     "67", "2.0", "280", "234.3", "12",
     "TB6612FNG", "ENCA_ENCB_QUAD", "NONE", "NONE",
-    "0.001", "0.001", "0", "ON_MEASUREMENT", "30"};
+    "0.001", "0.001", "0", "ON_MEASUREMENT", "0.03", "0.9"};
   char* PARAM_NAME[PARAM_COUNT] = {(char *)"ssid", (char *)"pass",
     (char *)"dest_ip", (char *)"dest_port", (char *)"robot_model",
     (char *)"robot_model_name", (char *)"lidar_model", (char *)"motor_model",
@@ -132,7 +133,7 @@ protected:
     (char *)"motor_direction_reversed", (char *)"motor_encoder_reversed",
     (char *)"motor_pid_kp", (char *)"motor_pid_ki",
     (char *)"motor_pid_kd", (char *)"motor_pid_mode",
-    (char *)"motor_pid_period_ms"};
+    (char *)"motor_pid_period", (char *)"motor_max_rpm_derate"};
 
 public:
   static const uint8_t ERR_REBOOT_BLINK_CYCLES = 3; // Blink out an error a few times, then reboot
@@ -141,7 +142,6 @@ public:
   static const uint32_t SHORT_BLINK_MS = 200;
   static const uint32_t SHORT_BLINK_PAUSE_MS = 500;
   static const uint32_t SPIN_TELEM_STATS = 100;
-  static constexpr float MOTOR_MAX_RPM_DERATE = 0.9;
 
   // Micro-ROS config
   static const uint32_t UROS_CLIENT_KEY = 0xCA1AA100;

@@ -129,6 +129,9 @@ fetch("/config.old")
 		restoreConfig(config)
       });
 	}
+  })
+  .catch((error) => {
+    console.log('Unable to fetch config');
   });
 
 function restoreConfig(config) {
@@ -488,7 +491,7 @@ function restoreConfig(config) {
 		</div>
 		<div class="col-75">
           <div class="sub_input">
-          <input type="number" id="motor_pid_kp" name="motor_pid_kp" value="0.001" required inputmode="numeric">
+          <input type="number" id="motor_pid_kp" name="motor_pid_kp" value="0.001" step="0.0001" min="0" required inputmode="numeric">
           </div>
         </div>
       </div>
@@ -499,7 +502,7 @@ function restoreConfig(config) {
 		</div>
 		<div class="col-75">
           <div class="sub_input">
-          <input type="number" id="motor_pid_ki" name="motor_pid_ki" value="0.001" required inputmode="numeric">
+          <input type="number" id="motor_pid_ki" name="motor_pid_ki" value="0.001" step="0.0001" min="0" required inputmode="numeric">
           </div>
         </div>
       </div>
@@ -510,7 +513,7 @@ function restoreConfig(config) {
 		</div>
 		<div class="col-75">
           <div class="sub_input">
-          <input type="number" id="motor_pid_kd" name="motor_pid_kd" value="0" required inputmode="numeric">
+          <input type="number" id="motor_pid_kd" name="motor_pid_kd" value="0" step="0.0001" min="0" required inputmode="numeric">
           </div>
         </div>
       </div>
@@ -531,11 +534,22 @@ function restoreConfig(config) {
 
 	  <div class="row">
 	    <div class="col-25">
-          <label for="motor_pid_period_ms">PID Period, msec</label>
+          <label for="motor_pid_period">PID Period, sec</label>
 		</div>
 		<div class="col-75">
           <div class="sub_input">
-          <input type="number" id="motor_pid_period_ms" name="motor_pid_period_ms" value="30" title="PID update period in milliseconds" required min="1" max="999" inputmode="numeric">
+          <input type="number" id="motor_pid_period" name="motor_pid_period" value="0.03" title="PID update period in seconds" required min="0.001" step="0.001" inputmode="numeric">
+          </div>
+        </div>
+      </div>
+
+	  <div class="row">
+	    <div class="col-25">
+          <label for="motor_max_rpm_derate">Max RPM Derate</label>
+		</div>
+		<div class="col-75">
+          <div class="sub_input">
+          <input type="number" id="motor_max_rpm_derate" name="motor_max_rpm_derate" value="0.9" title="Motor max RPM derate factor" required min="0.1" max="1.0" step="0.01" inputmode="numeric">
           </div>
         </div>
       </div>
