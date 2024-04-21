@@ -136,7 +136,8 @@ fetch("/config.old")
 
 function restoreConfig(config) {
   //console.log('Restoring config');
-  document.getElementById("robot_model").value = "CUSTOM";
+  document.getElementById("robot_model").value = "CUSTOM_MODEL";
+  document.getElementById("motor_model").value = "CUSTOM_MODEL";
   for (const key in config) {
     //console.log(key);
     document.getElementById(key).value = config[key];
@@ -169,7 +170,7 @@ function restoreConfig(config) {
     }
   }
   function toggleAdvancedMotorProps() {
-    var is_visible = showToggle('motor_advanced_div');
+    var is_visible = showToggle('motor_control_advanced_div');
 	var x = document.getElementById('motor_model_label');
 	if (is_visible) {
 	  x.innerHTML = "Motor Model &#9205";
@@ -177,11 +178,30 @@ function restoreConfig(config) {
 	  x.innerHTML = "Motor Model &#9207";
 	}
   }
+  function toggleAdvancedNetworkProps() {
+    var is_visible = showToggle('network_advanced_div');
+	var x = document.getElementById('dest_ip_label');
+	if (is_visible) {
+	  x.innerHTML = "Local PC IPv4 &#9205";
+	} else {
+	  x.innerHTML = "Local PC IPv4 &#9207";
+	}
+  }
+  function toggleAdvancedMotorControlProps() {
+    var is_visible = showToggle('motor_control_advanced_div');
+	var x = document.getElementById('motor_direction_reversed_label');
+	if (is_visible) {
+	  x.innerHTML = "Rotation Direction &#9205;";
+	} else {
+	  x.innerHTML = "Rotation Direction &#9207;";
+	}
+  }
+
   function populateProps(id, select) {
     idx = select.selectedIndex;
-	is_custom = (idx == select.length - 1);
+    is_custom = (idx == select.length - 1);
     show(id, is_custom);
-	if (id === 'robot_model_div' && !is_custom) {
+    if (id === 'robot_model_div' && !is_custom) {
 	  const robot_model_name = ["MAKERSPET_LOKI", "MAKERSPET_FIDO", "MAKERSPET_SNOOPY", "CUSTOM_MODEL"];
       const base_dia = [0.2042, 0.2542, 0.300];
       const wheel_base = [0.159063, 0.214322, 0.262794];
@@ -203,7 +223,7 @@ function restoreConfig(config) {
 	  document.getElementById('motor_max_rpm').value = motor_max_rpm[idx];
 	  document.getElementById('wheel_ppr').value = wheel_ppr[idx];
 	  document.getElementById('motor_voltage').value = motor_voltage[idx];
-	  document.getElementById('motor_driver_type').value = motor_driver[idx];
+	  document.getElementById('motor_driver_type').value = motor_driver_type[idx];
 	  document.getElementById('motor_encoder_type').value = motor_encoder_type[idx];
 	}
   }
@@ -239,7 +259,7 @@ function restoreConfig(config) {
 
 	  <div class="row">
 	    <div class="col-25">
-          <label for="dest_ip">Local PC IPv4</label>
+          <label for="dest_ip" class="clickable" id="dest_ip_label" onclick="toggleAdvancedNetworkProps()">Local PC IPv4 &#9205;</label>
 		</div>
 		<div class="col-75">
           <div class="sub_input">
@@ -250,6 +270,10 @@ function restoreConfig(config) {
         </div>
       </div>
 
+
+
+
+      <div id="network_advanced_div" style="display:none">
 	  <div class="row">
 	    <div class="col-25">
           <label for="dest_port">Local PC Port</label>
@@ -260,6 +284,7 @@ function restoreConfig(config) {
           </div>
         </div>
       </div>
+	  </div>
       </fieldset>
       <br>
       <fieldset>
@@ -273,7 +298,7 @@ function restoreConfig(config) {
               <option value="MAKERSPET_LOKI">MAKERSPET_LOKI</option>
               <option value="MAKERSPET_FIDO">MAKERSPET_FIDO</option>
               <option value="MAKERSPET_SNOOPY">MAKERSPET_SNOOPY</option>
-              <option value="CUSTOM">CUSTOM</option>
+              <option value="CUSTOM_MODEL">CUSTOM &#9205</option>
             </select>
         </div>
       </div>
@@ -296,7 +321,7 @@ function restoreConfig(config) {
 		</div>
 		<div class="col-75">
           <div class="sub_input">
-          <input type="number" id="base_dia" name="base_dia" value="0.202" title="Robot body outer diameter in meters" step="0.001" required min="0.001" inputmode="decimal">
+          <input type="text" id="base_dia" name="base_dia" value="0.202" pattern="([0-9]+\.)?[0-9]+" title="Robot body outer diameter in meters" required minlength="1" maxlength="10" inputmode="decimal">
           </div>
         </div>
       </div>
@@ -307,7 +332,7 @@ function restoreConfig(config) {
 		</div>
 		<div class="col-75">
           <div class="sub_input">
-          <input type="number" id="wheel_base" name="wheel_base" value="0.159063" title="Distance between tire midpoints in meters" step="0.001" required min="0.001" inputmode="decimal">
+          <input type="text" id="wheel_base" name="wheel_base" value="0.159063" pattern="([0-9]+\.)?[0-9]+" title="Distance between tire midpoints in meters" required minlength="1" maxlength="10" inputmode="decimal">
           </div>
         </div>
       </div>
@@ -318,7 +343,7 @@ function restoreConfig(config) {
 		</div>
 		<div class="col-75">
           <div class="sub_input">
-          <input type="number" id="base_wheel_dia" name="base_wheel_dia" value="0.067" title="Wheel diameter in meters" step="0.001" required min="0.001" inputmode="decimal">
+          <input type="text" id="base_wheel_dia" name="base_wheel_dia" value="0.067" pattern="([0-9]+\.)?[0-9]+" title="Wheel diameter in meters" required minlength="1" maxlength="10" inputmode="decimal">
           </div>
         </div>
       </div>
@@ -329,7 +354,7 @@ function restoreConfig(config) {
 		</div>
 		<div class="col-75">
           <div class="sub_input">
-          <input type="number" id="max_wheel_accel" name="max_wheel_accel" value="2.0" title="Maximum wheel-vs-floor acceleration, m2/s" step="0.001" required min="0.01" inputmode="decimal">
+          <input type="text" id="max_wheel_accel" name="max_wheel_accel" value="2.0" pattern="([0-9]+\.)?[0-9]+" title="Maximum wheel-vs-floor acceleration, m2/s" required minlength="1" maxlength="10" inputmode="decimal">
           </div>
         </div>
       </div>
@@ -362,11 +387,12 @@ function restoreConfig(config) {
       </div>
       </fieldset>
       <br>
+
       <fieldset>
 	  <legend>Motors</legend>
 	  <div class="row">
 	    <div class="col-25">
-          <label for="motor_model" class="clickable" id="motor_model_label" onclick="toggleAdvancedMotorProps()">Motor Model &#9205;</label>
+          <label for="motor_model">Motor Model</label>
 		</div>
 		<div class="col-75">
           <select name="motor_model" id="motor_model" required onchange="populateProps('motor_model_div', this);" title="Select CUSTOM if your motor model is not listed">
@@ -381,7 +407,7 @@ function restoreConfig(config) {
               <option value="24V_450RPM_120PPR_PWM_CW_FG">CHR-GM25-BL2418 24V 450RPM 120PPR 2.5W</option>
               <option value="12V_225RPM_120PPR_PWM_CW_FG">CHR-GM25-BL2418 12V 225RPM 120PPR 0.65W</option>
             </optgroup>
-            <option value="CUSTOM">CUSTOM RPM, PPR, Voltage, Driver, Encoder</option>
+            <option value="CUSTOM_MODEL">CUSTOM RPM, PPR, Voltage, Driver, Encoder &#9205</option>
           </select>
         </div>
       </div>
@@ -393,7 +419,7 @@ function restoreConfig(config) {
 		</div>
 		<div class="col-75">
           <div class="sub_input">
-          <input type="text" id="motor_max_rpm" name="motor_max_rpm" value="200" pattern="([0-9]+\.)?[0-9]+" title="Wheel (motor shaft) maximum RPM" required maxlength="8" minlength="1" inputmode="decimal">
+          <input type="text" id="motor_max_rpm" name="motor_max_rpm" value="200" pattern="([0-9]+\.)?[0-9]+" title="Wheel (motor shaft) maximum RPM" required maxlength="10" minlength="1" inputmode="decimal">
           </div>
         </div>
       </div>
@@ -404,7 +430,7 @@ function restoreConfig(config) {
 		</div>
 		<div class="col-75">
           <div class="sub_input">
-          <input type="text" id="wheel_ppr" name="wheel_ppr" value="270" pattern="([0-9]+\.)?[0-9]+" title="Pulses per revolution. Wheel (motor shaft) PPR = Motor Gear Ratio * Motor Encoder PPR" required maxlength="8" minlength="1" inputmode="decimal">
+          <input type="text" id="wheel_ppr" name="wheel_ppr" value="270" pattern="([0-9]+\.)?[0-9]+" title="Pulses per revolution. Wheel (motor shaft) PPR = Motor Gear Ratio * Motor Encoder PPR" required maxlength="10" minlength="1" inputmode="decimal">
           </div>
         </div>
       </div>
@@ -451,25 +477,29 @@ function restoreConfig(config) {
       </div>
       </div>
 
-      <div id="motor_advanced_div" style="display:none">
+      </fieldset>
+      <br>
 
+
+      <fieldset>
+	  <legend>Motor Control</legend>
 
 	  <div class="row">
 	    <div class="col-25">
-          <label for="motor_direction_reversed">Rotation Direction</label>
+          <label for="motor_direction_reversed" class="clickable" id="motor_direction_reversed_label" onclick="toggleAdvancedMotorControlProps()">Rotation Direction &#9205;</label>
 		</div>
 		<div class="col-75">
-          <div class="sub_input">
           <select name="motor_direction_reversed" id="motor_direction_reversed" required title="Swap motor rotation direction if motor is wired incorrectly">
-            <option value="NONE">Not reversed</option>
+            <option value="NONE">Default</option>
             <option value="LEFT">Left motor reversed</option>
             <option value="RIGHT">Right motor reversed</option>
             <option value="BOTH">Both motors reversed</option>
           </select>
-          </div>
         </div>
+
       </div>
 
+      <div id="motor_control_advanced_div" style="display:none">
 
 	  <div class="row">
 	    <div class="col-25">
@@ -493,7 +523,7 @@ function restoreConfig(config) {
 		</div>
 		<div class="col-75">
           <div class="sub_input">
-          <input type="number" id="motor_pid_kp" name="motor_pid_kp" value="0.001" step="0.0001" min="0" required inputmode="numeric" title="Motor controller PID Kp coefficient">
+          <input type="text" id="motor_pid_kp" name="motor_pid_kp" value="0.001" pattern="([0-9]+\.)?[0-9]+" required title="Motor controller PID Kp coefficient" maxlength="10" minlength="1" inputmode="decimal">
           </div>
         </div>
       </div>
@@ -504,7 +534,7 @@ function restoreConfig(config) {
 		</div>
 		<div class="col-75">
           <div class="sub_input">
-          <input type="number" id="motor_pid_ki" name="motor_pid_ki" value="0.001" step="0.0001" min="0" required inputmode="numeric" title="Motor controller PID Ki coefficient">
+          <input type="text" id="motor_pid_ki" name="motor_pid_ki" value="0.001" pattern="([0-9]+\.)?[0-9]+" maxlength="10" minlength="1" required inputmode="decimal" title="Motor controller PID Ki coefficient">
           </div>
         </div>
       </div>
@@ -515,7 +545,7 @@ function restoreConfig(config) {
 		</div>
 		<div class="col-75">
           <div class="sub_input">
-          <input type="number" id="motor_pid_kd" name="motor_pid_kd" value="0" step="0.0001" min="0" required inputmode="numeric" title="Motor controller PID Kd coefficient">
+          <input type="text" id="motor_pid_kd" name="motor_pid_kd" value="0" pattern="([0-9]+\.)?[0-9]+" maxlength="10" minlength="1" required inputmode="decimal" title="Motor controller PID Kd coefficient">
           </div>
         </div>
       </div>
@@ -540,7 +570,7 @@ function restoreConfig(config) {
 		</div>
 		<div class="col-75">
           <div class="sub_input">
-          <input type="number" id="motor_pid_period" name="motor_pid_period" value="0.03" title="Motor controller PID update period in seconds" required min="0.001" step="0.001" inputmode="numeric">
+          <input type="text" id="motor_pid_period" name="motor_pid_period" value="0.03" pattern="([0-9]+\.)?[0-9]+" maxlength="10" minlength="1" title="Motor controller PID update period in seconds" required inputmode="decimal">
           </div>
         </div>
       </div>
@@ -551,15 +581,14 @@ function restoreConfig(config) {
 		</div>
 		<div class="col-75">
           <div class="sub_input">
-          <input type="number" id="motor_max_rpm_derate" name="motor_max_rpm_derate" value="0.9" title="Motor controller maximum RPM reduction factor" required min="0.1" max="1.0" step="0.01" inputmode="numeric">
+          <input type="text" id="motor_max_rpm_derate" name="motor_max_rpm_derate" value="0.9" pattern="([0-9]+\.)?[0-9]+" maxlength="10" minlength="1" title="Motor controller maximum RPM reduction factor" required inputmode="decimal">
           </div>
         </div>
       </div>
-
-	  </div>
+      </div>
 
       </fieldset>
-      <br>
+	  <br>
       <div class="row">
 	    <div class="col-25">
           <input type="reset" id="reset" value="Reset">
