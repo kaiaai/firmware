@@ -35,14 +35,14 @@ public:
     AsyncWebServer server(80);  // Create AsyncWebServer object on port 80
   
     // Connect to Wi-Fi network with SSID and password
-    Serial.print("Setting up Access Point ");
+    Serial.print("Setting up WiFi Access Point ");
     Serial.println(SSID_AP);
     // NULL sets an open Access Point
     WiFi.softAP(SSID_AP);
   
     IPAddress IP = WiFi.softAPIP();
-    Serial.print("AP IP address: ");
-    Serial.println(IP); 
+    Serial.print("Please browse to http://");
+    Serial.println(IP);
   
     server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
       request->send(SPIFFS, "/index.html", CHAR_ENCODING);

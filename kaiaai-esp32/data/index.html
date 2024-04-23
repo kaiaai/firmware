@@ -114,9 +114,6 @@ fetch("/config.old")
       console.log('Unable to fetch config');  
 	} else {
       response.text().then(function(text) {
-        //console.log("Here's what I got! \n" + storedText);
-	    var x = document.getElementById("restore_config");
-	    x.disabled = false;
         var lines = text.split('\n');
 		//console.log(lines);
         var config = {};
@@ -509,11 +506,11 @@ function restoreConfig(config) {
 
 	  <div class="row">
 	    <div class="col-25">
-          <label for="encoder_direction_reversed">Encoder Direction</label>
+          <label for="motor_encoder_reversed">Encoder Direction</label>
 		</div>
 		<div class="col-75">
           <div class="sub_input">
-          <select name="encoder_direction_reversed" id="encoder_direction_reversed" required title="Swap encoder phases if motor encoder is wired incorrectly">
+          <select name="motor_encoder_reversed" id="motor_encoder_reversed" required title="Swap encoder phases if motor encoder is wired incorrectly">
             <option value="NONE">Not reversed</option>
             <option value="LEFT">Left motor encoder reversed</option>
             <option value="RIGHT">Right motor encoder reversed</option>
