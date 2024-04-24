@@ -69,10 +69,10 @@ void IRAM_ATTR quadEncoderBRightISR() {
 }
 
 void setMotorPWM(MotorController *motor_controller, float pwm) {
-  Serial.print("setMotorPWM ");
+  //Serial.print("setMotorPWM ");
   bool is_right = motor_controller == &motorRight;
-  Serial.print(is_right ? " right " : " left ");
-  Serial.println(pwm);
+  //Serial.print(is_right ? " right " : " left ");
+  //Serial.println(pwm);
   
   uint8_t pwm_channel = is_right ? cfg.MOT_PWM_RIGHT_CHANNEL : cfg.MOT_PWM_LEFT_CHANNEL;
   int max_pwm = (1<<cfg.MOT_PWM_BITS) - 1;
@@ -271,10 +271,10 @@ void setupMotors() {
 }
 
 void setMotorSpeeds(float rpm_left, float rpm_right) {
-  motorRight.setRPM(rpm_right);
-  motorLeft.setRPM(rpm_left);
-//  Serial.print("setMotorSpeeds ");
-//  Serial.print(rpm_right);
-//  Serial.print(" ");
-//  Serial.println(rpm_left);
+  motorRight.setTargetRPM(rpm_right);
+  motorLeft.setTargetRPM(rpm_left);
+  //Serial.print("setMotorSpeeds ");
+  //Serial.print(rpm_right);
+  //Serial.print(" ");
+  //Serial.println(rpm_left);
 }

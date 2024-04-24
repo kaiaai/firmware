@@ -15,10 +15,6 @@
 #pragma once
 #include <SPIFFS.h>
 
-#if !defined(ESP32)
-  #error This code builds on ESP32
-#endif
-
 class CONFIG {
 public:
   static constexpr char* FW_VERSION = (char*)"0.5.0-iron";

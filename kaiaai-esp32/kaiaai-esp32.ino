@@ -58,6 +58,10 @@ void twist_sub_callback(const void *msgin) {
 
   float target_speed_lin_x = msg->linear.x;
   float target_speed_ang_z = msg->angular.z;
+  //Serial.print("linear.x ");
+  //Serial.print(msg->linear.x);
+  //Serial.print(", angular.z ");
+  //Serial.print(msg->angular.z);
 
   if (msg->linear.y != 0) {
     Serial.print("Warning: /cmd_vel linear.y = ");
@@ -78,11 +82,21 @@ void twist_sub_callback(const void *msgin) {
   float twist_target_rpm_right = cfg.speed_to_rpm(twist_target_speed_right);
   float twist_target_rpm_left = cfg.speed_to_rpm(twist_target_speed_left);
 
+  //Serial.print(", twist_target_rpm_right ");
+  //Serial.print(twist_target_rpm_right);
+  //Serial.print(", twist_target_rpm_left ");
+  //Serial.print(twist_target_rpm_left);
+
   // Limit target RPM
   float limited_target_rpm_right =
     absMin(twist_target_rpm_right, motorRight.getMaxRPM());
   float limited_target_rpm_left =
     absMin(twist_target_rpm_left, motorLeft.getMaxRPM());
+
+  //Serial.print(", limited_target_rpm_right ");
+  //Serial.print(limited_target_rpm_right);
+  //Serial.print(", limited_target_rpm_left ");
+  //Serial.print(limited_target_rpm_left);
 
   // Scale down both target RPMs to within limits
   if (twist_target_rpm_right != limited_target_rpm_right ||
@@ -109,6 +123,11 @@ void twist_sub_callback(const void *msgin) {
     ramp_target_rpm_right = twist_target_rpm_right;
     ramp_target_rpm_left = twist_target_rpm_left;
   }
+
+  //Serial.print(", ramp_target_rpm_ri  ght ");
+  //Serial.print(ramp_target_rpm_right);
+  //Serial.print(", ramp_target_rpm_left ");
+  //Serial.println(ramp_target_rpm_left);
 
   if (!ramp_enabled) {
     setMotorSpeeds(ramp_target_rpm_left, ramp_target_rpm_right);
@@ -255,10 +274,10 @@ void spinTelem(bool force_pub) {
 
   digitalWrite(cfg.LED_PIN, !digitalRead(cfg.LED_PIN));
   //if (++telem_pub_count % 5 == 0) {
-    //Serial.print("RPM L ");
-    //Serial.print(motorLeft.getCurrentRPM());
-    //Serial.print(" R ");
-    //Serial.println(motorRight.getCurrentRPM());
+  //  Serial.print("RPM L ");
+  //  Serial.print(motorLeft.getCurrentRPM());
+  //  Serial.print(" R ");
+  //  Serial.println(motorRight.getCurrentRPM());
   //}
 
   stat_sum_spin_telem_period_us += step_time_us;
