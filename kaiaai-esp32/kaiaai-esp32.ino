@@ -532,10 +532,6 @@ void setup() {
   set_microros_wifi_transports(params.get(cfg.PARAM_DEST_IP),
     params.getAsInt(cfg.PARAM_DEST_PORT));
 
-  //motorLeft.reverseEncoder(true);
-  //setMotorSpeeds(100, 80);
-  //setMotorPWM(&motorLeft, -0.7);
-  //return;
   delay(2000);
 
   BLCHECK(setupMicroROS(&twist_sub_callback));

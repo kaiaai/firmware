@@ -143,11 +143,11 @@ public:
     return param_value[idx].c_str();
   }
 
-  const float getAsFloat(const uint16_t idx) {
+  float getAsFloat(const uint16_t idx) {
     return String(get(idx)).toFloat();
   }
 
-  const float getAsInt(const uint16_t idx) {
+  float getAsInt(const uint16_t idx) {
     return String(get(idx)).toInt();
   }
 

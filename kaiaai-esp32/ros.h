@@ -97,8 +97,7 @@ bool on_ros_param_changed(const Parameter * old_param, const Parameter * new_par
     case RCLC_PARAMETER_DOUBLE:
       if (old_param->value.double_value == new_param->value.double_value)
         break;
-//      if (!suppress_param_log_print)
-      {
+      if (!suppress_param_log_print) {
         Serial.print("Parameter ");
         Serial.print(old_param->name.data);
         Serial.print(" modified ");
