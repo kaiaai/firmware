@@ -44,13 +44,7 @@ enablePID	KEYWORD2
 getEncoderValue	KEYWORD2
 tickSignedEncoder	KEYWORD2
 tickUnsignedEncoder	KEYWORD2
-start	KEYWORD2
-start	KEYWORD2
-start	KEYWORD2
-start	KEYWORD2
-start	KEYWORD2
-start	KEYWORD2
-start	KEYWORD2
+start	getCurrentPWM
 
 #######################################
 # Constants (LITERAL1)

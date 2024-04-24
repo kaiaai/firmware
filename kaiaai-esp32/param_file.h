@@ -135,12 +135,20 @@ public:
       
     return true;
   }
-  
+
   const char * get(const uint16_t idx) {
     if (idx >= len)
       return "";
   
     return param_value[idx].c_str();
+  }
+
+  const float getAsFloat(const uint16_t idx) {
+    return String(get(idx)).toFloat();
+  }
+
+  const float getAsInt(const uint16_t idx) {
+    return String(get(idx)).toInt();
   }
 
   const char * getName(const uint16_t idx) {

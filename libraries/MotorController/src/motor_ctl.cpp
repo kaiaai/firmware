@@ -106,6 +106,10 @@ float MotorController::getMaxRPM() {
   return maxRPM;
 }
 
+float MotorController::getCurrentPWM() {
+  return pwm;
+}
+
 float MotorController::getCurrentRPM() {
   return motorReversed ? -measuredRPM : measuredRPM;
 }

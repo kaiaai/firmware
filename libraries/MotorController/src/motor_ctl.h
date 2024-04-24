@@ -41,6 +41,7 @@ class MotorController {
     void setPIDKd(float kd);
     void setPIDPeriod(float period);
     void setPIDOnError(bool on_error);
+    float getCurrentPWM();
     float getCurrentRPM();
     float getTargetRPM();
     float getMaxRPM();

@@ -16,6 +16,6 @@
   #error This example runs on ESP32
 #endif
 
-#include <motor_ctl.h>
+#include <MotorController.h>
 
 // TODO

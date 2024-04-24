@@ -154,7 +154,7 @@ public:
   static const uint32_t UROS_PARAMS_UPDATE_PERIOD_US = 500*1000;
 
   // ROS Parameters
-  const uint8_t UROS_PARAM_COUNT = 23;
+  const uint8_t UROS_PARAM_COUNT = 25;
   static constexpr char * UROS_PARAM_LIDAR_SCAN_FREQ_TARGET = (char *)"lidar.scan.freq.target";
   static constexpr char * UROS_PARAM_LIDAR_SCAN_FREQ_NOW = (char *)"lidar.scan.freq.now";
   static constexpr char * UROS_PARAM_MOTOR_LEFT_ENCODER_NOW = (char *)"motor.left.encoder.now";
@@ -165,12 +165,14 @@ public:
   static constexpr char * UROS_PARAM_MOTOR_LEFT_RPM_MAX_DERATED = (char *)"motor.left.rpm.max.derated";
   static constexpr char * UROS_PARAM_MOTOR_LEFT_RPM_NOW = (char *)"motor.left.rpm.now";
   static constexpr char * UROS_PARAM_MOTOR_LEFT_RPM_TARGET = (char *)"motor.left.rpm.target";
+  static constexpr char * UROS_PARAM_MOTOR_LEFT_PWM_NOW = (char *)"motor.left.pwm.now";
 
   static constexpr char * UROS_PARAM_MOTOR_RIGHT_ENCODER_PPR = (char *)"motor.right.encoder.ppr";
   static constexpr char * UROS_PARAM_MOTOR_RIGHT_ENCODER_TPR = (char *)"motor.right.encoder.tpr";
   static constexpr char * UROS_PARAM_MOTOR_RIGHT_RPM_MAX_DERATED = (char *)"motor.right.rpm.max.derated";
   static constexpr char * UROS_PARAM_MOTOR_RIGHT_RPM_NOW = (char *)"motor.right.rpm.now";
   static constexpr char * UROS_PARAM_MOTOR_RIGHT_RPM_TARGET = (char *)"motor.right.rpm.target";
+  static constexpr char * UROS_PARAM_MOTOR_RIGHT_PWM_NOW = (char *)"motor.right.pwm.now";
 
   static constexpr char * UROS_PARAM_MOTOR_PID_KP = (char *)"motor.left.pid.kp";
   static constexpr char * UROS_PARAM_MOTOR_PID_KI = (char *)"motor.left.pid.ki";
@@ -208,21 +210,17 @@ public:
   }
 
   // Hack
-  void setWheelDia(const char * wheel_dia_str) {
-    float wheel_dia = String(wheel_dia_str).toFloat();
-    
+  void setWheelDia(float wheel_dia) {
     wheel_radius = wheel_dia * 0.5;
     wheel_perim_len_div60 = PI * wheel_dia / 60;
     wheel_perim_len_div60_recip = 1/wheel_perim_len_div60;
   }
   
-  void setMaxWheelAccel(const char * max_wheel_accel_str) {
-    float max_wheel_accel = String(max_wheel_accel_str).toFloat();
+  void setMaxWheelAccel(float max_wheel_accel) {
     speed_diff_to_us = 1e6/max_wheel_accel;
   }
   
-  void setWheelBase(const char * wheel_base_str) {
-    float wheel_base = String(wheel_base_str).toFloat();
+  void setWheelBase(float wheel_base) {
     wheel_base_recip = 1/wheel_base;
   }
   

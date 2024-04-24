@@ -34,8 +34,6 @@
 CONFIG cfg;
 PARAM_FILE params(cfg.getParamNames(), cfg.getParamValues(), cfg.PARAM_COUNT); // temp hack
 
-bool ros_config_params_changed = false;
-
 kaiaai_msgs__msg__JointPosVel joint[MOTOR_COUNT];
 float joint_prev_pos[MOTOR_COUNT] = {0};
 uint8_t lidar_buf[cfg.LIDAR_BUF_LEN] = {0};
@@ -524,15 +522,15 @@ void setup() {
   }
 
   setupMotors();
-  cfg.setWheelDia(params.get(cfg.PARAM_BASE_WHEEL_DIA));  
-  cfg.setMaxWheelAccel(params.get(cfg.PARAM_MAX_WHEEL_ACCEL));  
-  cfg.setWheelBase(params.get(cfg.PARAM_WHEEL_BASE));
+  cfg.setWheelDia(params.getAsFloat(cfg.PARAM_BASE_WHEEL_DIA));  
+  cfg.setMaxWheelAccel(params.getAsFloat(cfg.PARAM_MAX_WHEEL_ACCEL));  
+  cfg.setWheelBase(params.getAsFloat(cfg.PARAM_WHEEL_BASE));
 
   setupADC();
   setupLIDAR();
 
   set_microros_wifi_transports(params.get(cfg.PARAM_DEST_IP),
-    String(params.get(cfg.PARAM_DEST_PORT)).toInt());
+    params.getAsInt(cfg.PARAM_DEST_PORT));
 
   //motorLeft.reverseEncoder(true);
   //setMotorSpeeds(100, 80);

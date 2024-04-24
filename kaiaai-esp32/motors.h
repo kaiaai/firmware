@@ -202,10 +202,10 @@ void setupMotors() {
   }
   Serial.println();
 
-  float value = String(params.get(cfg.PARAM_MOTOR_MAX_RPM)).toFloat();
+  float value = params.getAsFloat(cfg.PARAM_MOTOR_MAX_RPM);
   Serial.print("Motor Max RPM=");
   Serial.print(value);
-  float derate = String(params.get(cfg.PARAM_MOTOR_MAX_RPM_DERATE)).toFloat();  
+  float derate = params.getAsFloat(cfg.PARAM_MOTOR_MAX_RPM_DERATE);
   value = value * derate;
   float max_RPM_derated = value * cfg.MOT_MAX_RPM_DERATE;
   motorLeft.setMaxRPM(max_RPM_derated);
@@ -213,7 +213,7 @@ void setupMotors() {
   Serial.print(" derated Max RPM=");
   Serial.print(max_RPM_derated);
 
-  value = String(params.get(cfg.PARAM_WHEEL_PPR)).toFloat();
+  value = params.getAsFloat(cfg.PARAM_WHEEL_PPR);
   motorLeft.setEncoderPPR(value);
   motorRight.setEncoderPPR(value);
   Serial.print(", encoder PPR=");
@@ -221,10 +221,10 @@ void setupMotors() {
   Serial.print(" TPR="); // encoder ticks per revolution
   Serial.println(value * motorLeft.getEncoderTPR());
 
-  float kp = String(params.get(cfg.PARAM_MOTOR_PID_KP)).toFloat();
-  float ki = String(params.get(cfg.PARAM_MOTOR_PID_KI)).toFloat();
-  float kd = String(params.get(cfg.PARAM_MOTOR_PID_KD)).toFloat();
-  float period = String(params.get(cfg.PARAM_MOTOR_PID_PERIOD)).toFloat();
+  float kp = params.getAsFloat(cfg.PARAM_MOTOR_PID_KP);
+  float ki = params.getAsFloat(cfg.PARAM_MOTOR_PID_KI);
+  float kd = params.getAsFloat(cfg.PARAM_MOTOR_PID_KD);
+  float period = params.getAsFloat(cfg.PARAM_MOTOR_PID_PERIOD);
   const char * pid_mode = params.get(cfg.PARAM_MOTOR_PID_MODE);
   bool on_error = strcmp(pid_mode, "ON_ERROR") == 0;
 
