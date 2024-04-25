@@ -213,11 +213,11 @@ function restoreConfig(config) {
       if (is_custom) {
 	    select.options[idx].innerHTML = "CUSTOM &#9207;";
 	  } else {
-        const motor_max_rpm = [200, 245, 260, 408, 450, 225, 280];
-        const wheel_ppr = [270, 630, 204, 127.8, 120, 120, 234.3];
-        const motor_voltage = [24, 24, 24, 24, 24, 12, 12];
-        const motor_driver_type = ['PWM_CW', 'PWM_CW', 'PWM_CW', 'PWM_CW', 'PWM_CW', 'PWM_CW', 'TB6612FNG'];
-        const motor_encoder_type = ['FG', 'FG', 'FG', 'FG', 'FG', 'FG', 'ENCA_ENCB_QUAD'];
+        const motor_max_rpm = [280, 200, 245, 260, 408, 450, 225];
+        const wheel_ppr = [234.3, 270, 630, 204, 127.8, 120, 120];
+        const motor_voltage = [12, 24, 24, 24, 24, 24, 12];
+        const motor_driver_type = ['TB6612FNG', 'PWM_CW', 'PWM_CW', 'PWM_CW', 'PWM_CW', 'PWM_CW', 'PWM_CW'];
+        const motor_encoder_type = ['ENCA_ENCB_QUAD', 'FG', 'FG', 'FG', 'FG', 'FG', 'FG'];
 
         document.getElementById('motor_max_rpm').value = motor_max_rpm[idx];
         document.getElementById('wheel_ppr').value = wheel_ppr[idx];

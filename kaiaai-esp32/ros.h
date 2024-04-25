@@ -195,8 +195,11 @@ CONFIG::error_blink_count setupMicroROS(rclc_subscription_callback_t twist_sub_c
   //  Serial.println("not ");
   //}
   //Serial.print("found");
-
-  RCL_ERR(rmw_uros_options_set_client_key(cfg.UROS_CLIENT_KEY, rmw_options), CONFIG::ERR_UROS_INIT); // TODO multiple bots
+  uint8_t mac[6];
+  esp_read_mac(mac, ESP_MAC_WIFI_STA);
+  uint32_t client_key = mac[1]<<(3*8) | mac[2]<<(2*8) | mac[3]<<(1*8) | mac[4];
+  client_key = client_key<<(8-2) | mac[5]>>2;
+  RCL_ERR(rmw_uros_options_set_client_key(client_key, rmw_options), CONFIG::ERR_UROS_INIT); // TODO multiple bots
 
   Serial.print(F("Connecting to Micro-ROS agent "));
   Serial.print(params.get(cfg.PARAM_DEST_IP));
@@ -215,7 +218,12 @@ CONFIG::error_blink_count setupMicroROS(rclc_subscription_callback_t twist_sub_c
   printCurrentTime();
 
   // https://micro.ros.org/docs/tutorials/programming_rcl_rclc/node/
-  RCL_ERR(rclc_node_init_default(&node, params.get(cfg.PARAM_ROBOT_MODEL_NAME), "", &support), CONFIG::ERR_UROS_NODE);
+  RCL_ERR(rclc_node_init_default(&node, CONFIG::UROS_NODE_NAME, "", &support), CONFIG::ERR_UROS_NODE);
+
+  Serial.print("micro-ROS client key 0x");
+  Serial.print(client_key, HEX);
+  Serial.print(", node /");
+  Serial.println(cfg.UROS_NODE_NAME);
 
   RCL_ERR(rclc_subscription_init_default(&twist_sub, &node,
     ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist), cfg.UROS_CMD_VEL_TOPIC_NAME), CONFIG::ERR_UROS_PUBSUB);

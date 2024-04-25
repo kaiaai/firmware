@@ -140,7 +140,7 @@ public:
   static const uint32_t SPIN_TELEM_STATS = 100;
 
   // Micro-ROS config
-  static const uint32_t UROS_CLIENT_KEY = 0xCA1AA100;
+  static constexpr char * UROS_NODE_NAME = (char *)"pet"; // temp hardcoded
   static constexpr char * UROS_TELEM_TOPIC_NAME = (char *)"telemetry";
   static constexpr char * UROS_LOG_TOPIC_NAME = (char *)"rosout";
   static constexpr char * UROS_CMD_VEL_TOPIC_NAME = (char *)"cmd_vel";
