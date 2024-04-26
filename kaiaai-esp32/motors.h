@@ -113,7 +113,7 @@ void setMotorPWM(MotorController *motor_controller, float pwm) {
       ledcAttachPin(in2, pwm_channel);
       ledcWrite(pwm_channel, pwm_value);
       pinMode(in1, OUTPUT);
-      digitalWrite(in1, HIGH); 
+      digitalWrite(in1, HIGH);
     break;
   }
 }
@@ -151,23 +151,23 @@ void setupDriver(motor_driver_t motor_driver_type) {
   motorDriverType = motor_driver_type;
 
   switch(motorDriverType) {
-    case MOT_DRIVER_PWM_CW:
+    case MOT_DRIVER_PWM_CW:    
       pinMode(cfg.MOT_CW_LEFT_PIN, OUTPUT);
       pinMode(cfg.MOT_CW_RIGHT_PIN, OUTPUT);
-    
-      pinMode(cfg.MOT_PWM_LEFT_PIN, OUTPUT);
+
       ledcSetup(cfg.MOT_PWM_LEFT_CHANNEL, cfg.MOT_PWM_FREQ, cfg.MOT_PWM_BITS);
+      pinMode(cfg.MOT_PWM_LEFT_PIN, OUTPUT);
       ledcAttachPin(cfg.MOT_PWM_LEFT_PIN, cfg.MOT_PWM_LEFT_CHANNEL);
     
-      pinMode(cfg.MOT_PWM_RIGHT_PIN, OUTPUT);
       ledcSetup(cfg.MOT_PWM_RIGHT_CHANNEL, cfg.MOT_PWM_FREQ, cfg.MOT_PWM_BITS);
+      pinMode(cfg.MOT_PWM_RIGHT_PIN, OUTPUT);
       ledcAttachPin(cfg.MOT_PWM_RIGHT_PIN, cfg.MOT_PWM_RIGHT_CHANNEL);
       break;
     default:
       pinMode(cfg.MOT_IN1_LEFT_PIN, OUTPUT);
       pinMode(cfg.MOT_IN2_LEFT_PIN, OUTPUT);
       ledcSetup(cfg.MOT_PWM_LEFT_CHANNEL, cfg.MOT_PWM_FREQ, cfg.MOT_PWM_BITS);
-    
+
       pinMode(cfg.MOT_IN1_RIGHT_PIN, OUTPUT);
       pinMode(cfg.MOT_IN2_RIGHT_PIN, OUTPUT);
       ledcSetup(cfg.MOT_PWM_RIGHT_CHANNEL, cfg.MOT_PWM_FREQ, cfg.MOT_PWM_BITS);
@@ -191,7 +191,13 @@ void setupMotors() {
       Serial.print(" not recognized, defaulting to TB6612FNG");
     setupDriver(MOT_DRIVER_TB6612FNG);
   }
-  
+
+  motorLeft.setPWMCallback(setMotorPWM);
+  motorRight.setPWMCallback(setMotorPWM);
+
+  setMotorPWM(&motorLeft, 0);
+  setMotorPWM(&motorRight, 0);
+
   const char * motor_encoder_type = params.get(cfg.PARAM_MOTOR_ENCODER_TYPE);
   Serial.print("; motor encoder type ");
   Serial.print(motor_encoder_type);
@@ -275,12 +281,6 @@ void setupMotors() {
   Serial.print(encoder_reversed_left);
   Serial.print(", right ");
   Serial.println(encoder_reversed_right);
-
-  motorLeft.setPWMCallback(setMotorPWM);
-  motorRight.setPWMCallback(setMotorPWM);
-
-  setMotorPWM(&motorLeft, 0);
-  setMotorPWM(&motorRight, 0);
 }
 
 void setMotorSpeeds(float rpm_left, float rpm_right) {
