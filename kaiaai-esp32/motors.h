@@ -225,7 +225,7 @@ void setupMotors() {
   value = params.getAsFloat(cfg.PARAM_WHEEL_PPR);
   motorLeft.setEncoderPPR(value);
   motorRight.setEncoderPPR(value);
-  Serial.print(", encoder PPR= ");
+  Serial.print("; encoder PPR ");
   Serial.print(value);
   Serial.print(", TPR "); // encoder ticks per revolution
   Serial.println(value * motorLeft.getEncoderTPR());

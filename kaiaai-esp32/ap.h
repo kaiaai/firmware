@@ -65,7 +65,7 @@ public:
           resp += "<tr><td>";
           resp += p->name();
           resp += "</td><td>";
-          resp += p->value();
+          resp += p->name() == "pass" ? "****" : p->value();
           resp += "</td></tr>";
         }
       }

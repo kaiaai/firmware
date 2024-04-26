@@ -32,7 +32,7 @@
   if(temp_cnt != CONFIG::ERR_NONE)error_loop(temp_cnt);}
 
 CONFIG cfg;
-PARAM_FILE params(cfg.getParamNames(), cfg.getParamValues(), cfg.PARAM_COUNT); // temp hack
+PARAM_FILE params(cfg.getParamNames(), cfg.getParamValues(), cfg.PARAM_COUNT);
 
 kaiaai_msgs__msg__JointPosVel joint[MOTOR_COUNT];
 float joint_prev_pos[MOTOR_COUNT] = {0};
@@ -197,7 +197,8 @@ void setupADC() {
 
   Serial.print("Battery ");
   if (voltage_mv == 0) {
-    Serial.println("NOT detected - Is the battery connected? Is the power switch on?");
+    Serial.println("NOT detected - Is the battery connected?"
+      " Is the power switch on?");
   } else {
     Serial.print("voltage ");
     Serial.print(voltage_mv*0.001f);
@@ -535,24 +536,29 @@ void setup() {
   if (!params.init())
     blink_error_code(cfg.ERR_SPIFFS_INIT);
 
-  if (!params.load() ||
-      !initWiFi(params.get(cfg.PARAM_SSID), params.get(cfg.PARAM_PASS)))
+//  if (!params.load() ||
+//      !initWiFi(params.get(cfg.PARAM_SSID), params.get(cfg.PARAM_PASS)))
+  bool ok = params.load();
+  if (ok) {
+    cfg.setWheelDia(params.getAsFloat(cfg.PARAM_BASE_WHEEL_DIA));  
+    cfg.setMaxWheelAccel(params.getAsFloat(cfg.PARAM_MAX_WHEEL_ACCEL));  
+    cfg.setWheelBase(params.getAsFloat(cfg.PARAM_WHEEL_BASE));
+  
+    setupLIDAR();
+    setupADC();
+    setupMotors();
+  }
+
+  if (!ok || !initWiFi(params.get(cfg.PARAM_SSID), params.get(cfg.PARAM_PASS)))
   {
     digitalWrite(cfg.LED_PIN, HIGH);
-    params.save(true);
+    if (ok)
+      params.save(true);
 
     AP ap;
     ap.obtainConfig(cfg.PARAM_AP_WIFI_SSID, set_param_callback);
     return;
   }
-
-  cfg.setWheelDia(params.getAsFloat(cfg.PARAM_BASE_WHEEL_DIA));  
-  cfg.setMaxWheelAccel(params.getAsFloat(cfg.PARAM_MAX_WHEEL_ACCEL));  
-  cfg.setWheelBase(params.getAsFloat(cfg.PARAM_WHEEL_BASE));
-
-  setupLIDAR();
-  setupADC();
-  setupMotors();
 
   set_microros_wifi_transports(params.get(cfg.PARAM_DEST_IP),
     params.getAsInt(cfg.PARAM_DEST_PORT));
