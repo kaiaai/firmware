@@ -60,16 +60,17 @@ public:
     return true;
   }
 
-  bool save() {
-    Serial.print("Writing file %s");
-    Serial.print(FILE_PATH);
+  bool save(bool old_config=false) {
+    const char * CONFIG_PATH = old_config ? FILE_PATH_OLD : FILE_PATH;
+    Serial.print("Writing file ");
+    Serial.print(CONFIG_PATH);
   
-    File file = SPIFFS.open(FILE_PATH, FILE_WRITE);
+    File file = SPIFFS.open(CONFIG_PATH, FILE_WRITE);
     if (!file) {
-      Serial.println(" - file open failed");
+      Serial.print(" - file open failed");
       return false;
-    } else
-      Serial.println();
+    }
+    Serial.println();
 
     bool success = true;
     for (uint16_t i = 0; i < len; i++) {
@@ -182,6 +183,5 @@ public:
   bool purge() {
     SPIFFS.remove(FILE_PATH_OLD);
     return SPIFFS.rename(FILE_PATH, FILE_PATH_OLD);
-//    return SPIFFS.remove(FILE_PATH);
   }
 };

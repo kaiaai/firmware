@@ -41,7 +41,7 @@ void IRAM_ATTR unsignedEncoderLeftISR() {
 }
 
 void IRAM_ATTR unsignedEncoderRightISR() {
-  motorLeft.tickUnsignedEncoder();
+  motorRight.tickUnsignedEncoder();
 }
 
 void IRAM_ATTR quadEncoderALeftISR() {
@@ -83,11 +83,13 @@ void setMotorPWM(MotorController *motor_controller, float pwm) {
 
   pwm = pwm > 1 ? 1 : pwm;
   pwm_value = round(max_pwm*(1 - abs(pwm)));
+  byte cw_value = pwm >= 0 ? LOW : HIGH;
+
 
   switch(motorDriverType) {
     case MOT_DRIVER_PWM_CW:
       ledcWrite(pwm_channel, pwm_value);
-      digitalWrite (cw_pin, pwm ? LOW : HIGH);
+      digitalWrite (cw_pin, cw_value); //pwm >= 0 ? LOW : HIGH);
       break;
 
     default:
@@ -153,9 +155,11 @@ void setupDriver(motor_driver_t motor_driver_type) {
       pinMode(cfg.MOT_CW_LEFT_PIN, OUTPUT);
       pinMode(cfg.MOT_CW_RIGHT_PIN, OUTPUT);
     
+      pinMode(cfg.MOT_PWM_LEFT_PIN, OUTPUT);
       ledcSetup(cfg.MOT_PWM_LEFT_CHANNEL, cfg.MOT_PWM_FREQ, cfg.MOT_PWM_BITS);
       ledcAttachPin(cfg.MOT_PWM_LEFT_PIN, cfg.MOT_PWM_LEFT_CHANNEL);
     
+      pinMode(cfg.MOT_PWM_RIGHT_PIN, OUTPUT);
       ledcSetup(cfg.MOT_PWM_RIGHT_CHANNEL, cfg.MOT_PWM_FREQ, cfg.MOT_PWM_BITS);
       ledcAttachPin(cfg.MOT_PWM_RIGHT_PIN, cfg.MOT_PWM_RIGHT_CHANNEL);
       break;
@@ -187,10 +191,9 @@ void setupMotors() {
       Serial.print(" not recognized, defaulting to TB6612FNG");
     setupDriver(MOT_DRIVER_TB6612FNG);
   }
-  Serial.println();
   
   const char * motor_encoder_type = params.get(cfg.PARAM_MOTOR_ENCODER_TYPE);
-  Serial.print("Motor encoder type ");
+  Serial.print("; motor encoder type ");
   Serial.print(motor_encoder_type);
 
   if (strcmp(motor_encoder_type, "FG") == 0) {
@@ -203,22 +206,22 @@ void setupMotors() {
   Serial.println();
 
   float value = params.getAsFloat(cfg.PARAM_MOTOR_MAX_RPM);
-  Serial.print("Motor Max RPM=");
+  Serial.print("Motor Max RPM ");
   Serial.print(value);
   float derate = params.getAsFloat(cfg.PARAM_MOTOR_MAX_RPM_DERATE);
   value = value * derate;
   float max_RPM_derated = value * cfg.MOT_MAX_RPM_DERATE;
   motorLeft.setMaxRPM(max_RPM_derated);
   motorRight.setMaxRPM(max_RPM_derated);
-  Serial.print(" derated Max RPM=");
+  Serial.print(", derated Max RPM ");
   Serial.print(max_RPM_derated);
 
   value = params.getAsFloat(cfg.PARAM_WHEEL_PPR);
   motorLeft.setEncoderPPR(value);
   motorRight.setEncoderPPR(value);
-  Serial.print(", encoder PPR=");
+  Serial.print(", encoder PPR= ");
   Serial.print(value);
-  Serial.print(" TPR="); // encoder ticks per revolution
+  Serial.print(", TPR "); // encoder ticks per revolution
   Serial.println(value * motorLeft.getEncoderTPR());
 
   float kp = params.getAsFloat(cfg.PARAM_MOTOR_PID_KP);
@@ -247,6 +250,11 @@ void setupMotors() {
   motorLeft.reverseMotor(motor_reversed_left);
   motorRight.reverseMotor(motor_reversed_right);
 
+  Serial.print("Motor direction reversed left ");
+  Serial.print(motor_reversed_left);
+  Serial.print(", right ");
+  Serial.print(motor_reversed_right);
+
   const char * encoder_reversed = params.get(cfg.PARAM_MOTOR_ENCODER_REVERSED);
   bool encoder_reversed_left = false;
   bool encoder_reversed_right = false;
@@ -262,6 +270,11 @@ void setupMotors() {
 
   motorLeft.reverseEncoder(encoder_reversed_left);
   motorRight.reverseEncoder(encoder_reversed_right);
+
+  Serial.print("; encoder reversed left ");
+  Serial.print(encoder_reversed_left);
+  Serial.print(", right ");
+  Serial.println(encoder_reversed_right);
 
   motorLeft.setPWMCallback(setMotorPWM);
   motorRight.setPWMCallback(setMotorPWM);

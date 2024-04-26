@@ -222,7 +222,7 @@ CONFIG::error_blink_count setupMicroROS(rclc_subscription_callback_t twist_sub_c
 
   Serial.print("micro-ROS client key 0x");
   Serial.print(client_key, HEX);
-  Serial.print(", node /");
+  Serial.print("; ROS2 node /");
   Serial.println(cfg.UROS_NODE_NAME);
 
   RCL_ERR(rclc_subscription_init_default(&twist_sub, &node,
@@ -395,6 +395,11 @@ CONFIG::error_blink_count updateROSRealTimeParams() {
 
   RCL_PAR(update_double(cfg.UROS_PARAM_MOTOR_LEFT_PWM_NOW, motorLeft.getCurrentPWM()));
   RCL_PAR(update_double(cfg.UROS_PARAM_MOTOR_RIGHT_PWM_NOW, motorRight.getCurrentPWM()));
+
+  //Serial.print("L ");
+  //Serial.print(motorLeft.getEncoderValue());
+  //Serial.print("\tR ");
+  //Serial.println(motorRight.getEncoderValue());
 
   suppress_param_log_print = false;
   return CONFIG::ERR_NONE;

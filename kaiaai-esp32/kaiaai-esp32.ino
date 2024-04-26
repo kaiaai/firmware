@@ -406,8 +406,10 @@ void updateROSParams() {
 
   unsigned long time_now_us = esp_timer_get_time();
   unsigned long step_time_us = time_now_us - ros_params_update_prev_time_us;
-  if (step_time_us >= cfg.UROS_PARAMS_UPDATE_PERIOD_US)
+  if (step_time_us >= cfg.UROS_PARAMS_UPDATE_PERIOD_US) {
     BLCHECK(updateROSRealTimeParams());
+    ros_params_update_prev_time_us = time_now_us;
+  }
 }
 
 void loop() {
@@ -499,9 +501,12 @@ void blink_error_code(int n_blinks) {
 void error_loop(int n_blinks){
   lidar->stop();
 
-  char buffer[40];
-  sprintf(buffer, "Error code %d", n_blinks);  
-  logMsg(buffer, rcl_interfaces__msg__Log__FATAL);
+  //char buffer[40];
+  //sprintf(buffer, "Blinking error %d", n_blinks);  
+  //logMsg(buffer, rcl_interfaces__msg__Log__FATAL);
+  Serial.print("Blinking LED ");
+  Serial.print(n_blinks);
+  Serial.println(" times...");
 
   blink_error_code(n_blinks);
 
@@ -534,19 +539,20 @@ void setup() {
       !initWiFi(params.get(cfg.PARAM_SSID), params.get(cfg.PARAM_PASS)))
   {
     digitalWrite(cfg.LED_PIN, HIGH);
+    params.save(true);
 
     AP ap;
     ap.obtainConfig(cfg.PARAM_AP_WIFI_SSID, set_param_callback);
     return;
   }
 
-  setupMotors();
   cfg.setWheelDia(params.getAsFloat(cfg.PARAM_BASE_WHEEL_DIA));  
   cfg.setMaxWheelAccel(params.getAsFloat(cfg.PARAM_MAX_WHEEL_ACCEL));  
   cfg.setWheelBase(params.getAsFloat(cfg.PARAM_WHEEL_BASE));
 
-  setupADC();
   setupLIDAR();
+  setupADC();
+  setupMotors();
 
   set_microros_wifi_transports(params.get(cfg.PARAM_DEST_IP),
     params.getAsInt(cfg.PARAM_DEST_PORT));

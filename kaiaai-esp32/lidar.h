@@ -210,7 +210,7 @@ void setupLIDAR() {
     }
   }
   Serial.println();
-    
+
   lidar->setScanPointCallback(lidar_scan_point_callback);
   lidar->setPacketCallback(lidar_packet_callback);
   lidar->setSerialWriteCallback(lidar_serial_write_callback);
@@ -226,7 +226,8 @@ void setupLIDAR() {
   Serial.print(", baud rate ");
   Serial.println(baud_rate);
 
-  LdSerial.begin(baud_rate);
+  LdSerial.begin(baud_rate); // messes up GPIO 25 pinMode()
+
   lidar->init();
   //while (LdSerial.read() >= 0);  
 
