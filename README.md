@@ -78,7 +78,7 @@ This [blog post](https://kaia.ai/blog/arduino-platform-firmware-avaiable/) discu
   - TB6612FNG max 13.5V, max 1.2A average per motor; one TB6612FNG controls two motors
   - L298N supports 24V, max 2A average per motor; one L298N controls two motors
   - DRV8871 supports 24V, max 3.6A peak; one DRV8871 controls ONE motor
-  - DRV8833 supports 2.7..10.8V, two channels; 1.2A average, 2A max per channel, ~0.36 Ohm output resistance
+  - DRV8833, DRV8835 (IN/IN mode)
 
 ### Where to Purchase Motors/Components
 - AliExpress
