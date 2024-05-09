@@ -742,9 +742,9 @@ void spinPing() {
   
   if (step_time_us >= ping_pub_period_us) {
     // timeout_ms, attempts
-    rmw_ret_t rc = rmw_uros_ping_agent(1, 1);
+    rmw_uros_ping_agent(1, 1); //rmw_ret_t rc =
     ping_prev_pub_time_us = time_now_us;
-    Serial.println(rc == RCL_RET_OK ? "Ping OK" : "Ping error");
+    //Serial.println(rc == RCL_RET_OK ? "Ping OK" : "Ping error");
   }
 }
 
