@@ -6,6 +6,8 @@ This repo contains:
 - all libraries necessary to build the sketch
 - ESP32 sketch [data upload tool](https://github.com/me-no-dev/arduino-esp32fs-plugin/)
 
+Please visit the [Support Forum](https://github.com/makerspet/support/discussions/)!
+
 List of supported LiDAR/LDS sensors is here.
 
 ## Installation and setup
