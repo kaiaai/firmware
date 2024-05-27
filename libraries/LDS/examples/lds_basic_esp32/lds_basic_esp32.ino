@@ -28,6 +28,9 @@ HardwareSerial LdSerial(2); // TX 17, RX 16
 LDS_YDLIDAR_X4 lds;
 
 void setup() {
+  Serial.begin(115200);
+  Serial.println("LiDAR library example");
+
   lds.setScanPointCallback(lds_scan_point_callback);
   lds.setPacketCallback(lds_packet_callback);
   lds.setSerialWriteCallback(lds_serial_write_callback);
@@ -41,7 +44,11 @@ void setup() {
   Serial.print("LDS baud rate ");
   Serial.print(baud_rate);
 
-  LdSerial.begin(baud_rate);
+  LdSerial.begin(baud_rate); // Use default GPIO TX 17, RX 16
+  // Assign TX, RX pins
+  // LdSerial.begin(baud_rate, SERIAL_8N1, rxPin, txPin);
+  // Details https://github.com/espressif/arduino-esp32/blob/master/cores/esp32/HardwareSerial.h
+  // Tutorial https://www.youtube.com/watch?v=eUPAoP7xC7A
   while (LdSerial.read() >= 0);
 
   LDS::result_t result = lds.start();
