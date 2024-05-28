@@ -194,11 +194,11 @@ function restoreConfig(config) {
       if (is_custom) {
 	    select.options[idx].innerHTML = "CUSTOM &#9207;";
 	  } else {
-        const robot_model_name = ["MAKERSPET_LOKI", "MAKERSPET_FIDO", "MAKERSPET_SNOOPY", "CUSTOM_MODEL"];
-        const base_dia = [0.2042, 0.2542, 0.300];
-        const wheel_base = [0.159063, 0.214322, 0.262794];
-        const base_wheel_dia = [0.067, 0.067, 0.067];
-        const max_wheel_accel = [2.0, 2.0, 2.0];
+        const robot_model_name = ["MAKERSPET_LOKI", "MAKERSPET_MINI", "MAKERSPET_FIDO", "MAKERSPET_SNOOPY", "CUSTOM_MODEL"];
+        const base_dia = [0.2042, 0.12, 0.2542, 0.300];
+        const wheel_base = [0.159063, 0.091142, 0.214322, 0.262794];
+        const base_wheel_dia = [0.067, 0.043, 0.067, 0.067];
+        const max_wheel_accel = [2.0, 1.0, 2.0, 2.0];
 
         document.getElementById('robot_model_name').value = robot_model_name[idx];
         document.getElementById('base_dia').value = base_dia[idx];
@@ -213,11 +213,11 @@ function restoreConfig(config) {
       if (is_custom) {
 	    select.options[idx].innerHTML = "CUSTOM &#9207;";
 	  } else {
-        const motor_max_rpm = [280, 200, 245, 260, 408, 450, 225];
-        const wheel_ppr = [234.3, 270, 630, 204, 127.8, 120, 120];
-        const motor_voltage = [12, 24, 24, 24, 24, 24, 12];
-        const motor_driver_type = ['TB6612FNG', 'PWM_CW', 'PWM_CW', 'PWM_CW', 'PWM_CW', 'PWM_CW', 'PWM_CW'];
-        const motor_encoder_type = ['ENCA_ENCB_QUAD', 'FG', 'FG', 'FG', 'FG', 'FG', 'FG'];
+        const motor_max_rpm = [280, 310, 155, 105, 200, 245, 260, 408, 450, 225];
+        const wheel_ppr = [234.3, 350, 700, 1050, 270, 630, 204, 127.8, 120, 120];
+        const motor_voltage = [12, 6, 6, 6, 24, 24, 24, 24, 24, 12];
+        const motor_driver_type = ['TB6612FNG', 'TB6612FNG', 'TB6612FNG', 'TB6612FNG', 'PWM_CW', 'PWM_CW', 'PWM_CW', 'PWM_CW', 'PWM_CW', 'PWM_CW'];
+        const motor_encoder_type = ['ENCA_ENCB_QUAD', 'ENCA_ENCB_QUAD', 'ENCA_ENCB_QUAD', 'ENCA_ENCB_QUAD', 'FG', 'FG', 'FG', 'FG', 'FG', 'FG'];
 
         document.getElementById('motor_max_rpm').value = motor_max_rpm[idx];
         document.getElementById('wheel_ppr').value = wheel_ppr[idx];
@@ -295,6 +295,7 @@ function restoreConfig(config) {
 		<div class="col-75">
           <select name="robot_model" id="robot_model" required onchange="populateProps(this);" title="Kaia.ai-compatible robot models. Select CUSTOM if your model is not listed.">
               <option value="MAKERSPET_LOKI">MAKERSPET_LOKI</option>
+              <option value="MAKERSPET_MINI">MAKERSPET_MINI</option>
               <option value="MAKERSPET_FIDO">MAKERSPET_FIDO</option>
               <option value="MAKERSPET_SNOOPY">MAKERSPET_SNOOPY</option>
               <option value="CUSTOM_MODEL">CUSTOM &#9205;</option>
@@ -396,6 +397,9 @@ function restoreConfig(config) {
           <select name="motor_model" id="motor_model" required onchange="populateProps(this);" title="Select CUSTOM if your motor model is not listed">
             <optgroup label="Brushed">
               <option value="12V_280RPM_234.3PPR_TB6612FNG">25GA-370 12V 280RPM 234.3PPR TB6612FNG</option>
+              <option value="6V_310RPM_350PPR_TB6612FNG">N20 6V 310RPM 350PPR TB6612FNG</option>
+              <option value="6V_155RPM_700PPR_TB6612FNG">N20 6V 155RPM 700PPR TB6612FNG</option>
+              <option value="6V_105RPM_350PPR_TB6612FNG">N20 6V 105RPM 1050PPR TB6612FNG</option>
             </optgroup>
             <optgroup label="Brushless">
               <option value="24V_200RPM_270PPR_PWM_CW_FG">CHR-GM25-BL2418 24V 200RPM 270PPR 2.5W</option>
