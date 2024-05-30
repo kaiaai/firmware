@@ -25,6 +25,7 @@
 #include "param_file.h"
 #include "lidar.h"
 #include "ros.h"
+#include "adc.h"
 
 #define RCCHECK(fn,E) { rcl_ret_t temp_rc = fn; \
   if(temp_rc != RCL_RET_OK)error_loop(E);}
@@ -185,27 +186,6 @@ void updateSpeedRamp() {
   setMotorSpeeds(rpm_left, rpm_right);
 }
 
-void setupADC() {
-
-  if (!adcAttachPin(cfg.BAT_ADC_PIN))
-    Serial.println("adcAttachPin() FAILED");
-
-  unsigned int voltage_mv = analogReadMilliVolts(cfg.BAT_ADC_PIN);
-  voltage_mv *= cfg.BAT_ADC_MULTIPLIER;
-  if (voltage_mv < cfg.BAT_PRESENT_MV_MIN)
-    voltage_mv = 0;
-
-  Serial.print("Battery ");
-  if (voltage_mv == 0) {
-    Serial.println("NOT detected - Is the battery connected?"
-      " Is the power switch on?");
-  } else {
-    Serial.print("voltage ");
-    Serial.print(voltage_mv*0.001f);
-    Serial.println("V");
-  }
-}
-
 bool set_param_callback(const char * param_name, const char * param_value) {
   if (param_name != NULL)
     return params.setByName(param_name, param_value);
@@ -322,12 +302,8 @@ void publishTelem(unsigned long step_time_us) {
   rssi_dbm = rssi_dbm < -128 ? -128 : rssi_dbm;
   telem_msg.wifi_rssi_dbm = (int8_t) rssi_dbm;
 
-  unsigned int voltage_mv = analogReadMilliVolts(cfg.BAT_ADC_PIN);
-  voltage_mv *= cfg.BAT_ADC_MULTIPLIER;
-  if (voltage_mv < cfg.BAT_PRESENT_MV_MIN)
-    voltage_mv = 0;
-
-  telem_msg.battery_mv = (uint16_t) voltage_mv;
+  float batt_mv = getBatteryMilliVolts();
+  telem_msg.battery_mv = (uint16_t) round(batt_mv);
 
   //Serial.print(rssi_dbm);
   //Serial.print("dbm, ");
