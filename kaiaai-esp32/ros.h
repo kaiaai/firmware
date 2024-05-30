@@ -198,19 +198,25 @@ CONFIG::error_blink_count setupMicroROS(rclc_subscription_callback_t twist_sub_c
   uint8_t mac[6];
   esp_read_mac(mac, ESP_MAC_WIFI_STA);
   uint32_t client_key = mac[1]<<(3*8) | mac[2]<<(2*8) | mac[3]<<(1*8) | mac[4];
-  client_key = client_key<<(8-2) | mac[5]>>2;
-  RCL_ERR(rmw_uros_options_set_client_key(client_key, rmw_options), CONFIG::ERR_UROS_INIT); // TODO multiple bots
+  client_key = client_key<<(8-2) | mac[5]>>2;  // TODO multiple bots
+  RCL_ERR(rmw_uros_options_set_client_key(client_key, rmw_options), CONFIG::ERR_UROS_INIT);
 
-  Serial.print(F("Connecting to Micro-ROS agent "));
-  Serial.print(params.get(cfg.PARAM_DEST_IP));
-  Serial.print(" ... ");
+  rcl_ret_t temp_rc;
 
-  //RCL_ERR(rclc_support_init(&support, 0, NULL, &allocator), CONFIG::ERR_UROS_AGENT_CONN);
-  //RCL_ERR(rclc_support_init_with_options(&support, 0, NULL, &init_options, &allocator), CONFIG::ERR_UROS_AGENT_CONN);
-  rcl_ret_t temp_rc = rclc_support_init_with_options(&support, 0, NULL, &init_options, &allocator);
-  if (temp_rc != RCL_RET_OK) {
-    Serial.println("failed");
-    return CONFIG::ERR_UROS_AGENT_CONN;
+  while(true) {
+    digitalWrite(cfg.LED_PIN, !digitalRead(cfg.LED_PIN));
+    Serial.print(F("Connecting to Micro-ROS agent "));
+    Serial.print(params.get(cfg.PARAM_DEST_IP));
+    Serial.print(" ... ");
+  
+    //rclc_support_init(&support, 0, NULL, &allocator);
+    temp_rc = rclc_support_init_with_options(&support, 0, NULL, &init_options, &allocator);
+    if (temp_rc != RCL_RET_OK) {
+      Serial.println("failed or timed out");
+      //return CONFIG::ERR_UROS_AGENT_CONN;
+      continue;
+    }
+    break;
   }
   Serial.println("success");
 

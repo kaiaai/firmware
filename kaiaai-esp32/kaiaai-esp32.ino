@@ -393,9 +393,9 @@ void spinPing() {
   
   if (step_time_us >= cfg.UROS_PING_PUB_PERIOD_US) {
     // timeout_ms, attempts
-    rmw_ret_t rc = rmw_uros_ping_agent(1, 1);
+    rmw_uros_ping_agent(1, 1); //rmw_ret_t rc =
     ping_prev_pub_time_us = time_now_us;
-    Serial.println(rc == RCL_RET_OK ? "Ping OK" : "Ping error");
+    //Serial.println(rc == RCL_RET_OK ? "Ping OK" : "Ping error");
   }
 }
 
