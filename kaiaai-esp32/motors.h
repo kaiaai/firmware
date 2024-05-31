@@ -214,15 +214,15 @@ void setupMotors() {
   motorLeft.setMaxRPM(max_RPM_derated);
   motorRight.setMaxRPM(max_RPM_derated);
   Serial.print(", derated Max RPM ");
-  Serial.print(max_RPM_derated);
+  Serial.print(motorLeft.getMaxRPM());
 
   value = params.getAsFloat(cfg.PARAM_WHEEL_PPR);
   motorLeft.setEncoderPPR(value);
   motorRight.setEncoderPPR(value);
   Serial.print("; encoder PPR ");
-  Serial.print(value);
+  Serial.print(motorLeft.getEncoderPPR());
   Serial.print(", TPR "); // encoder ticks per revolution
-  Serial.println(value * motorLeft.getEncoderTPR());
+  Serial.println(motorLeft.getEncoderTPR());
 
   float kp = params.getAsFloat(cfg.PARAM_MOTOR_PID_KP);
   float ki = params.getAsFloat(cfg.PARAM_MOTOR_PID_KI);
