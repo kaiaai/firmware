@@ -275,13 +275,13 @@ void spinTelem(bool force_pub) {
 
     float rpm = lidar->getCurrentScanFreqHz();
     if (rpm >= 0) {
-      s = s + ", LDS RPM ";
+      s = s + ", LiDAR RPM ";
       s = s + String(rpm);
     }
 
     s = s + ", battery " + String(telem_msg.battery_mv*0.001f) + "V";
     s = s + ", RSSI " + String(telem_msg.wifi_rssi_dbm) + "dBm";
-    serialPrintLnNonBlocking(s);
+    printlnNB(s);
 
     stat_sum_spin_telem_period_us = 0;
     stat_max_spin_telem_period_us = 0;
@@ -409,6 +409,11 @@ void loop() {
 
   motorLeft.update();
   motorRight.update();
+
+  //printNB(String(motorLeft.getEncoderValue()));
+  //printNB("\t");
+  //printNB(String(motorRight.getEncoderValue()));
+  //printlnNB("");
 }
 
 void resetParams() {

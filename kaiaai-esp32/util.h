@@ -98,10 +98,16 @@ void printBytesAsHex(uint8_t * buffer, uint16_t length) {
   }
 }
 
-void serialPrintLnNonBlocking(const String s) {
+void printlnNB(const String s) { // non-blocking
   uint16_t tx_room = (uint16_t) Serial.availableForWrite();
   if (tx_room >= s.length())
     Serial.println(s);
+}
+
+void printNB(const String s) { // non-blocking
+  uint16_t tx_room = (uint16_t) Serial.availableForWrite();
+  if (tx_room >= s.length())
+    Serial.print(s);
 }
 
 const String reset_reason_to_string(int reason, bool verbose=false) {

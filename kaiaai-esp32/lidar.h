@@ -151,7 +151,7 @@ void lidar_error_callback(LDS::result_t code, String aux_info) {
       s = s + ": ";
       s = s + String(aux_info);
     }
-    serialPrintLnNonBlocking(s);
+    printlnNB(s);
   }
 }
 
