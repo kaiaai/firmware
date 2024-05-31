@@ -17,6 +17,7 @@
 #include <motor_ctl.h>
 #include "robot_config.h"
 #include "param_file.h"
+#include "util.h"
 
 const uint8_t MOTOR_COUNT = 2;
 MotorController motorLeft, motorRight;
@@ -67,26 +68,24 @@ void IRAM_ATTR quadEncoderBRightISR() {
 }
 
 void setMotorPWM(MotorController *motor_controller, float pwm) {
-  //Serial.print("setMotorPWM ");
+  //printNB("setMotorPWM ");
   bool is_right = motor_controller == &motorRight;
-  //Serial.print(is_right ? " right " : " left ");
-  //Serial.println(pwm);
+  //printNB(is_right ? " right " : " left ");
+  //printlnNB(String(pwm));
   
   uint8_t pwm_channel = is_right ? cfg.MOT_PWM_RIGHT_CHANNEL : cfg.MOT_PWM_LEFT_CHANNEL;
   int max_pwm = (1<<cfg.MOT_PWM_BITS) - 1;
-  int pwm_value;
   uint8_t cw_pin = is_right ? cfg.MOT_CW_RIGHT_PIN : cfg.MOT_CW_LEFT_PIN;
   uint8_t in1_pin = is_right ? cfg.MOT_IN1_RIGHT_PIN : cfg.MOT_IN1_LEFT_PIN;
   uint8_t in2_pin = is_right ? cfg.MOT_IN2_RIGHT_PIN : cfg.MOT_IN2_LEFT_PIN;
 
   pwm = pwm > 1 ? 1 : pwm;
-  pwm_value = round(max_pwm*(1 - abs(pwm)));
+  int pwm_magnitude = round(max_pwm*(1 - abs(pwm)));
   byte cw_value = pwm >= 0 ? LOW : HIGH;
-
 
   switch(motorDriverType) {
     case MOT_DRIVER_PWM_CW:
-      ledcWrite(pwm_channel, pwm_value);
+      ledcWrite(pwm_channel, pwm_magnitude);
       digitalWrite (cw_pin, cw_value); //pwm >= 0 ? LOW : HIGH);
       break;
 
@@ -109,7 +108,7 @@ void setMotorPWM(MotorController *motor_controller, float pwm) {
       uint8_t in2 = pwm > 0 ? in2_pin : in1_pin;
       
       ledcAttachPin(in2, pwm_channel);
-      ledcWrite(pwm_channel, pwm_value);
+      ledcWrite(pwm_channel, pwm_magnitude);
       pinMode(in1, OUTPUT);
       digitalWrite(in1, HIGH);
     break;

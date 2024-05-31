@@ -27,7 +27,7 @@ class MotorController {
 
     void init(encoder_type_t encoder_type, uint8_t ticks_per_pulse);
     void setPWMCallback(SetPWMCallback callback);
-    bool setRPM(float rpm);
+    bool setTargetRPM(float rpm);
     void resetEncoders();
     void update();
     float getShaftAngle();

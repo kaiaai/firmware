@@ -66,7 +66,7 @@ void MotorController::setPWM(float value) {
   }
   
   if (set_pwm_callback)
-    set_pwm_callback(this, value);
+    set_pwm_callback(this, motorReversed ? -value : value);
 
   pwm = value;
   cw = cw_new;
@@ -107,15 +107,15 @@ float MotorController::getMaxRPM() {
 }
 
 float MotorController::getCurrentPWM() {
-  return pwm;
+  return motorReversed ? -pwm : pwm;
 }
 
 float MotorController::getCurrentRPM() {
-  return motorReversed ? -measuredRPM : measuredRPM;
+  return measuredRPM;
 }
 
 float MotorController::getTargetRPM() {
-  return motorReversed ? -targetRPM : targetRPM;
+  return targetRPM;
 }
 
 void MotorController::resetEncoders() {
@@ -169,13 +169,12 @@ bool MotorController::getPIDOnError() {
   return pid.isOnError();
 }
 
-bool MotorController::setRPM(float rpm) {
-  rpm = motorReversed ? -rpm : rpm;
+bool MotorController::setTargetRPM(float rpm) {
   if (targetRPM == rpm)
     return false;
 
   bool within_limit = (abs(rpm) <= maxRPM);
-  rpm = within_limit ? rpm : maxRPM;
+  rpm = within_limit ? rpm : (rpm >= 0 ? maxRPM : -maxRPM);
 
   targetRPM = rpm;
   setPointHasChanged = true;

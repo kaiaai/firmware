@@ -409,6 +409,7 @@ void loop() {
 
   motorLeft.update();
   motorRight.update();
+
 /*
   printNB(String(motorLeft.getEncoderValue()));
   printNB("\t");
@@ -523,6 +524,8 @@ void setup() {
   Serial.println();
   Serial.print("Kaia.ai firmware version ");
   Serial.println(cfg.FW_VERSION);
+  Serial.println("To enter web config push-and-release EN, "
+    "then push-and-hold BOOT within 1 sec");
 
   delay(1000);
   if (isBootButtonPressed(cfg.RESET_SETTINGS_HOLD_MS)) {
