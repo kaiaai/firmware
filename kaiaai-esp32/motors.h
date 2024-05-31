@@ -25,13 +25,11 @@ extern PARAM_FILE params;
 
 enum motor_driver_t {
   MOT_DRIVER_PWM_CW,
-  MOT_DRIVER_TB6612FNG,
-  MOT_DRIVER_L298N,
-  MOT_DRIVER_DRV8871,
+  MOT_DRIVER_IN1_IN2, // Generic
 };
 enum motor_encoder_t {
   MOT_ENCODER_FG,
-  MOT_ENCODER_ENCA_ENCB_QUAD,
+  MOT_ENCODER_AB_QUAD,
 };
 
 motor_driver_t motorDriverType;
@@ -120,7 +118,7 @@ void setMotorPWM(MotorController *motor_controller, float pwm) {
 
 void setupEncoders(motor_encoder_t motor_encoder_type) {
   switch(motor_encoder_type) {
-    case MOT_ENCODER_ENCA_ENCB_QUAD:
+    case MOT_ENCODER_AB_QUAD:
       motorLeft.init(MotorController::ENCODER_SIGNED, 4);
       motorRight.init(MotorController::ENCODER_SIGNED, 4);
 
@@ -182,14 +180,10 @@ void setupMotors() {
 
   if (strcmp(motor_driver_type, "PWM_CW") == 0) {
     setupDriver(MOT_DRIVER_PWM_CW);
-  } else if (strcmp(motor_driver_type, "L298N") == 0) {
-    setupDriver(MOT_DRIVER_L298N);
-  } else if (strcmp(motor_driver_type, "DRV8871") == 0) {
-    setupDriver(MOT_DRIVER_DRV8871);
   } else {
-    if (strcmp(motor_driver_type, "TB6612FNG") != 0)
-      Serial.print(" not recognized, defaulting to TB6612FNG");
-    setupDriver(MOT_DRIVER_TB6612FNG);
+    if (strcmp(motor_driver_type, "IN1_IN2") != 0)
+      Serial.println(" not recognized, defaulting to IN1_IN2 generic");
+    setupDriver(MOT_DRIVER_IN1_IN2);
   }
 
   motorLeft.setPWMCallback(setMotorPWM);
@@ -205,9 +199,9 @@ void setupMotors() {
   if (strcmp(motor_encoder_type, "FG") == 0) {
     setupEncoders(MOT_ENCODER_FG);
   } else {
-    if (strcmp(motor_encoder_type, "ENCA_ENCB_QUAD") != 0)
-      Serial.print(" not recognized, defaulting to ENCA_ENCB_QUAD");
-    setupEncoders(MOT_ENCODER_ENCA_ENCB_QUAD);
+    if (strcmp(motor_encoder_type, "AB_QUAD") != 0)
+      Serial.print(" not recognized, defaulting to AB_QUAD");
+    setupEncoders(MOT_ENCODER_AB_QUAD);
   }
   Serial.println();
 
