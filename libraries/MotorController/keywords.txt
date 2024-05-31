@@ -16,7 +16,7 @@ SetPWMCallback	KEYWORD1
 start	KEYWORD2
 init	KEYWORD2
 setPWMCallback	KEYWORD2
-setRPM	KEYWORD2
+setTargetRPM	KEYWORD2
 resetEncoders	KEYWORD2
 update	KEYWORD2
 getShaftAngle	KEYWORD2
@@ -44,7 +44,7 @@ enablePID	KEYWORD2
 getEncoderValue	KEYWORD2
 tickSignedEncoder	KEYWORD2
 tickUnsignedEncoder	KEYWORD2
-start	getCurrentPWM
+getCurrentPWM KEYWORD2
 
 #######################################
 # Constants (LITERAL1)

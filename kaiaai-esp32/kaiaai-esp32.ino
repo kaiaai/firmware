@@ -409,15 +409,31 @@ void loop() {
 
   motorLeft.update();
   motorRight.update();
+/*
+  printNB(String(motorLeft.getEncoderValue()));
+  printNB("\t");
+  printNB(String(motorRight.getEncoderValue()));
+  printNB("\t");
 
-  //printNB(String(motorLeft.getEncoderValue()));
-  //printNB("\t");
-  //printNB(String(motorRight.getEncoderValue()));
-  //printlnNB("");
+  printNB(String(motorLeft.getCurrentRPM()));
+  printNB("\t");
+  printNB(String(motorRight.getCurrentRPM()));
+  printNB("\t");
+
+  printNB(String(motorLeft.getCurrentPWM()));
+  printNB("\t");
+  printNB(String(motorRight.getCurrentPWM()));
+  printNB("\t");
+
+  printNB(String(motorLeft.getTargetRPM()));
+  printNB("\t");
+  printNB(String(motorRight.getTargetRPM()));  
+  printlnNB();
+*/
 }
 
 void resetParams() {
-  Serial.println("** Factory reset **");
+  Serial.println("** Restarting in web config mode **");
   params.purge();
   digitalWrite(cfg.LED_PIN, HIGH);
   Serial.flush();
@@ -428,7 +444,7 @@ void resetParams() {
 
 bool isBootButtonPressed(uint32_t msec) {
   if (!digitalRead(0))
-    Serial.println("BOOT button pressed. Keep pressing for factory reset.");
+    Serial.println("BOOT button pressed. Keep pressing for web config.");
   else
     return false;
 

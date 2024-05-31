@@ -98,7 +98,7 @@ void printBytesAsHex(uint8_t * buffer, uint16_t length) {
   }
 }
 
-void printlnNB(const String s) { // non-blocking
+void printlnNB(const String s = "") { // non-blocking
   uint16_t tx_room = (uint16_t) Serial.availableForWrite();
   if (tx_room >= s.length())
     Serial.println(s);
