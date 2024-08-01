@@ -267,7 +267,7 @@ void spinTelem(bool force_pub) {
   
   // How often telemetry gets published
   if (++telem_pub_count % cfg.SPIN_TELEM_STATS == 0) {
-    String s = "spinTelem() period avg ";
+    String s = "Telem avg ";
     s = s + String(stat_sum_spin_telem_period_us / (1000*cfg.SPIN_TELEM_STATS));
     s = s + " max ";
     s = s + String(stat_max_spin_telem_period_us / 1000);
@@ -278,6 +278,10 @@ void spinTelem(bool force_pub) {
       s = s + ", LiDAR RPM ";
       s = s + String(rpm);
     }
+
+    s = s + ", wheels RPM ";
+    s = s + String(motorLeft.getCurrentRPM()) + " ";
+    s = s + String(motorRight.getCurrentRPM());
 
     s = s + ", battery " + String(telem_msg.battery_mv*0.001f) + "V";
     s = s + ", RSSI " + String(telem_msg.wifi_rssi_dbm) + "dBm";

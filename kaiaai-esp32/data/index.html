@@ -199,12 +199,14 @@ function restoreConfig(config) {
         const wheel_base = [0.159063, 0.091142, 0.214322, 0.262794];
         const base_wheel_dia = [0.067, 0.043, 0.067, 0.067];
         const max_wheel_accel = [2.0, 1.0, 2.0, 2.0];
+        const battery_adc_attenuation = [11.0, 2.0, 11.0, 11.0];
 
         document.getElementById('robot_model_name').value = robot_model_name[idx];
         document.getElementById('base_dia').value = base_dia[idx];
         document.getElementById('wheel_base').value = wheel_base[idx];
         document.getElementById('base_wheel_dia').value = base_wheel_dia[idx];
         document.getElementById('max_wheel_accel').value = max_wheel_accel[idx];
+        document.getElementById('battery_adc_attenuation').value = battery_adc_attenuation[idx];
 
 	    select.options[select.length - 1].innerHTML = "CUSTOM &#9205;";
       }
