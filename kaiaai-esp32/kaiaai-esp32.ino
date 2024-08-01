@@ -447,12 +447,13 @@ void resetParams() {
   ESP.restart();
 }
 
-bool isBootButtonPressed(uint32_t msec) {
+bool isBootButtonPressed(uint8_t sec) {
   if (!digitalRead(0))
     Serial.println("BOOT button pressed. Keep pressing for web config.");
   else
     return false;
 
+  uint32_t msec = sec * 1000;
   unsigned long start_time_ms = millis();
   while (!digitalRead(0)) {
     delay(50);
@@ -532,7 +533,7 @@ void setup() {
     "then push-and-hold BOOT within 1 sec");
 
   delay(1000);
-  if (isBootButtonPressed(cfg.RESET_SETTINGS_HOLD_MS)) {
+  if (isBootButtonPressed(cfg.RESET_SETTINGS_HOLD_SEC)) {
     params.init();
     resetParams();
   }

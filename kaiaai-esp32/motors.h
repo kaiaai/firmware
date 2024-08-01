@@ -208,7 +208,6 @@ void setupMotors() {
   Serial.print("Motor Max RPM ");
   Serial.print(value);
   float derate = params.getAsFloat(cfg.PARAM_MOTOR_MAX_RPM_DERATE);
-  value = value * derate;
   float max_RPM_derated = value * cfg.MOT_MAX_RPM_DERATE;
   motorLeft.setMaxRPM(max_RPM_derated);
   motorRight.setMaxRPM(max_RPM_derated);
