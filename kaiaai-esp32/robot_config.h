@@ -63,8 +63,6 @@ public:
 
   static const uint16_t BAT_PRESENT_MV_MIN = 4000;
 
-  static constexpr float MOT_MAX_RPM_DERATE = 0.9f;
-
   enum param_name_index {
     PARAM_SSID,
     PARAM_PASS,
@@ -193,6 +191,7 @@ public:
   // Cache divisions
   float speed_diff_to_us;
   float wheel_base_recip;
+  float base_radius;
   float wheel_radius;
   float wheel_perim_len_div60;
   float wheel_perim_len_div60_recip;
@@ -218,6 +217,7 @@ public:
   }
   
   void setWheelBase(float wheel_base) {
+    base_radius = wheel_base*0.5f;
     wheel_base_recip = 1/wheel_base;
   }
   
@@ -232,7 +232,7 @@ public:
   
   void twistToWheelSpeeds(float speed_lin_x, float speed_ang_z,
     float *speed_right, float *speed_left) {
-    float ang_component = speed_ang_z*wheel_radius; //wheel_base*0.5f;
+    float ang_component = speed_ang_z*base_radius;
     *speed_right = speed_lin_x + ang_component;
     *speed_left  = speed_lin_x - ang_component;
   }

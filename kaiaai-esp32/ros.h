@@ -212,7 +212,8 @@ CONFIG::error_blink_count setupMicroROS(rclc_subscription_callback_t twist_sub_c
     //rclc_support_init(&support, 0, NULL, &allocator);
     temp_rc = rclc_support_init_with_options(&support, 0, NULL, &init_options, &allocator);
     if (temp_rc != RCL_RET_OK) {
-      Serial.println("failed or timed out");
+      //Serial.println("failed or timed out");
+      Serial.println();
       //return CONFIG::ERR_UROS_AGENT_CONN;
       continue;
     }

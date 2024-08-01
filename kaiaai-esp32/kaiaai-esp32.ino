@@ -62,7 +62,7 @@ void twist_sub_callback(const void *msgin) {
   //Serial.print("linear.x ");
   //Serial.print(msg->linear.x);
   //Serial.print(", angular.z ");
-  //Serial.print(msg->angular.z);
+  //Serial.println(msg->angular.z);
 
   if (msg->linear.y != 0) {
     Serial.print("Warning: /cmd_vel linear.y = ");
@@ -216,27 +216,28 @@ static inline bool initWiFi(String ssid, String passw) {
 
   WiFi.begin(ssid, passw);
 
-  Serial.print("Connecting to WiFi ");
-  Serial.print(ssid);
-  Serial.print(" ");
-
   unsigned long startMillis = millis();
 
   while (WiFi.status() != WL_CONNECTED) {
+    Serial.println();
+    Serial.print("Connecting to WiFi ");
+    Serial.print(ssid);
+    Serial.print(" ...");
+
     if (millis() - startMillis >= cfg.WIFI_CONN_TIMEOUT_MS) {
       Serial.println(" timed out");
       return false;
     }
 
     digitalWrite(cfg.LED_PIN, HIGH);
-    delay(250);
+    delay(500);
     digitalWrite(cfg.LED_PIN, LOW);
-    Serial.print('.'); // Don't use F('.'), it crashes code!!
-    delay(250);
+    //Serial.print('.'); // Don't use F('.'), it crashes code!!
+    delay(500);
   }
 
   digitalWrite(cfg.LED_PIN, LOW);
-  Serial.println(" connected");
+  Serial.print(" connected, ");
   Serial.print("IP ");
   Serial.println(WiFi.localIP());
   return true;
@@ -526,6 +527,7 @@ void setup() {
   pinMode(cfg.LED_PIN, OUTPUT);
   digitalWrite(cfg.LED_PIN, HIGH);
 
+  Serial.println();
   Serial.println();
   Serial.print("Kaia.ai firmware version ");
   Serial.println(cfg.FW_VERSION);

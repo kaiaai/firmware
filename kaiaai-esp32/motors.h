@@ -208,7 +208,7 @@ void setupMotors() {
   Serial.print("Motor Max RPM ");
   Serial.print(value);
   float derate = params.getAsFloat(cfg.PARAM_MOTOR_MAX_RPM_DERATE);
-  float max_RPM_derated = value * cfg.MOT_MAX_RPM_DERATE;
+  float max_RPM_derated = value * derate;
   motorLeft.setMaxRPM(max_RPM_derated);
   motorRight.setMaxRPM(max_RPM_derated);
   Serial.print(", derated Max RPM ");
@@ -219,7 +219,7 @@ void setupMotors() {
   motorRight.setEncoderPPR(value);
   Serial.print("; encoder PPR ");
   Serial.print(motorLeft.getEncoderPPR());
-  Serial.print(", TPR "); // encoder ticks per revolution
+  Serial.print(" TPR "); // encoder ticks per revolution
   Serial.println(motorLeft.getEncoderTPR());
 
   float kp = params.getAsFloat(cfg.PARAM_MOTOR_PID_KP);
