@@ -28,7 +28,8 @@ public:
   static const uint8_t LIDAR_EN_PIN = 19;
   
   // Brushless motors
-  static const uint8_t MOT_PWM_LEFT_PIN = 33; // weaker pulldown
+//  static const uint8_t MOT_PWM_LEFT_PIN = 33; // weaker pulldown
+  static const uint8_t MOT_PWM_LEFT_PIN = 27;
   static const uint8_t MOT_CW_LEFT_PIN = 23;
   static const uint8_t MOT_FG_LEFT_PIN = 34;
 
