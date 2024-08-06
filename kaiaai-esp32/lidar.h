@@ -30,6 +30,22 @@ HardwareSerial LdSerial(2); // TX 17, RX 16
 
 void spinTelem(bool);
 
+class LDS_NONE : public LDS {
+  public:
+    virtual void init() override {}
+    virtual result_t start() override { return ERROR_NOT_IMPLEMENTED; }
+    virtual result_t stop() override { return ERROR_NOT_IMPLEMENTED; }
+    virtual void loop() override {}
+    virtual uint32_t getSerialBaudRate() { return 0; }
+    virtual float getCurrentScanFreqHz() override { return -1.0f; }
+    virtual float getTargetScanFreqHz() override { return -1.0f; }
+    virtual int getSamplingRateHz() override { return -1.0f; }
+    virtual bool isActive() override { return false; }
+    virtual const char* getModelName() override { return "NONE"; }
+
+    virtual result_t setScanTargetFreqHz(float freq) override { return ERROR_NOT_IMPLEMENTED; }
+};
+
 size_t lidar_serial_write_callback(const uint8_t * buffer, size_t length) {
   return LdSerial.write(buffer, length);
 }
@@ -240,7 +256,7 @@ LDS::result_t startLIDAR() {
   Serial.println(lidar->resultCodeToString(result));
 
   if (result < 0)
-    Serial.println("Is the LiDAR connected to ESP32 and powerd up?");
+    Serial.println("Is the LiDAR connected to ESP32 and powered up?");
 
   return result;
 }

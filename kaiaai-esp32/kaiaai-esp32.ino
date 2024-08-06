@@ -322,7 +322,7 @@ void publishTelem(unsigned long step_time_us) {
     joint_prev_pos[i] = joint[i].pos;
   }
 
-  calcOdometry(step_time_us, joint_pos_delta[0], joint_pos_delta[1]);
+  calcOdometry2(step_time_us, joint_pos_delta[0], joint_pos_delta[1]);
 
   RCSOFTCHECK(rcl_publish(&telem_pub, &telem_msg, NULL));
   telem_msg.lds.size = 0;
@@ -340,11 +340,11 @@ void calcOdometry(unsigned long step_time_us, float joint_pos_delta_right,
 
   // TODO use Runge-Kutta integration for better accuracy
   float average_distance = (distance_right + distance_left) * 0.5;
-  float d_yaw = asin((distance_left - distance_right)*cfg.wheel_base_recip);
+  float d_yaw = asin((distance_left - distance_right)*cfg.wheel_track_recip);
 
   // Average angle during the motion
   float average_angle = d_yaw*0.5 + telem_msg.odom_pos_yaw;
-     
+
   if (average_angle > PI)
     average_angle -= TWO_PI;
   else if (average_angle < -PI)
@@ -353,7 +353,7 @@ void calcOdometry(unsigned long step_time_us, float joint_pos_delta_right,
   // Calculate the new pose (x, y, and theta)
   float d_x = cos(average_angle) * average_distance;
   float d_y = sin(average_angle) * average_distance;
- 
+
   telem_msg.odom_pos_x += d_x;
   telem_msg.odom_pos_y += d_y;
   telem_msg.odom_pos_yaw += d_yaw;
@@ -362,6 +362,56 @@ void calcOdometry(unsigned long step_time_us, float joint_pos_delta_right,
     telem_msg.odom_pos_yaw -= TWO_PI;
   else if (telem_msg.odom_pos_yaw < -PI)
     telem_msg.odom_pos_yaw += TWO_PI;
+
+  float d_time = 1e-6 * (float)step_time_us;
+  telem_msg.odom_vel_x = average_distance / d_time;
+  telem_msg.odom_vel_yaw = d_yaw / d_time;
+}
+
+void calcOdometry2(unsigned long step_time_us, float joint_pos_delta_right,
+  float joint_pos_delta_left) {
+
+  if (step_time_us == 0)
+    return;
+
+  float distance_right = -joint_pos_delta_right * cfg.wheel_radius;
+  float distance_left = joint_pos_delta_left * cfg.wheel_radius;
+
+//  Serial.print(distance_right);
+//  Serial.print('\t');
+//  Serial.print(distance_left);
+//  Serial.print('\t');
+
+  // TODO use Runge-Kutta integration for better accuracy
+  float average_distance = (distance_right + distance_left) * 0.5;
+  float d_yaw = (distance_left - distance_right)*cfg.wheel_track_recip;
+
+//  Serial.print(cfg.wheel_track_recip);
+//  Serial.print('\t');
+//  Serial.print(average_distance);
+//  Serial.print('\t');
+//  Serial.print(d_yaw);
+//  Serial.print('\t');
+
+  // Calculate the new pose (x, y, and theta)
+  float d_x = cos(d_yaw) * average_distance;
+  float d_y = sin(d_yaw) * average_distance;
+
+//  Serial.print(d_x);
+//  Serial.print('\t');
+//  Serial.println(d_y);
+
+  float cos_yaw = cos(float(telem_msg.odom_pos_yaw));
+  float sin_yaw = sin(float(telem_msg.odom_pos_yaw));
+
+  telem_msg.odom_pos_x += cos_yaw*d_x - sin_yaw*d_y;
+  telem_msg.odom_pos_y += sin_yaw*d_x + cos_yaw*d_y;
+  telem_msg.odom_pos_yaw += d_yaw;
+
+//  if (telem_msg.odom_pos_yaw > PI)
+//    telem_msg.odom_pos_yaw -= TWO_PI;
+//  else if (telem_msg.odom_pos_yaw < -PI)
+//    telem_msg.odom_pos_yaw += TWO_PI;
 
   float d_time = 1e-6 * (float)step_time_us;
   telem_msg.odom_vel_x = average_distance / d_time;
@@ -549,7 +599,7 @@ void setup() {
   if (ok) {
     cfg.setWheelDia(params.getAsFloat(cfg.PARAM_BASE_WHEEL_DIA));  
     cfg.setMaxWheelAccel(params.getAsFloat(cfg.PARAM_MAX_WHEEL_ACCEL));  
-    cfg.setWheelBase(params.getAsFloat(cfg.PARAM_WHEEL_BASE));
+    cfg.setWheelTrack(params.getAsFloat(cfg.PARAM_BASE_WHEEL_TRACK));
   
     setupLIDAR();
     setupADC();

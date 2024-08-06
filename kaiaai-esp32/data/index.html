@@ -196,14 +196,14 @@ function restoreConfig(config) {
 	  } else {
         const robot_model_name = ["MAKERSPET_LOKI", "MAKERSPET_MINI", "MAKERSPET_FIDO", "MAKERSPET_SNOOPY", "CUSTOM_MODEL"];
         const base_dia = [0.2042, 0.12, 0.2542, 0.300];
-        const wheel_base = [0.159063, 0.091142, 0.214322, 0.262794];
+        const wheel_track = [0.159063, 0.091142, 0.214322, 0.262794];
         const base_wheel_dia = [0.067, 0.043, 0.067, 0.067];
         const max_wheel_accel = [2.0, 1.0, 2.0, 2.0];
         const battery_adc_attenuation = [11.0, 2.0, 11.0, 11.0];
 
         document.getElementById('robot_model_name').value = robot_model_name[idx];
         document.getElementById('base_dia').value = base_dia[idx];
-        document.getElementById('wheel_base').value = wheel_base[idx];
+        document.getElementById('wheel_track').value = wheel_track[idx];
         document.getElementById('base_wheel_dia').value = base_wheel_dia[idx];
         document.getElementById('max_wheel_accel').value = max_wheel_accel[idx];
         document.getElementById('battery_adc_attenuation').value = battery_adc_attenuation[idx];
@@ -330,11 +330,11 @@ function restoreConfig(config) {
 
 	  <div class="row">
 	    <div class="col-25">
-          <label for="wheel_base">Wheel Base</label>
+          <label for="wheel_track">Wheel Track</label>
 		</div>
 		<div class="col-75">
           <div class="sub_input">
-          <input type="text" id="wheel_base" name="wheel_base" value="0.159063" pattern="([0-9]+\.)?[0-9]+" title="Distance between tire midpoints in meters" required minlength="1" maxlength="10" inputmode="decimal">
+          <input type="text" id="wheel_track" name="wheel_track" value="0.159063" pattern="([0-9]+\.)?[0-9]+" title="Distance between wheel midpoints in meters" required minlength="1" maxlength="10" inputmode="decimal">
           </div>
         </div>
       </div>

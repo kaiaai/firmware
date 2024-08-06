@@ -74,7 +74,7 @@ public:
     PARAM_LIDAR_MODEL,
     PARAM_MOTOR_MODEL,
     PARAM_BASE_DIA,
-    PARAM_WHEEL_BASE,
+    PARAM_BASE_WHEEL_TRACK,
     PARAM_BASE_WHEEL_DIA,
     PARAM_MAX_WHEEL_ACCEL,
     PARAM_MOTOR_MAX_RPM,
@@ -121,7 +121,7 @@ protected:
   char* PARAM_NAME[PARAM_COUNT] = {(char *)"ssid", (char *)"pass",
     (char *)"dest_ip", (char *)"dest_port", (char *)"robot_model",
     (char *)"robot_model_name", (char *)"lidar_model", (char *)"motor_model",
-    (char *)"base_dia", (char *)"wheel_base",
+    (char *)"base_dia", (char *)"wheel_track",
     (char *)"base_wheel_dia", (char *)"max_wheel_accel",
     (char *)"motor_max_rpm", (char *)"wheel_ppr", (char *)"motor_voltage",
     (char *)"motor_driver_type", (char *)"motor_encoder_type",
@@ -178,7 +178,7 @@ public:
 
   static constexpr char * UROS_PARAM_MAX_WHEEL_ACCEL = (char *)"base.wheel.accel.max";
   static constexpr char * UROS_PARAM_BASE_DIA = (char *)"base.diameter";
-  static constexpr char * UROS_PARAM_WHEEL_BASE = (char *)"base.wheel.distance";
+  static constexpr char * UROS_PARAM_BASE_WHEEL_TRACK = (char *)"base.wheel.track";
   static constexpr char * UROS_PARAM_BASE_WHEEL_DIA = (char *)"base.wheel.diameter";
 
   static const uint16_t LIDAR_BUF_LEN = 400;
@@ -191,8 +191,8 @@ public:
   // Hack  
   // Cache divisions
   float speed_diff_to_us;
-  float wheel_base_recip;
-  float base_radius;
+  float wheel_track_recip;
+  float wheel_track_radius;
   float wheel_radius;
   float wheel_perim_len_div60;
   float wheel_perim_len_div60_recip;
@@ -217,9 +217,9 @@ public:
     speed_diff_to_us = 1e6/max_wheel_accel;
   }
   
-  void setWheelBase(float wheel_base) {
-    base_radius = wheel_base*0.5f;
-    wheel_base_recip = 1/wheel_base;
+  void setWheelTrack(float wheel_track) {
+    wheel_track_radius = wheel_track*0.5f;
+    wheel_track_recip = 1/wheel_track;
   }
   
   // Hack
@@ -233,7 +233,7 @@ public:
   
   void twistToWheelSpeeds(float speed_lin_x, float speed_ang_z,
     float *speed_right, float *speed_left) {
-    float ang_component = speed_ang_z*base_radius;
+    float ang_component = speed_ang_z*wheel_track_radius;
     *speed_right = speed_lin_x + ang_component;
     *speed_left  = speed_lin_x - ang_component;
   }

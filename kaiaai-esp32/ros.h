@@ -325,8 +325,8 @@ CONFIG::error_blink_count addROSParams() {
   RCL_PAR(rclc_add_parameter(&param_server, cfg.UROS_PARAM_BASE_DIA, RCLC_PARAMETER_DOUBLE));
   RCL_PAR(rclc_set_parameter_read_only(&param_server, cfg.UROS_PARAM_BASE_DIA, true));
 
-  RCL_PAR(rclc_add_parameter(&param_server, cfg.UROS_PARAM_WHEEL_BASE, RCLC_PARAMETER_DOUBLE));
-  RCL_PAR(rclc_set_parameter_read_only(&param_server, cfg.UROS_PARAM_WHEEL_BASE, true));
+  RCL_PAR(rclc_add_parameter(&param_server, cfg.UROS_PARAM_BASE_WHEEL_TRACK, RCLC_PARAMETER_DOUBLE));
+  RCL_PAR(rclc_set_parameter_read_only(&param_server, cfg.UROS_PARAM_BASE_WHEEL_TRACK, true));
 
   RCL_PAR(rclc_add_parameter(&param_server, cfg.UROS_PARAM_BASE_WHEEL_DIA, RCLC_PARAMETER_DOUBLE));
   RCL_PAR(rclc_set_parameter_read_only(&param_server, cfg.UROS_PARAM_BASE_WHEEL_DIA, true));
@@ -431,7 +431,7 @@ CONFIG::error_blink_count updateROSConfigParams() {
 
   RCL_PAR(update_double(cfg.UROS_PARAM_MAX_WHEEL_ACCEL, params.getAsFloat(cfg.PARAM_MAX_WHEEL_ACCEL)));
   RCL_PAR(update_double(cfg.UROS_PARAM_BASE_DIA, params.getAsFloat(cfg.PARAM_BASE_DIA)));
-  RCL_PAR(update_double(cfg.UROS_PARAM_WHEEL_BASE, params.getAsFloat(cfg.PARAM_WHEEL_BASE)));
+  RCL_PAR(update_double(cfg.UROS_PARAM_BASE_WHEEL_TRACK, params.getAsFloat(cfg.PARAM_BASE_WHEEL_TRACK)));
   RCL_PAR(update_double(cfg.UROS_PARAM_BASE_WHEEL_DIA, params.getAsFloat(cfg.PARAM_BASE_WHEEL_DIA)));
 
   suppress_param_log_print = false;
