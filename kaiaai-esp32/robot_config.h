@@ -156,25 +156,22 @@ public:
   static constexpr char * UROS_PARAM_MOTOR_LEFT_ENCODER_NOW = (char *)"motor.left.encoder.now";
   static constexpr char * UROS_PARAM_MOTOR_RIGHT_ENCODER_NOW = (char *)"motor.right.encoder.now";
 
-  static constexpr char * UROS_PARAM_MOTOR_LEFT_ENCODER_PPR = (char *)"motor.left.encoder.ppr";
-  static constexpr char * UROS_PARAM_MOTOR_LEFT_ENCODER_TPR = (char *)"motor.left.encoder.tpr";
-  static constexpr char * UROS_PARAM_MOTOR_LEFT_RPM_MAX_DERATED = (char *)"motor.left.rpm.max.derated";
   static constexpr char * UROS_PARAM_MOTOR_LEFT_RPM_NOW = (char *)"motor.left.rpm.now";
   static constexpr char * UROS_PARAM_MOTOR_LEFT_RPM_TARGET = (char *)"motor.left.rpm.target";
   static constexpr char * UROS_PARAM_MOTOR_LEFT_PWM_NOW = (char *)"motor.left.pwm.now";
 
-  static constexpr char * UROS_PARAM_MOTOR_RIGHT_ENCODER_PPR = (char *)"motor.right.encoder.ppr";
-  static constexpr char * UROS_PARAM_MOTOR_RIGHT_ENCODER_TPR = (char *)"motor.right.encoder.tpr";
-  static constexpr char * UROS_PARAM_MOTOR_RIGHT_RPM_MAX_DERATED = (char *)"motor.right.rpm.max.derated";
   static constexpr char * UROS_PARAM_MOTOR_RIGHT_RPM_NOW = (char *)"motor.right.rpm.now";
   static constexpr char * UROS_PARAM_MOTOR_RIGHT_RPM_TARGET = (char *)"motor.right.rpm.target";
   static constexpr char * UROS_PARAM_MOTOR_RIGHT_PWM_NOW = (char *)"motor.right.pwm.now";
 
-  static constexpr char * UROS_PARAM_MOTOR_PID_KP = (char *)"motor.left.pid.kp";
-  static constexpr char * UROS_PARAM_MOTOR_PID_KI = (char *)"motor.left.pid.ki";
-  static constexpr char * UROS_PARAM_MOTOR_PID_KD = (char *)"motor.left.pid.kd";
-  static constexpr char * UROS_PARAM_MOTOR_PID_ON_ERROR = (char *)"motor.left.pid.on_error";
-  static constexpr char * UROS_PARAM_MOTOR_PID_PERIOD = (char *)"motor.left.pid.period";
+  static constexpr char * UROS_PARAM_MOTOR_ENCODER_PPR = (char *)"motor.encoder.ppr";
+  static constexpr char * UROS_PARAM_MOTOR_ENCODER_TPR = (char *)"motor.encoder.tpr";
+  static constexpr char * UROS_PARAM_MOTOR_RPM_MAX_DERATED = (char *)"motor.rpm.max.derated";
+  static constexpr char * UROS_PARAM_MOTOR_PID_KP = (char *)"motor.pid.kp";
+  static constexpr char * UROS_PARAM_MOTOR_PID_KI = (char *)"motor.pid.ki";
+  static constexpr char * UROS_PARAM_MOTOR_PID_KD = (char *)"motor.pid.kd";
+  static constexpr char * UROS_PARAM_MOTOR_PID_ON_ERROR = (char *)"motor.pid.on_error";
+  static constexpr char * UROS_PARAM_MOTOR_PID_PERIOD = (char *)"motor.pid.period";
 
   static constexpr char * UROS_PARAM_MAX_WHEEL_ACCEL = (char *)"base.wheel.accel.max";
   static constexpr char * UROS_PARAM_BASE_DIA = (char *)"base.diameter";
