@@ -16,8 +16,7 @@
   #error This example runs on ESP32
 #endif
 
-#include <LDS_YDLIDAR_X4.h>
-//#include <LDS_DELTA_2G.h>
+#include <LDS_YDLIDAR_X2_X2L.h>
 
 const uint8_t LDS_MOTOR_EN_PIN = 19; // ESP32 Dev Kit LiDAR enable pin
 const uint8_t LDS_MOTOR_PWM_PIN = 15; // LiDAR motor speed control using PWM
@@ -26,8 +25,7 @@ const uint8_t LDS_MOTOR_PWM_PIN = 15; // LiDAR motor speed control using PWM
 #define LDS_MOTOR_PWM_CHANNEL    2 // ESP32 PWM channel for LiDAR motor speed control
 
 HardwareSerial LidarSerial(2); // TX 17, RX 16
-LDS_YDLIDAR_X4 lidar;  // Uncomment your LiDAR model
-//LDS_DELTA_2G lidar;
+LDS_YDLIDAR_X2_X2L lidar;
 
 void setup() {
   Serial.begin(115200);
@@ -62,27 +60,15 @@ void setup() {
   Serial.println(lidar.resultCodeToString(result));
 
   if (result < 0)
-    Serial.println("WARNING: is LDS connected to ESP32?");
+    Serial.println("Is the LiDAR connected to ESP32?");
 }
 
 int lidar_serial_read_callback() {
-  int c = LidarSerial.read();
-// Uncomment below for debug
-/*
-  if (c < 0)
-    return c;
-
-  if (c < 16)
-    Serial.print('0');
-  Serial.print(c, HEX);
-
-  static int i=0;
-  if (i++ % 16 == 0)
-    Serial.println();
-  else
-    Serial.print(' ');
-*/
-  return c;
+  return LidarSerial.read();
+//  int ch = LidarSerial.read();
+//  if (ch != -1)
+//    Serial.println(ch);
+//  return ch;
 }
 
 size_t lidar_serial_write_callback(const uint8_t * buffer, size_t length) {
@@ -107,14 +93,14 @@ void lidar_scan_point_callback(float angle_deg, float distance_mm, float quality
 }
 
 void lidar_info_callback(LDS::info_t code, String info) {
-  Serial.print("LDS info ");
+  Serial.print("LiDAR info ");
   Serial.print(lidar.infoCodeToString(code));
   Serial.print(": ");
   Serial.println(info);
 }
 
 void lidar_error_callback(LDS::result_t code, String aux_info) {
-  Serial.print("LDS error ");
+  Serial.print("LiDAR error ");
   Serial.print(lidar.resultCodeToString(code));
   Serial.print(": ");
   Serial.println(aux_info);
@@ -143,15 +129,7 @@ void lidar_motor_pin_callback(float value, LDS::lds_pin_t lidar_pin) {
 }
 
 void lidar_packet_callback(uint8_t * packet, uint16_t length, bool scan_completed) {
-  // Uncomment for debug
-  /*
-  Serial.print("Packet ");
-  Serial.print(length);
-  Serial.print("b");
-  float hz = lidar.getCurrentScanFreqHz();
-  Serial.print(", speed ");
-  Serial.println(hz);
-  */
+  return;
 }
 
 void loop() {

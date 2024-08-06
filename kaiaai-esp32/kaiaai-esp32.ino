@@ -376,11 +376,30 @@ void calcOdometry2(unsigned long step_time_us, float joint_pos_delta_right,
 
   float distance_right = -joint_pos_delta_right * cfg.wheel_radius;
   float distance_left = joint_pos_delta_left * cfg.wheel_radius;
+/*
+  Serial.print(step_time_us);
+  Serial.print('\t');
+  Serial.print(distance_right);
+  Serial.print('\t');
+  Serial.print(distance_left);
+  Serial.print('\t');
 
-//  Serial.print(distance_right);
+  Serial.print(motorLeft.getEncoderValue());
+  Serial.print('\t');
+  Serial.println(motorRight.getEncoderValue());
+*/
 //  Serial.print('\t');
-//  Serial.print(distance_left);
+//  Serial.print(motorLeft.getCurrentRPM());
 //  Serial.print('\t');
+//  Serial.print(motorRight.getCurrentRPM());
+//  Serial.print('\t');
+//  Serial.print(motorLeft.getCurrentPWM());
+//  Serial.print('\t');
+//  Serial.print(motorRight.getCurrentPWM());
+//  Serial.print('\t');
+//  Serial.print(motorLeft.getTargetRPM());
+//  Serial.print('\t');
+//  Serial.println(motorRight.getTargetRPM());
 
   // TODO use Runge-Kutta integration for better accuracy
   float average_distance = (distance_right + distance_left) * 0.5;

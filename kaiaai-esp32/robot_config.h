@@ -60,7 +60,7 @@ public:
   static const uint32_t LIDAR_PWM_FREQ = 10000;
   static const uint8_t LIDAR_PWM_BITS = 11;
 
-  static const uint8_t RESET_SETTINGS_HOLD_SEC = 5; // Hold BOOT button to reset WiFi
+  static const uint8_t RESET_SETTINGS_HOLD_SEC = 3; // Hold BOOT button to reset WiFi
 
   static const uint16_t BAT_PRESENT_MV_MIN = 4000;
 
