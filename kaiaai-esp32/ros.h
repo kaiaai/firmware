@@ -113,6 +113,10 @@ bool on_ros_param_changed(const Parameter * old_param, const Parameter * new_par
         motorLeft.setEncoderPPR(float(new_param->value.double_value));
         motorRight.setEncoderPPR(float(new_param->value.double_value));
         ros_config_params_changed = true;
+      } else if (strcmp(old_param->name.data, cfg.UROS_PARAM_MAX_WHEEL_ACCEL) == 0) {
+        // TODO copy to config
+        cfg.setMaxWheelAccel(float(new_param->value.double_value));
+        ros_config_params_changed = true;
       } else if (strcmp(old_param->name.data, cfg.UROS_PARAM_MOTOR_PID_KP) == 0) {
         // TODO copy to config
         motorLeft.setPIDKp(float(new_param->value.double_value));
@@ -309,8 +313,9 @@ CONFIG::error_blink_count addROSParams() {
   RCL_PAR(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_RPM_TARGET, RCLC_PARAMETER_DOUBLE));
   RCL_PAR(rclc_set_parameter_read_only(&param_server, cfg.UROS_PARAM_MOTOR_RIGHT_RPM_TARGET, true));
 
+  // TODO positive value
   RCL_PAR(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MAX_WHEEL_ACCEL, RCLC_PARAMETER_DOUBLE));
-  RCL_PAR(rclc_set_parameter_read_only(&param_server, cfg.UROS_PARAM_MAX_WHEEL_ACCEL, true));
+//  RCL_PAR(rclc_set_parameter_read_only(&param_server, cfg.UROS_PARAM_MAX_WHEEL_ACCEL, true));
 
   RCL_PAR(rclc_add_parameter(&param_server, cfg.UROS_PARAM_BASE_DIA, RCLC_PARAMETER_DOUBLE));
   RCL_PAR(rclc_set_parameter_read_only(&param_server, cfg.UROS_PARAM_BASE_DIA, true));
@@ -416,7 +421,7 @@ CONFIG::error_blink_count updateROSConfigParams() {
   RCL_PAR(update_bool(cfg.UROS_PARAM_MOTOR_PID_ON_ERROR, motorLeft.getPIDOnError()));
   RCL_PAR(update_double(cfg.UROS_PARAM_MOTOR_PID_PERIOD, motorLeft.getPIDPeriod()));
 
-  RCL_PAR(update_double(cfg.UROS_PARAM_MAX_WHEEL_ACCEL, params.getAsFloat(cfg.PARAM_MAX_WHEEL_ACCEL)));
+  RCL_PAR(update_double(cfg.UROS_PARAM_MAX_WHEEL_ACCEL, cfg.base_wheel_accel_max));
   RCL_PAR(update_double(cfg.UROS_PARAM_BASE_DIA, params.getAsFloat(cfg.PARAM_BASE_DIA)));
   RCL_PAR(update_double(cfg.UROS_PARAM_BASE_WHEEL_TRACK, params.getAsFloat(cfg.PARAM_BASE_WHEEL_TRACK)));
   RCL_PAR(update_double(cfg.UROS_PARAM_BASE_WHEEL_DIA, params.getAsFloat(cfg.PARAM_BASE_WHEEL_DIA)));

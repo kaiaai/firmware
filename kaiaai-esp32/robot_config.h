@@ -188,6 +188,7 @@ public:
   // Hack  
   // Cache divisions
   float speed_diff_to_us;
+  float base_wheel_accel_max;
   float wheel_track_recip;
   float wheel_track_radius;
   float wheel_radius;
@@ -211,6 +212,7 @@ public:
   }
   
   void setMaxWheelAccel(float max_wheel_accel) {
+    base_wheel_accel_max = max_wheel_accel;
     speed_diff_to_us = 1e6/max_wheel_accel;
   }
   
