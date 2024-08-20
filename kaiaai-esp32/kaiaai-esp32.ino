@@ -591,7 +591,7 @@ void error_loop(int n_blinks){
 }
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(500000);
 
   pinMode(cfg.LED_PIN, OUTPUT);
   digitalWrite(cfg.LED_PIN, HIGH);

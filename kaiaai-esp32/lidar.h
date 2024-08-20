@@ -51,7 +51,7 @@ size_t lidar_serial_write_callback(const uint8_t * buffer, size_t length) {
 }
 
 int lidar_serial_read_callback() {
-/*
+
   static int i=0;
 
   int c = LdSerial.read();
@@ -66,8 +66,8 @@ int lidar_serial_read_callback() {
   else
     Serial.print(' ');
   return c;
-*/
-  return LdSerial.read();
+
+//  return LdSerial.read();
 }
 
 void lidar_scan_point_callback(float angle_deg, float distance_mm, float quality,
@@ -118,7 +118,7 @@ void lidar_packet_callback(uint8_t * packet, uint16_t packet_length, bool scan_c
 
 void lidar_motor_pin_callback(float value, LDS::lds_pin_t lds_pin) {
   /*
-  Serial.print("LDS pin ");
+  Serial.print("LiDAR pin ");
   Serial.print(lidar->pinIDToString(lds_pin));
   Serial.print(" set ");
   if (lds_pin > 0)
@@ -152,15 +152,20 @@ void lidar_motor_pin_callback(float value, LDS::lds_pin_t lds_pin) {
 }
 
 void lidar_info_callback(LDS::info_t code, String info) {
-  Serial.print("LDS info ");
+  Serial.print("LiDAR info ");
   Serial.print(lidar->infoCodeToString(code));
   Serial.print(": ");
   Serial.println(info);
 }
 
 void lidar_error_callback(LDS::result_t code, String aux_info) {
+//  return;
+
+
+
+
   if (code != LDS::ERROR_NOT_READY) {
-    String s = "LDS ";
+    String s = "LiDAR ";
     s = s + String(lidar->resultCodeToString(code));
 
     if (aux_info.length() > 0) {
