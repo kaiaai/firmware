@@ -51,7 +51,7 @@ size_t lidar_serial_write_callback(const uint8_t * buffer, size_t length) {
 }
 
 int lidar_serial_read_callback() {
-
+/*
   static int i=0;
 
   int c = LdSerial.read();
@@ -66,8 +66,8 @@ int lidar_serial_read_callback() {
   else
     Serial.print(' ');
   return c;
-
-//  return LdSerial.read();
+*/
+  return LdSerial.read();
 }
 
 void lidar_scan_point_callback(float angle_deg, float distance_mm, float quality,
@@ -117,7 +117,6 @@ void lidar_packet_callback(uint8_t * packet, uint16_t packet_length, bool scan_c
 }
 
 void lidar_motor_pin_callback(float value, LDS::lds_pin_t lds_pin) {
-  /*
   Serial.print("LiDAR pin ");
   Serial.print(lidar->pinIDToString(lds_pin));
   Serial.print(" set ");
@@ -127,7 +126,6 @@ void lidar_motor_pin_callback(float value, LDS::lds_pin_t lds_pin) {
     Serial.print(lidar->pinStateToString((LDS::lds_pin_state_t)value));
   Serial.print(", RPM ");
   Serial.println(lidar->getCurrentScanFreqHz());
-  */
   
   int pin = (lds_pin == LDS::LDS_MOTOR_EN_PIN) ?
     cfg.LIDAR_EN_PIN : cfg.LIDAR_PWM_PIN;
