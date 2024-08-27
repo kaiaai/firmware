@@ -72,6 +72,7 @@ public:
     PARAM_ROBOT_MODEL,
     PARAM_ROBOT_MODEL_NAME,
     PARAM_LIDAR_MODEL,
+    PARAM_LIDAR_SCAN_FREQ_HZ,
     PARAM_MOTOR_MODEL,
     PARAM_BASE_DIA,
     PARAM_BASE_WHEEL_TRACK,
@@ -120,7 +121,8 @@ protected:
     "0.001", "0.001", "0", "ON_MEASUREMENT", "0.03", "0.9", "11"};
   char* PARAM_NAME[PARAM_COUNT] = {(char *)"ssid", (char *)"pass",
     (char *)"dest_ip", (char *)"dest_port", (char *)"robot_model",
-    (char *)"robot_model_name", (char *)"lidar_model", (char *)"motor_model",
+    (char *)"robot_model_name", (char *)"lidar_model",
+    (char *)"lidar_scan_freq_hz", (char *)"motor_model",
     (char *)"base_dia", (char *)"wheel_track",
     (char *)"base_wheel_dia", (char *)"max_wheel_accel",
     (char *)"motor_max_rpm", (char *)"wheel_ppr", (char *)"motor_voltage",

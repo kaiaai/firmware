@@ -40,7 +40,7 @@ void setupADC() {
   if (batt_mv < cfg.BAT_PRESENT_MV_MIN) {
     Serial.println();
     Serial.println("Battery NOT detected. Check battery switch, "
-      "connection, replace battery");
+      "connection or replace battery");
   } else {
     Serial.print(", voltage ");
     Serial.print(batt_mv*0.001f);

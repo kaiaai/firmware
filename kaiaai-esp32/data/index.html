@@ -175,6 +175,15 @@ function restoreConfig(config) {
 	  x.innerHTML = "Local PC IPv4 &#9207";
 	}
   }
+  function toggleLiDARProps() {
+    var is_visible = showToggle('lidar_props_div');
+	var x = document.getElementById('lidar_model_label');
+	if (is_visible) {
+	  x.innerHTML = "LiDAR Model &#9205";
+	} else {
+	  x.innerHTML = "LiDAR Model &#9207";
+	}
+  }
   function toggleAdvancedProps() {
     var is_visible = showToggle('advanced_props_div');
 	var x = document.getElementById('advanced_props_label');
@@ -285,7 +294,7 @@ function restoreConfig(config) {
           </div>
         </div>
       </div>
-	  </div>
+
       </fieldset>
       <br>
       <fieldset>
@@ -367,7 +376,7 @@ function restoreConfig(config) {
 	  <legend>Sensors</legend>
 	  <div class="row">
 	    <div class="col-25">
-          <label for="lidar_model">LiDAR Model</label>
+          <label for="lidar_model" class="clickable" id="lidar_model_label" onclick="toggleLiDARProps()">LiDAR Model &#9205;</label>
 		</div>
 		<div class="col-75">
           <select name="lidar_model" id="lidar_model" required title="LiDAR manufacturer and model">
@@ -388,6 +397,20 @@ function restoreConfig(config) {
           </select>
         </div>
       </div>
+
+      <div id="lidar_props_div" style="display:none">
+	  <div class="row">
+	    <div class="col-25">
+          <label for="lidar_scan_freq_hz">Scan Frequency, Hz</label>
+		</div>
+		<div class="col-75">
+          <div class="sub_input">
+          <input type="text" id="lidar_scan_freq_hz" name="lidar_scan_freq_hz" value="5.0" pattern="([0-9]+\.)?[0-9]+" maxlength="6" minlength="1" required inputmode="decimal" title="Desired LiDAR scan frequency. Make sure that your LiDAR model supports it.">
+          </div>
+        </div>
+      </div>
+	  </div>
+
       </fieldset>
       <br>
       <fieldset>
