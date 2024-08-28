@@ -29,8 +29,8 @@ float getBatteryMilliVolts() {
 }
 
 void setupADC() {
-  if (!adcAttachPin(cfg.BAT_ADC_PIN))
-    Serial.println("adcAttachPin() FAILED");
+//  if (!adcAttachPin(cfg.BAT_ADC_PIN))
+//    Serial.println("adcAttachPin() FAILED");
 
   bat_adc_multiplier = params.getAsFloat(cfg.PARAM_BATTERY_ADC_ATTENUATION);
   Serial.print("Battery ADC attenuation ");

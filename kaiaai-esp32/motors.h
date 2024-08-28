@@ -107,7 +107,8 @@ void setMotorPWM(MotorController *motor_controller, float pwm) {
       uint8_t in1 = pwm > 0 ? in1_pin : in2_pin;
       uint8_t in2 = pwm > 0 ? in2_pin : in1_pin;
       
-      ledcAttachPin(in2, pwm_channel);
+      //ledcAttachPin(in2, pwm_channel);
+      ledcAttachChannel(in2, cfg.MOT_PWM_FREQ, cfg.MOT_PWM_BITS, pwm_channel);
       ledcWrite(pwm_channel, pwm_magnitude);
       pinMode(in1, OUTPUT);
       digitalWrite(in1, HIGH);
@@ -152,22 +153,26 @@ void setupDriver(motor_driver_t motor_driver_type) {
       pinMode(cfg.MOT_CW_LEFT_PIN, OUTPUT);
       pinMode(cfg.MOT_CW_RIGHT_PIN, OUTPUT);
 
-      ledcSetup(cfg.MOT_PWM_LEFT_CHANNEL, cfg.MOT_PWM_FREQ, cfg.MOT_PWM_BITS);
+      //ledcSetup(cfg.MOT_PWM_LEFT_CHANNEL, cfg.MOT_PWM_FREQ, cfg.MOT_PWM_BITS);
       pinMode(cfg.MOT_PWM_LEFT_PIN, OUTPUT);
-      ledcAttachPin(cfg.MOT_PWM_LEFT_PIN, cfg.MOT_PWM_LEFT_CHANNEL);
+      //ledcAttachPin(cfg.MOT_PWM_LEFT_PIN, cfg.MOT_PWM_LEFT_CHANNEL);
+      ledcAttachChannel(cfg.MOT_PWM_LEFT_PIN, cfg.MOT_PWM_FREQ, cfg.MOT_PWM_BITS, cfg.MOT_PWM_LEFT_CHANNEL);
     
-      ledcSetup(cfg.MOT_PWM_RIGHT_CHANNEL, cfg.MOT_PWM_FREQ, cfg.MOT_PWM_BITS);
+      //ledcSetup(cfg.MOT_PWM_RIGHT_CHANNEL, cfg.MOT_PWM_FREQ, cfg.MOT_PWM_BITS);
       pinMode(cfg.MOT_PWM_RIGHT_PIN, OUTPUT);
-      ledcAttachPin(cfg.MOT_PWM_RIGHT_PIN, cfg.MOT_PWM_RIGHT_CHANNEL);
+      //ledcAttachPin(cfg.MOT_PWM_RIGHT_PIN, cfg.MOT_PWM_RIGHT_CHANNEL);
+      ledcAttachChannel(cfg.MOT_PWM_RIGHT_PIN, cfg.MOT_PWM_FREQ, cfg.MOT_PWM_BITS, cfg.MOT_PWM_RIGHT_CHANNEL);
       break;
     default:
       pinMode(cfg.MOT_IN1_LEFT_PIN, OUTPUT);
       pinMode(cfg.MOT_IN2_LEFT_PIN, OUTPUT);
-      ledcSetup(cfg.MOT_PWM_LEFT_CHANNEL, cfg.MOT_PWM_FREQ, cfg.MOT_PWM_BITS);
+      //ledcSetup(cfg.MOT_PWM_LEFT_CHANNEL, cfg.MOT_PWM_FREQ, cfg.MOT_PWM_BITS);
+      ledcAttachChannel(cfg.MOT_IN1_LEFT_PIN, cfg.MOT_PWM_FREQ, cfg.MOT_PWM_BITS, cfg.MOT_PWM_LEFT_CHANNEL);
 
       pinMode(cfg.MOT_IN1_RIGHT_PIN, OUTPUT);
       pinMode(cfg.MOT_IN2_RIGHT_PIN, OUTPUT);
-      ledcSetup(cfg.MOT_PWM_RIGHT_CHANNEL, cfg.MOT_PWM_FREQ, cfg.MOT_PWM_BITS);
+      //ledcSetup(cfg.MOT_PWM_RIGHT_CHANNEL, cfg.MOT_PWM_FREQ, cfg.MOT_PWM_BITS);
+      ledcAttachChannel(cfg.MOT_IN2_RIGHT_PIN, cfg.MOT_PWM_FREQ, cfg.MOT_PWM_BITS, cfg.MOT_PWM_RIGHT_CHANNEL);
       break;
   }
 }

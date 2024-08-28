@@ -89,15 +89,15 @@ class MotorController {
     void tickSignedEncoder(bool increment) {
 //      if (increment ^ encoderReversed)
       if (increment)
-        encoder++;
+        encoder = encoder + 1;
       else
-        encoder--;      
+        encoder = encoder - 1;
     }
     void tickUnsignedEncoder() {
 //      if (cw ^ encoderReversed)
       if (cw)
-        encoder++;
+        encoder = encoder + 1;
       else
-        encoder--;
+        encoder = encoder - 1;
     }
 };

@@ -28,6 +28,11 @@
 #else
 #include <Hash.h>
 #endif
+#ifdef ESP32
+#if ESP_IDF_VERSION_MAJOR >= 5
+#include "rom/ets_sys.h"
+#endif
+#endif
 
 #define MAX_PRINTF_LEN 64
 
@@ -460,7 +465,7 @@ AsyncWebSocketMultiMessage::~AsyncWebSocketMultiMessage() {
 /*
  * Async WebSocket Client
  */
- const char * AWSC_PING_PAYLOAD = "ESPAsyncWebSrv-PING";
+ const char * AWSC_PING_PAYLOAD = "ESPAsyncWebServer-PING";
  const size_t AWSC_PING_PAYLOAD_LEN = 22;
 
 AsyncWebSocketClient::AsyncWebSocketClient(AsyncWebServerRequest *request, AsyncWebSocket *server)
@@ -829,7 +834,7 @@ void AsyncWebSocketClient::binary(AsyncWebSocketMessageBuffer * buffer)
 
 IPAddress AsyncWebSocketClient::remoteIP() {
     if(!_client) {
-        return IPAddress(static_cast<uint32_t>(0U));
+        return IPAddress((uint32_t)0U);
     }
     return _client->remoteIP();
 }
@@ -1259,9 +1264,15 @@ AsyncWebSocketResponse::AsyncWebSocketResponse(const String& key, AsyncWebSocket
   (String&)key += WS_STR_UUID;
   mbedtls_sha1_context ctx;
   mbedtls_sha1_init(&ctx);
+#if ESP_IDF_VERSION_MAJOR < 5
   mbedtls_sha1_starts_ret(&ctx);
   mbedtls_sha1_update_ret(&ctx, (const unsigned char*)key.c_str(), key.length());
   mbedtls_sha1_finish_ret(&ctx, hash);
+#else
+  mbedtls_sha1_starts(&ctx);
+  mbedtls_sha1_update(&ctx, (const unsigned char*)key.c_str(), key.length());
+  mbedtls_sha1_finish(&ctx, hash);
+#endif
   mbedtls_sha1_free(&ctx);
 #endif
   base64_encodestate _state;

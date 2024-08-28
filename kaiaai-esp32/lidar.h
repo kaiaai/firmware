@@ -130,19 +130,20 @@ void lidar_motor_pin_callback(float value, LDS::lds_pin_t lds_pin) {
   int pin = (lds_pin == LDS::LDS_MOTOR_EN_PIN) ?
     cfg.LIDAR_EN_PIN : cfg.LIDAR_PWM_PIN;
 
-  if (value <= LDS::DIR_INPUT) {
+  if (int(value) <= LDS::DIR_INPUT) {
     // Configure pin direction
-    if (value == LDS::DIR_OUTPUT_PWM) {
+    if (int(value) == LDS::DIR_OUTPUT_PWM) {
       //pinMode(pin, OUTPUT);
       //ledcSetup(cfg.LIDAR_PWM_CHANNEL, cfg.LIDAR_PWM_FREQ, cfg.LIDAR_PWM_BITS);
-      ledcAttachPin(pin, cfg.LIDAR_PWM_CHANNEL);
+      //ledcAttachPin(pin, cfg.LIDAR_PWM_CHANNEL);
+      ledcAttachChannel(pin, cfg.LIDAR_PWM_FREQ, cfg.LIDAR_PWM_BITS, cfg.LIDAR_PWM_CHANNEL);
     } else
-      pinMode(pin, (value == LDS::DIR_INPUT) ? INPUT : OUTPUT);
+      pinMode(pin, (int(value) == LDS::DIR_INPUT) ? INPUT : OUTPUT);
     return;
   }
 
-  if (value < LDS::VALUE_PWM) // set constant output
-    digitalWrite(pin, (value == LDS::VALUE_HIGH) ? HIGH : LOW);
+  if (int(value) < LDS::VALUE_PWM) // set constant output
+    digitalWrite(pin, (int(value) == LDS::VALUE_HIGH) ? HIGH : LOW);
   else { // set PWM duty cycle
     int pwm_value = ((1<<cfg.LIDAR_PWM_BITS)-1)*value;
     ledcWrite(cfg.LIDAR_PWM_CHANNEL, pwm_value);
@@ -175,7 +176,7 @@ void lidar_error_callback(LDS::result_t code, String aux_info) {
 }
 
 void setupLIDAR() {
-  ledcSetup(cfg.LIDAR_PWM_CHANNEL, cfg.LIDAR_PWM_FREQ, cfg.LIDAR_PWM_BITS);
+  //ledcSetup(cfg.LIDAR_PWM_CHANNEL, cfg.LIDAR_PWM_FREQ, cfg.LIDAR_PWM_BITS);
 
   const char * model = params.get(cfg.PARAM_LIDAR_MODEL);
   Serial.print("LIDAR model ");

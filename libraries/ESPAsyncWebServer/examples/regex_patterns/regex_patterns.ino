@@ -25,7 +25,7 @@
 #include <ESP8266WiFi.h>
 #include <ESPAsyncTCP.h>
 #endif
-#include <ESPAsyncWebSrv.h>
+#include <ESPAsyncWebServer.h>
 
 AsyncWebServer server(80);
 

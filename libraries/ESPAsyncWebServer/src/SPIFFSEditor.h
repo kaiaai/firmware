@@ -1,6 +1,6 @@
 #ifndef SPIFFSEditor_H_
 #define SPIFFSEditor_H_
-#include <ESPAsyncWebSrv.h>
+#include <ESPAsyncWebServer.h>
 
 class SPIFFSEditor: public AsyncWebHandler {
   private:

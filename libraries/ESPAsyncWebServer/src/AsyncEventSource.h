@@ -28,7 +28,7 @@
 #include <ESPAsyncTCP.h>
 #define SSE_MAX_QUEUED_MESSAGES 8
 #endif
-#include <ESPAsyncWebSrv.h>
+#include <ESPAsyncWebServer.h>
 
 #include "AsyncWebSynchronization.h"
 

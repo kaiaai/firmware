@@ -18,7 +18,7 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-#include "ESPAsyncWebSrv.h"
+#include "ESPAsyncWebServer.h"
 #include "WebHandlerImpl.h"
 
 AsyncStaticWebHandler::AsyncStaticWebHandler(const char* uri, FS& fs, const char* path, const char* cache_control)

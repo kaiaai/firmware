@@ -29,6 +29,7 @@
 #include "lds_all_models.h"
 #include "motors.h"
 #include "param_file.h"
+#include "esp_mac.h"
 
 extern MotorController motorLeft, motorRight;
 extern CONFIG cfg;
@@ -155,7 +156,7 @@ CONFIG::error_blink_count syncRosTime() {
   
   if (time_ms > 0) {
     time_t time_seconds = time_ms*0.001;
-    time_t time_micro_seconds = (time_ms - time_seconds*1000)*1000; 
+    suseconds_t time_micro_seconds = (time_ms - time_seconds*1000)*1000; 
     
     // https://gist.github.com/igrr/d7db8a78170bf6981f2e606b42c4361c
     setenv("TZ", "GMT0", 1);
@@ -196,8 +197,13 @@ CONFIG::error_blink_count setupMicroROS(rclc_subscription_callback_t twist_sub_c
   //  Serial.println("not ");
   //}
   //Serial.print("found");
+
   uint8_t mac[6];
-  esp_read_mac(mac, ESP_MAC_WIFI_STA);
+  //esp_read_mac(mac, ESP_MAC_WIFI_STA);
+  if (esp_efuse_mac_get_default(mac) != ESP_OK) {
+    Serial.print("Error reading efuse MAC");
+  }
+
   uint32_t client_key = mac[1]<<(3*8) | mac[2]<<(2*8) | mac[3]<<(1*8) | mac[4];
   client_key = client_key<<(8-2) | mac[5]>>2;  // TODO multiple bots
   RCL_ERR(rmw_uros_options_set_client_key(client_key, rmw_options), CONFIG::ERR_UROS_INIT);
