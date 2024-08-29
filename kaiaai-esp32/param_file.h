@@ -38,7 +38,7 @@ public:
     
     File file = SPIFFS.open(CONFIG_PATH);
     if (!file || file.isDirectory()) {
-      Serial.println(" - file open failed");
+      Serial.println(" - file not found");
       return false;
     } else
       Serial.println();
