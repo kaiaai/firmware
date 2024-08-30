@@ -15,9 +15,9 @@ List of supported LiDAR/LDS sensors is here.
   - alternatively, download the latest or an older release by clicking Releases on this page; click on Assets -> Source code to download the firmware
 - open the downloaded ZIP file
   - navigate inside the "firmware-xxx" folder
-  - copy everything inside the "firmware-xxx" folder to your Arduino sketch folder
+  - copy everything inside the "firmware-xxx" folder to your Arduino sketch folder. That includes both the Arduino sketch and the libraries folder.
 - watch the video below to
-  - install the ESP32 tool chain
+  - install the ESP32 tool chain version 2.0.17 (NOT 3.0.x)
   - ignore Arduino IDE library installation in the video
   - build, upload firmware
   - upload sketch data
@@ -110,13 +110,15 @@ This [blog post](https://kaia.ai/blog/arduino-platform-firmware-avaiable/) discu
 
 ## Change Log
 
-### v0.5.0 - in debug
+### v0.5.0
 - motor driver
   - brushed motor support: drivers TB6612FNG, LM298N, DRV8871 and others with same IN1, IN2 control input logic
+  - N20 motors supported
   - quadrature encoders
   - reverse motor direction, reverse motor encoder - for wiring convenience
 - web configuration
   - additional options including PID, motor drive type, motor encoder type
+  - LiDAR scan frequency option
   - automatically loads values from previous configuration
 - ROS properties
   - motors: get max RPM, derated max RPM, target RPM, current RPM
@@ -126,6 +128,9 @@ This [blog post](https://kaia.ai/blog/arduino-platform-firmware-avaiable/) discu
   - LiDAR: get current scan rate, LiDAR model, 
 - code refactored into separate files for readability
   - motor controller code moved into its own library
+- added support for YDLIDAR SCL
+- set micro-ROS client key using ESP32 MAC for smoother micro-ROS reconnect
+- refactored code into separate files
 
 ### v0.4.1
 - added Delta-2A 230400 baud version (vs old 115200 baud)
