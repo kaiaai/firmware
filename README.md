@@ -72,11 +72,15 @@ This [blog post](https://kaia.ai/blog/arduino-platform-firmware-avaiable/) discu
   - 9..24V voltage (higher voltage increases efficiency)
   - GA25-370 size; 24.4mm outer diameter
   - ~190..450 no-load (max) RPM, ~140..350 rated RPM
-  - quadrature encoder
+  - quadrature encoder (e.g. outputs two signals: ENC_A and ENC_B)
   - 6-pin connector (VMOT+, VMOT-, ENC_A, ENC_B, VENC+, GND)
 - N20 motors
   - can be connected, but not recommended due to their low power
-- L298N motor driver is required when using brushed motors
+- a compatible motor driver is required when using brushed motors
+  - TB6612FNG max 13.5V, max 1.2A average per motor; one TB6612FNG controls two motors
+  - L298N supports 24V, max 2A average per motor; one L298N controls two motors
+  - DRV8871 supports 24V, max 3.6A peak; one DRV8871 controls ONE motor
+  - DRV8833, DRV8835 (IN/IN mode)
 
 ### Where to Purchase Motors/Components
 - AliExpress
@@ -105,6 +109,23 @@ This [blog post](https://kaia.ai/blog/arduino-platform-firmware-avaiable/) discu
   - However, some N20 motors with low RPM (e.g. <=100RPM) do offer sufficient torque
 
 ## Change Log
+
+### v0.5.0 - in debug
+- motor driver
+  - brushed motor support: drivers TB6612FNG, LM298N, DRV8871 and others with same IN1, IN2 control input logic
+  - quadrature encoders
+  - reverse motor direction, reverse motor encoder - for wiring convenience
+- web configuration
+  - additional options including PID, motor drive type, motor encoder type
+  - automatically loads values from previous configuration
+- ROS properties
+  - motors: get max RPM, derated max RPM, target RPM, current RPM
+  - motor encoders: get current value, get/set PPR (pulses per revolution), get TPR (ticks per revolution)
+  - motor PID: get/set Kp, Ki, Kd, update period, PID mode on-error vs. on-measurement
+  - robot base: get model name, base diameter, tire diameter, wheel base
+  - LiDAR: get current scan rate, LiDAR model, 
+- code refactored into separate files for readability
+  - motor controller code moved into its own library
 
 ### v0.4.1
 - added Delta-2A 230400 baud version (vs old 115200 baud)

@@ -88,7 +88,7 @@ class LDS_YDLIDAR_X4 : public LDS {
       uint16_t  packageFirstSampleAngle;
       uint16_t  packageLastSampleAngle;
       uint16_t  checkSum;
-      uint16_t  packageSampleDistance[PACKAGE_SAMPLE_MAX_LENGTH];
+      uint16_t  packageSampleDistance[PACKAGE_SAMPLE_MAX_LENGTH]; // SCL hack
     } __attribute__((packed)) ;
 
   protected:
@@ -101,6 +101,7 @@ class LDS_YDLIDAR_X4 : public LDS {
     LDS::result_t sendCommand(uint8_t cmd, const void * payload = NULL, size_t payloadsize = 0);
     LDS::result_t waitResponseHeader(ans_header_t * header, uint32_t timeout = DEFAULT_TIMEOUT_MS);
     void markScanTime();
+    void checkInfo(int currentByte);
 
   protected:
     // Scan start packet: 2 bytes
@@ -143,7 +144,6 @@ class LDS_YDLIDAR_X4 : public LDS {
     int package_sample_sum = 0;
 
     node_package_t package;
-    uint8_t *packageBuffer = (uint8_t*)&package.package_Head;
 
     uint16_t package_Sample_Index = 0;
     float IntervalSampleAngle = 0;
@@ -160,6 +160,6 @@ class LDS_YDLIDAR_X4 : public LDS {
 
     uint8_t state = 0;
 
-    uint8_t scan_freq = 0;
+    float scan_freq_hz = 0;
     bool scan_completed = false;
 };

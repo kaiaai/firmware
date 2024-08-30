@@ -22,6 +22,7 @@ protected:
   uint16_t len;
 
   static constexpr char * FILE_PATH = (char *)"/config.txt";
+  static constexpr char * FILE_PATH_OLD = (char *)"/config.old";
 
 public:
   PARAM_FILE(char* const* param_names, String * param_values, uint16_t len) {
@@ -30,13 +31,14 @@ public:
     this->len = len;
   }
 
-  bool load() {
+  bool load(bool old_config = false) {
+    const char * CONFIG_PATH = old_config ? FILE_PATH_OLD : FILE_PATH;
     Serial.print("Reading file ");
-    Serial.print(FILE_PATH);
+    Serial.print(CONFIG_PATH);
     
-    File file = SPIFFS.open(FILE_PATH);
+    File file = SPIFFS.open(CONFIG_PATH);
     if (!file || file.isDirectory()) {
-      Serial.println(" - file open failed");
+      Serial.println(" - file not found");
       return false;
     } else
       Serial.println();
@@ -58,16 +60,17 @@ public:
     return true;
   }
 
-  bool save() {
-    Serial.print("Writing file %s");
-    Serial.print(FILE_PATH);
+  bool save(bool old_config=false) {
+    const char * CONFIG_PATH = old_config ? FILE_PATH_OLD : FILE_PATH;
+    Serial.print("Writing file ");
+    Serial.print(CONFIG_PATH);
   
-    File file = SPIFFS.open(FILE_PATH, FILE_WRITE);
+    File file = SPIFFS.open(CONFIG_PATH, FILE_WRITE);
     if (!file) {
-      Serial.println(" - file open failed");
+      Serial.print(" - file open failed");
       return false;
-    } else
-      Serial.println();
+    }
+    Serial.println();
 
     bool success = true;
     for (uint16_t i = 0; i < len; i++) {
@@ -133,12 +136,27 @@ public:
       
     return true;
   }
-  
+
   const char * get(const uint16_t idx) {
     if (idx >= len)
       return "";
   
     return param_value[idx].c_str();
+  }
+
+  float getAsFloat(const uint16_t idx) {
+    return String(get(idx)).toFloat();
+  }
+
+  float getAsInt(const uint16_t idx) {
+    return String(get(idx)).toInt();
+  }
+
+  const char * getName(const uint16_t idx) {
+    if (idx >= len)
+      return "";
+  
+    return param_name[idx];
   }
 
   const char * getByName(const char * pname) {
@@ -163,6 +181,7 @@ public:
   }
   
   bool purge() {
-    return SPIFFS.remove(FILE_PATH);
+    SPIFFS.remove(FILE_PATH_OLD);
+    return SPIFFS.rename(FILE_PATH, FILE_PATH_OLD);
   }
 };

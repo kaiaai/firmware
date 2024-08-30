@@ -24,6 +24,13 @@
 
 #include "Arduino.h"
 
+#if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 0)
+  // Code for version 3.x
+  #ifdef ESP32
+    #include "mbedtls/compat-2.x.h"
+  #endif
+#endif
+
 bool checkBasicAuthentication(const char * header, const char * username, const char * password);
 String requestDigestAuthentication(const char * realm);
 bool checkDigestAuthentication(const char * header, const char * method, const char * username, const char * password, const char * realm, bool passwordIsHash, const char * nonce, const char * opaque, const char * uri);

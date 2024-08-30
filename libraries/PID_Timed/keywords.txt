@@ -7,6 +7,7 @@
 #######################################
 
 PID	KEYWORD1
+PID_FLOAT	KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
@@ -17,7 +18,9 @@ Compute	KEYWORD2
 SetOutputLimits	KEYWORD2
 SetTunings	KEYWORD2
 SetControllerDirection	KEYWORD2
-SetSampleTime	KEYWORD2
+SetReferenceSampleTime	KEYWORD2
+GetReferenceSampleTime	KEYWORD2
+clearErrorIntegral KEYWORD2
 GetKp	KEYWORD2
 GetKi	KEYWORD2
 GetKd	KEYWORD2
@@ -25,6 +28,7 @@ GetMode	KEYWORD2
 GetDirection	KEYWORD2
 Init	KEYWORD2
 isEnabled	KEYWORD2
+isOnError	KEYWORD2
 enable	KEYWORD2
 
 #######################################

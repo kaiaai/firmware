@@ -1,0 +1,54 @@
+#######################################
+# Syntax Coloring Map For PID Library
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+MotorController	KEYWORD1
+SetPWMCallback	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+start	KEYWORD2
+init	KEYWORD2
+setPWMCallback	KEYWORD2
+setTargetRPM	KEYWORD2
+resetEncoders	KEYWORD2
+update	KEYWORD2
+getShaftAngle	KEYWORD2
+reverseMotor	KEYWORD2
+reverseEncoder	KEYWORD2
+setMaxRPM	KEYWORD2
+setEncoderPPR	KEYWORD2
+setPIDConfig	KEYWORD2
+setPIDKp	KEYWORD2
+setPIDKi	KEYWORD2
+setPIDKd	KEYWORD2
+setPIDPeriod	KEYWORD2
+setPIDOnError	KEYWORD2
+getCurrentRPM	KEYWORD2
+getTargetRPM	KEYWORD2
+getMaxRPM	KEYWORD2
+getEncoderTPR	KEYWORD2
+getEncoderPPR	KEYWORD2
+getPIDKp	KEYWORD2
+getPIDKi	KEYWORD2
+getPIDKd	KEYWORD2
+getPIDPeriod	KEYWORD2
+getPIDOnError	KEYWORD2
+enablePID	KEYWORD2
+getEncoderValue	KEYWORD2
+tickSignedEncoder	KEYWORD2
+tickUnsignedEncoder	KEYWORD2
+getCurrentPWM	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+
+ENCODER_UNSIGNED	LITERAL1
+ENCODER_SIGNED	LITERAL1

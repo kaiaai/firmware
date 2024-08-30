@@ -24,6 +24,10 @@
 #include <Arduino.h>
 #ifdef ESP32
 #include <AsyncTCP.h>
+#if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(3, 0, 0)
+// Code for version 3.x
+#include "mbedtls/compat-2.x.h"
+#endif
 #define WS_MAX_QUEUED_MESSAGES 32
 #else
 #include <ESPAsyncTCP.h>
