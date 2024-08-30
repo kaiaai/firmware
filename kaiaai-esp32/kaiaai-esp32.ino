@@ -468,6 +468,7 @@ void loop() {
   if (WiFi.status() != WL_CONNECTED) {
     lidar->stop();
     setMotorSpeeds(0, 0);
+    Serial.println("WiFi connection lost: stopping motors, LiDAR.");
     return;
   }
 

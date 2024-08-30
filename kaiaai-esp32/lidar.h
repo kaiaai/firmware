@@ -117,6 +117,7 @@ void lidar_packet_callback(uint8_t * packet, uint16_t packet_length, bool scan_c
 }
 
 void lidar_motor_pin_callback(float value, LDS::lds_pin_t lds_pin) {
+/*
   Serial.print("LiDAR pin ");
   Serial.print(lidar->pinIDToString(lds_pin));
   Serial.print(" set ");
@@ -126,7 +127,7 @@ void lidar_motor_pin_callback(float value, LDS::lds_pin_t lds_pin) {
     Serial.print(lidar->pinStateToString((LDS::lds_pin_state_t)value));
   Serial.print(", RPM ");
   Serial.println(lidar->getCurrentScanFreqHz());
-  
+*/
   int pin = (lds_pin == LDS::LDS_MOTOR_EN_PIN) ?
     cfg.LIDAR_EN_PIN : cfg.LIDAR_PWM_PIN;
 
@@ -135,8 +136,8 @@ void lidar_motor_pin_callback(float value, LDS::lds_pin_t lds_pin) {
     if (int(value) == LDS::DIR_OUTPUT_PWM) {
       //pinMode(pin, OUTPUT);
       //ledcSetup(cfg.LIDAR_PWM_CHANNEL, cfg.LIDAR_PWM_FREQ, cfg.LIDAR_PWM_BITS);
-      //ledcAttachPin(pin, cfg.LIDAR_PWM_CHANNEL);
-      ledcAttachChannel(pin, cfg.LIDAR_PWM_FREQ, cfg.LIDAR_PWM_BITS, cfg.LIDAR_PWM_CHANNEL);
+      ledcAttachPin(pin, cfg.LIDAR_PWM_CHANNEL);
+      //ledcAttachChannel(pin, cfg.LIDAR_PWM_FREQ, cfg.LIDAR_PWM_BITS, cfg.LIDAR_PWM_CHANNEL);
     } else
       pinMode(pin, (int(value) == LDS::DIR_INPUT) ? INPUT : OUTPUT);
     return;
@@ -176,7 +177,7 @@ void lidar_error_callback(LDS::result_t code, String aux_info) {
 }
 
 void setupLIDAR() {
-  //ledcSetup(cfg.LIDAR_PWM_CHANNEL, cfg.LIDAR_PWM_FREQ, cfg.LIDAR_PWM_BITS);
+  ledcSetup(cfg.LIDAR_PWM_CHANNEL, cfg.LIDAR_PWM_FREQ, cfg.LIDAR_PWM_BITS);
 
   const char * model = params.get(cfg.PARAM_LIDAR_MODEL);
   Serial.print("LIDAR model ");
