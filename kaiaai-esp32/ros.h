@@ -23,6 +23,7 @@
 //#include <rmw_microros/discovery.h>
 #include <kaiaai_msgs/msg/kaiaai_telemetry2.h>
 #include <geometry_msgs/msg/twist.h>
+#include <diagnostic_msgs/msg/diagnostic_status.h>
 #include <rcl_interfaces/msg/log.h>
 #include <rmw_microros/rmw_microros.h>
 #include "robot_config.h"
@@ -39,7 +40,9 @@ bool ros_config_params_changed = false;
 bool suppress_param_log_print = false;
 
 rcl_publisher_t telem_pub;
-rcl_publisher_t log_pub;rcl_subscription_t twist_sub;
+rcl_publisher_t log_pub;
+rcl_publisher_t diag_pub;
+rcl_subscription_t twist_sub;
 kaiaai_msgs__msg__KaiaaiTelemetry2 telem_msg;
 geometry_msgs__msg__Twist twist_msg;
 rclc_support_t support;
@@ -240,13 +243,20 @@ CONFIG::error_blink_count setupMicroROS(rclc_subscription_callback_t twist_sub_c
   Serial.println(cfg.UROS_NODE_NAME);
 
   RCL_ERR(rclc_subscription_init_default(&twist_sub, &node,
-    ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist), cfg.UROS_CMD_VEL_TOPIC_NAME), CONFIG::ERR_UROS_PUBSUB);
+    ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist), cfg.UROS_CMD_VEL_TOPIC_NAME),
+    CONFIG::ERR_UROS_PUBSUB);
 
   RCL_ERR(rclc_publisher_init_best_effort(&telem_pub, &node,
-    ROSIDL_GET_MSG_TYPE_SUPPORT(kaiaai_msgs, msg, KaiaaiTelemetry2), cfg.UROS_TELEM_TOPIC_NAME), CONFIG::ERR_UROS_PUBSUB);
+    ROSIDL_GET_MSG_TYPE_SUPPORT(kaiaai_msgs, msg, KaiaaiTelemetry2), cfg.UROS_TELEM_TOPIC_NAME),
+    CONFIG::ERR_UROS_PUBSUB);
 
   RCL_ERR(rclc_publisher_init_default(&log_pub, &node,
-    ROSIDL_GET_MSG_TYPE_SUPPORT(rcl_interfaces, msg, Log), cfg.UROS_LOG_TOPIC_NAME), CONFIG::ERR_UROS_PUBSUB);
+    ROSIDL_GET_MSG_TYPE_SUPPORT(rcl_interfaces, msg, Log), cfg.UROS_LOG_TOPIC_NAME),
+    CONFIG::ERR_UROS_PUBSUB);
+
+  RCL_ERR(rclc_publisher_init_default(&diag_pub, &node,
+    ROSIDL_GET_MSG_TYPE_SUPPORT(diagnostic_msgs, msg, DiagnosticStatus), cfg.UROS_DIAG_TOPIC_NAME),
+    CONFIG::ERR_UROS_PUBSUB);
 
   // https://github.com/ros2/rclc/blob/humble/rclc_examples/src/example_parameter_server.c
   // Request size limited to one parameter on Set, Get, Get types and Describe services.
@@ -281,7 +291,8 @@ CONFIG::error_blink_count setupMicroROS(rclc_subscription_callback_t twist_sub_c
 
 CONFIG::error_blink_count addROSParams() {
   RCL_PAR(rclc_add_parameter(&param_server, cfg.UROS_PARAM_LIDAR_SCAN_FREQ_TARGET, RCLC_PARAMETER_DOUBLE));
-  //RCL_PAR(rclc_add_parameter_constraint_double(&param_server, cfg.UROS_PARAM_LIDAR_SCAN_FREQ_TARGET, -1.0, 1.0, 0));
+  //RCL_PAR(rclc_add_parameter_constraint_double(&param_server, cfg.UROS_PARAM_LIDAR_SCAN_FREQ_TARGET,
+  // -1.0, 1.0, 0));
 
   RCL_PAR(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_PID_KP, RCLC_PARAMETER_DOUBLE));
   RCL_PAR(rclc_add_parameter(&param_server, cfg.UROS_PARAM_MOTOR_PID_KI, RCLC_PARAMETER_DOUBLE));
