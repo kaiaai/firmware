@@ -644,14 +644,17 @@ void setup() {
   delay(2000);
 
   BLCHECK(setupMicroROS(&twist_sub_callback));
+  pubDiagnostics();
+
   BLCHECK(addROSParams());
   ros_config_params_changed = true;
   updateROSParams();
   Serial.println("Micro-ROS initialized");
 
-  Serial.print("Diagnostics pub ");
-  Serial.println(pubDiagnostics() ? "OK" : "FAILED");
-
+  //Serial.print("Diagnostics pub ");
+  //Serial.println(pubDiagnostics() ? "OK" : "FAILED");
+//  pubDiagnostics();
+  
   resetTelemMsg();
   
   if (startLIDAR() != LDS::RESULT_OK)

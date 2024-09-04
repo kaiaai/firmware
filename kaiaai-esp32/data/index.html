@@ -208,7 +208,7 @@ function restoreConfig(config) {
         const wheel_track = [0.159063, 0.091142, 0.214322, 0.262794];
         const base_wheel_dia = [0.067, 0.043, 0.067, 0.067];
         const max_wheel_accel = [2.0, 1.0, 2.0, 2.0];
-        const battery_adc_attenuation = [11.0, 10/(10+27), 11.0, 11.0];
+        const battery_adc_attenuation = [11.0, (10+27)/10, 11.0, 11.0];
 
         document.getElementById('robot_model_name').value = robot_model_name[idx];
         document.getElementById('base_dia').value = base_dia[idx];

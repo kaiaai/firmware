@@ -50,6 +50,7 @@ rcl_allocator_t allocator;
 rclc_executor_t executor;
 rcl_node_t node;
 rclc_parameter_server_t param_server;
+bool pubDiagnostics();
 
 #define RCL_RET(fn) { rcl_ret_t temp_rc = fn; \
   if(temp_rc != RCL_RET_OK)return temp_rc;}
@@ -533,6 +534,7 @@ bool pubDiagnostics() {
   msgKeyValue[0].value.data = (char *) params.get(cfg.PARAM_LIDAR_MODEL);
   msgKeyValue[0].value.size = strlen(msgKeyValue[0].value.data);
 
-  rcl_ret_t ret = rcl_publish(&diag_pub, &msgDiagArray, NULL);
-  return ret != RCL_RET_OK;
+  RCSOFTCHECK(rcl_publish(&diag_pub, &msgDiagArray, NULL));
+//  rcl_ret_t ret = rcl_publish(&diag_pub, &msgDiagArray, NULL);
+//  return ret == RCL_RET_OK;
 }
