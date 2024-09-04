@@ -50,7 +50,6 @@ rcl_allocator_t allocator;
 rclc_executor_t executor;
 rcl_node_t node;
 rclc_parameter_server_t param_server;
-void pubDiagnostics();
 
 #define RCL_RET(fn) { rcl_ret_t temp_rc = fn; \
   if(temp_rc != RCL_RET_OK)return temp_rc;}
@@ -287,8 +286,6 @@ CONFIG::error_blink_count setupMicroROS(rclc_subscription_callback_t twist_sub_c
   RCL_ERR(rclc_executor_add_parameter_server(&executor, &param_server,
     on_ros_param_changed), CONFIG::ERR_UROS_EXEC);
 
-  pubDiagnostics();
-
   return CONFIG::ERR_NONE;
 }
 
@@ -502,44 +499,40 @@ void logMsg(char* msg, uint8_t severity_level) {
   Serial.println(msg);
 }
 
-void pubDiagnostics() {
-  if (WiFi.status() == WL_CONNECTED) {
+bool pubDiagnostics() {
+  // github.com/ros2/common_interfaces/tree/rolling/diagnostic_msgs/
+  const int STATUS_COUNT = 1;
+  const int KEY_VALUE_COUNT = 1;
+  diagnostic_msgs__msg__DiagnosticArray msgDiagArray;
+  diagnostic_msgs__msg__DiagnosticStatus msgDiagStatus[STATUS_COUNT];
+  diagnostic_msgs__msg__KeyValue msgKeyValue[KEY_VALUE_COUNT];
 
-    // github.com/ros2/common_interfaces/tree/rolling/diagnostic_msgs/
-    const int STATUS_COUNT = 1;
-    const int KEY_VALUE_COUNT = 1;
-    diagnostic_msgs__msg__DiagnosticArray msgDiagArray;
-    diagnostic_msgs__msg__DiagnosticStatus msgDiagStatus[STATUS_COUNT];
-    diagnostic_msgs__msg__KeyValue msgKeyValue[KEY_VALUE_COUNT];
+  struct timespec tv = {0, 0};
+  clock_gettime(CLOCK_REALTIME, &tv);
+  msgDiagArray.header.stamp.sec = tv.tv_sec;
+  msgDiagArray.header.stamp.nanosec = tv.tv_nsec;
 
-    struct timespec tv = {0, 0};
-    clock_gettime(CLOCK_REALTIME, &tv);
-    msgDiagArray.header.stamp.sec = tv.tv_sec;
-    msgDiagArray.header.stamp.nanosec = tv.tv_nsec;
+  msgDiagArray.status.data = msgDiagStatus;
+  msgDiagArray.status.capacity = STATUS_COUNT;
+  msgDiagArray.status.size = STATUS_COUNT;
 
-    msgDiagArray.status.data = msgDiagStatus;
-    msgDiagArray.status.capacity = STATUS_COUNT;
-    msgDiagArray.status.size = STATUS_COUNT;
+  // OK, WARN, ERROR, STALE
+  msgDiagStatus[0].level = diagnostic_msgs__msg__DiagnosticStatus__OK;
+  msgDiagStatus[0].name.data = (char*)"LIDAR";
+  msgDiagStatus[0].name.size = strlen(msgDiagStatus[0].name.data);
+  //msgDiagStatus[0].message
+  //msgDiagStatus[0].hardware_id
 
-    // OK, WARN, ERROR, STALE
-    msgDiagStatus[0].level = diagnostic_msgs__msg__DiagnosticStatus__OK;
-    msgDiagStatus[0].name.data = (char*)"LIDAR";
-    msgDiagStatus[0].name.size = strlen(msgDiagStatus[0].name.data);
-    //msgDiagStatus[0].message
-    //msgDiagStatus[0].hardware_id
+  msgDiagStatus[0].values.data = msgKeyValue;
+  msgDiagStatus[0].values.capacity = KEY_VALUE_COUNT;
+  msgDiagStatus[0].values.size = KEY_VALUE_COUNT;
 
-    msgDiagStatus[0].values.data = msgKeyValue;
-    msgDiagStatus[0].values.capacity = KEY_VALUE_COUNT;
-    msgDiagStatus[0].values.size = KEY_VALUE_COUNT;
+  msgKeyValue[0].key.data = (char*)"MODEL";
+  msgKeyValue[0].key.size = strlen(msgKeyValue[0].key.data);
 
-    msgKeyValue[0].key.data = (char*)"MODEL";
-    msgKeyValue[0].key.size = strlen(msgKeyValue[0].key.data);
+  msgKeyValue[0].value.data = (char *) params.get(cfg.PARAM_LIDAR_MODEL);
+  msgKeyValue[0].value.size = strlen(msgKeyValue[0].value.data);
 
-    msgKeyValue[0].value.data = (char *) params.get(cfg.PARAM_LIDAR_MODEL);
-    msgKeyValue[0].value.size = strlen(msgKeyValue[0].value.data);
-
-    RCSOFTCHECK(rcl_publish(&diag_pub, &msgDiagArray, NULL));
-  } else {
-    Serial.println("Failed to publish diagnostic message");  
-  }  
+  rcl_ret_t ret = rcl_publish(&diag_pub, &msgDiagArray, NULL);
+  return ret != RCL_RET_OK;
 }

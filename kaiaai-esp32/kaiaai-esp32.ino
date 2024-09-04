@@ -649,6 +649,9 @@ void setup() {
   updateROSParams();
   Serial.println("Micro-ROS initialized");
 
+  Serial.print("Diagnostics pub ");
+  Serial.println(pubDiagnostics() ? "OK" : "FAILED");
+
   resetTelemMsg();
   
   if (startLIDAR() != LDS::RESULT_OK)

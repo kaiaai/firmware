@@ -183,43 +183,43 @@ void setupLIDAR() {
   Serial.print("LIDAR model ");
   Serial.print(model);
 
-  if (strcmp(model, "NEATO XV11") == 0) {
+  if (strcmp(model, "NEATO-XV11") == 0) {
     lidar = new LDS_NEATO_XV11();
   } else {
-    if (strcmp(model, "SLAMTEC RPLIDAR A1") == 0) {
+    if (strcmp(model, "SLAMTEC-RPLIDAR-A1") == 0) {
       lidar = new LDS_RPLIDAR_A1();
     } else {
-      if (strcmp(model, "LDS02RR") == 0) {
+      if (strcmp(model, "XIAOMI-LDS02RR") == 0) {
         lidar = new LDS_LDS02RR();
       } else {
-        if (strcmp(model, "YDLIDAR SCL") == 0) {
+        if (strcmp(model, "YDLIDAR-SCL") == 0) {
           lidar = new LDS_YDLIDAR_SCL();
         } else {
-          if (strcmp(model, "YDLIDAR X2/X2L") == 0) {
+          if (strcmp(model, "YDLIDAR-X2-X2L") == 0) {
             lidar = new LDS_YDLIDAR_X2_X2L();
           } else {
-            if (strcmp(model, "YDLIDAR X3") == 0) {
+            if (strcmp(model, "YDLIDAR-X3") == 0) {
               lidar = new LDS_YDLIDAR_X3();
             } else {
-              if (strcmp(model, "YDLIDAR X3 PRO") == 0) {
+              if (strcmp(model, "YDLIDAR-X3-PRO") == 0) {
                 lidar = new LDS_YDLIDAR_X3_PRO();
               } else {
-                if (strcmp(model, "3IROBOTIX DELTA 2G") == 0) {
+                if (strcmp(model, "3IROBOTIX-DELTA-2G") == 0) {
                   lidar = new LDS_DELTA_2G();
                 } else {
-                  if (strcmp(model, "3IROBOTIX DELTA 2A 115200") == 0) {
+                  if (strcmp(model, "3IROBOTIX-DELTA-2A-115200") == 0) {
                     lidar = new LDS_DELTA_2A_115200();
                   } else {
-                    if (strcmp(model, "3IROBOTIX DELTA 2A") == 0) {
+                    if (strcmp(model, "3IROBOTIX-DELTA-2A") == 0) {
                       lidar = new LDS_DELTA_2A_230400();
                     } else {
-                      if (strcmp(model, "3IROBOTIX DELTA 2B") == 0) {
+                      if (strcmp(model, "3IROBOTIX-DELTA-2B") == 0) {
                         lidar = new LDS_DELTA_2B();
                       } else {
-                        if (strcmp(model, "LDROBOT LD14P") == 0) {
+                        if (strcmp(model, "LDROBOT-LD14P") == 0) {
                           lidar = new LDS_LDROBOT_LD14P();
                         } else {
-                          if (strcmp(model, "YDLIDAR X4") != 0)
+                          if (strcmp(model, "YDLIDAR-X4") != 0)
                             Serial.print(" not recognized, defaulting to YDLIDAR X4");
                           lidar = new LDS_YDLIDAR_X4();
                         }
