@@ -644,7 +644,7 @@ void setup() {
   delay(2000);
 
   BLCHECK(setupMicroROS(&twist_sub_callback));
-  pubDiagnostics();
+  //pubDiagnostics();
 
   BLCHECK(addROSParams());
   ros_config_params_changed = true;

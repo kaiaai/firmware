@@ -23,7 +23,7 @@
 //#include <rmw_microros/discovery.h>
 #include <kaiaai_msgs/msg/kaiaai_telemetry2.h>
 #include <geometry_msgs/msg/twist.h>
-#include <diagnostic_msgs/msg/diagnostic_array.h>
+//#include <diagnostic_msgs/msg/diagnostic_array.h>
 #include <rcl_interfaces/msg/log.h>
 #include <rmw_microros/rmw_microros.h>
 #include "robot_config.h"
@@ -41,7 +41,7 @@ bool suppress_param_log_print = false;
 
 rcl_publisher_t telem_pub;
 rcl_publisher_t log_pub;
-rcl_publisher_t diag_pub;
+//rcl_publisher_t diag_pub;
 rcl_subscription_t twist_sub;
 kaiaai_msgs__msg__KaiaaiTelemetry2 telem_msg;
 geometry_msgs__msg__Twist twist_msg;
@@ -50,7 +50,6 @@ rcl_allocator_t allocator;
 rclc_executor_t executor;
 rcl_node_t node;
 rclc_parameter_server_t param_server;
-bool pubDiagnostics();
 
 #define RCL_RET(fn) { rcl_ret_t temp_rc = fn; \
   if(temp_rc != RCL_RET_OK)return temp_rc;}
@@ -254,11 +253,11 @@ CONFIG::error_blink_count setupMicroROS(rclc_subscription_callback_t twist_sub_c
   RCL_ERR(rclc_publisher_init_default(&log_pub, &node,
     ROSIDL_GET_MSG_TYPE_SUPPORT(rcl_interfaces, msg, Log), cfg.UROS_LOG_TOPIC_NAME),
     CONFIG::ERR_UROS_PUBSUB);
-
+/*
   RCL_ERR(rclc_publisher_init_default(&diag_pub, &node,
     ROSIDL_GET_MSG_TYPE_SUPPORT(diagnostic_msgs, msg, DiagnosticArray), cfg.UROS_DIAG_TOPIC_NAME),
     CONFIG::ERR_UROS_PUBSUB);
-
+*/
   // https://github.com/ros2/rclc/blob/humble/rclc_examples/src/example_parameter_server.c
   // Request size limited to one parameter on Set, Get, Get types and Describe services.
   // List parameter request has no prefixes enabled nor depth.
@@ -500,7 +499,8 @@ void logMsg(char* msg, uint8_t severity_level) {
   Serial.println(msg);
 }
 
-bool pubDiagnostics() {
+/*
+void pubDiagnostics() {
   // github.com/ros2/common_interfaces/tree/rolling/diagnostic_msgs/
   const int STATUS_COUNT = 1;
   const int KEY_VALUE_COUNT = 1;
@@ -538,3 +538,4 @@ bool pubDiagnostics() {
 //  rcl_ret_t ret = rcl_publish(&diag_pub, &msgDiagArray, NULL);
 //  return ret == RCL_RET_OK;
 }
+*/
