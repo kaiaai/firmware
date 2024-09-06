@@ -328,11 +328,11 @@ void publishTelem(unsigned long step_time_us) {
   RCSOFTCHECK(rcl_publish(&telem_pub, &telem_msg, NULL));
 
   
-  Serial.print(telem_msg.odom_pos_x, 8);
-  Serial.print("\t");
-  Serial.print(telem_msg.odom_pos_y, 8);
-  Serial.print("\t");
-  Serial.println(telem_msg.odom_pos_yaw, 8);
+  //Serial.print(telem_msg.odom_pos_x, 8);
+  //Serial.print("\t");
+  //Serial.print(telem_msg.odom_pos_y, 8);
+  //Serial.print("\t");
+  //Serial.println(telem_msg.odom_pos_yaw, 8);
   
   telem_msg.lds.size = 0;
   telem_msg.seq++;
