@@ -98,7 +98,8 @@ public:
     }
     Serial.println("SPIFFS mounted successfully");
   
-    if (!SPIFFS.exists("/www/index.html")) {
+    //if (!SPIFFS.exists("/www/index.html")) {
+    if (!SPIFFS.exists("/index.html")) {
       Serial.println("Sketch data not found. Have you uploaded the sketch data?");
       return false;
     }
