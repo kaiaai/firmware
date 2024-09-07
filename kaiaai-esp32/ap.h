@@ -45,12 +45,12 @@ public:
     Serial.println(IP);
   
     server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-      request->send(SPIFFS, "/index.html", CHAR_ENCODING);
+      request->send(SPIFFS, "/www/index.html", CHAR_ENCODING);
       // request->send(SPIFFS, "/index.html", "text/html");
       // request->send(SPIFFS, "/index.html", "utf-8");
     });
     
-    server.serveStatic("/", SPIFFS, "/");
+    server.serveStatic("/", SPIFFS, "/www/");
     
     server.on("/", HTTP_POST, [](AsyncWebServerRequest *request) {
       String resp = "<HTML><BODY>"
