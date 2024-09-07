@@ -123,7 +123,7 @@ fetch("/config.old")
           //console.log(`${param_name}: ${param_value}`);
 		  config[param_name] = param_value;
         }
-		restoreConfig(config)
+		restoreConfig(config);
       });
 	}
   })
@@ -133,12 +133,16 @@ fetch("/config.old")
 
 function restoreConfig(config) {
   //console.log('Restoring config');
-  document.getElementById("robot_model").value = "CUSTOM_MODEL";
-  document.getElementById("motor_model").value = "CUSTOM_MODEL";
+  robot_model_combo = document.getElementById("robot_model");
+  robot_model_combo.value = "CUSTOM_MODEL"
+  motor_model_combo = document.getElementById("motor_model");
+  motor_model_combo.value = "CUSTOM_MODEL"
   for (const key in config) {
     //console.log(key);
     document.getElementById(key).value = config[key];
   }
+  populateProps(robot_model_combo);
+  populateProps(motor_model_combo);
 }
 </script>
   <script>
@@ -205,7 +209,7 @@ function restoreConfig(config) {
 	  } else {
         const robot_model_name = ["MAKERSPET_LOKI", "MAKERSPET_MINI", "MAKERSPET_FIDO", "MAKERSPET_SNOOPY", "CUSTOM_MODEL"];
         const base_dia = [0.2042, 0.124, 0.2542, 0.300];
-        const wheel_track = [0.159063, 0.104243, 0.214322, 0.262794];
+        const wheel_track = [0.159063, 0.105043, 0.214322, 0.262794];
         const base_wheel_dia = [0.067, 0.043, 0.067, 0.067];
         const max_wheel_accel = [2.0, 1.0, 2.0, 2.0];
         const battery_adc_attenuation = [11.0, (10+27)/10, 11.0, 11.0];
@@ -225,7 +229,7 @@ function restoreConfig(config) {
 	    select.options[idx].innerHTML = "CUSTOM &#9207;";
 	  } else {
         const motor_max_rpm = [280, 300, 150, 100, 200, 245, 260, 408, 450, 225];
-        const wheel_ppr = [234.3, 350, 700, 1050, 270, 630, 204, 127.8, 120, 120];
+        const wheel_ppr = [234.3, 350, 750, 1050, 270, 630, 204, 127.8, 120, 120];
         const motor_voltage = [12, 6, 6, 6, 24, 24, 24, 24, 24, 12];
         const motor_driver_type = ['IN1_IN2', 'IN1_IN2', 'IN1_IN2', 'IN1_IN2', 'PWM_CW', 'PWM_CW', 'PWM_CW', 'PWM_CW', 'PWM_CW', 'PWM_CW'];
         const motor_encoder_type = ['AB_QUAD', 'AB_QUAD', 'AB_QUAD', 'AB_QUAD', 'FG', 'FG', 'FG', 'FG', 'FG', 'FG'];
@@ -424,7 +428,7 @@ function restoreConfig(config) {
             <optgroup label="Brushed">
               <option value="12V_280RPM_234.3PPR_IN1_IN2">25GA-370 12V 280RPM 234.3PPR using IN1/IN2 generic driver</option>
               <option value="6V_300RPM_350PPR_IN1_IN2">N20 6V 300RPM 350PPR using an IN1/IN2 generic driver</option>
-              <option value="6V_150RPM_700PPR_IN1_IN2">N20 6V 150RPM 700PPR using an IN1/IN2 generic driver</option>
+              <option value="6V_150RPM_750PPR_IN1_IN2">N20 6V 150RPM 750PPR using an IN1/IN2 generic driver</option>
               <option value="6V_100RPM_350PPR_IN1_IN2">N20 6V 100RPM 1050PPR using an IN1/IN2 generic driver</option>
             </optgroup>
             <optgroup label="Brushless">
