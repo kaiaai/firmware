@@ -110,6 +110,10 @@ This [blog post](https://kaia.ai/blog/arduino-platform-firmware-avaiable/) discu
 
 ## Change Log
 
+### v0.6.0
+- MAKERSPET_MINI works
+  - tested with YDLIDAR SCL, LDROBOT LD14P
+
 ### v0.5.0
 - motor driver
   - brushed motor support: drivers TB6612FNG, LM298N, DRV8871 and others with same IN1, IN2 control input logic
