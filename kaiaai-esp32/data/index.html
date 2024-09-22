@@ -207,12 +207,13 @@ function restoreConfig(config) {
       if (is_custom) {
 	    select.options[idx].innerHTML = "CUSTOM &#9207;";
 	  } else {
+
         const robot_model_name = ["MAKERSPET_MINI", "MAKERSPET_LOKI", "MAKERSPET_FIDO", "MAKERSPET_SNOOPY", "CUSTOM_MODEL"];
         const base_dia = [0.124, 0.2042, 0.2542, 0.300];
         const wheel_track = [0.105043, 0.159063, 0.214322, 0.262794];
         const base_wheel_dia = [0.043, 0.067, 0.067, 0.067];
         const max_wheel_accel = [1.0, 2.0, 2.0, 2.0];
-        const battery_adc_attenuation = [(10+27)/10, 11.0, 11.0, 11.0];
+        const battery_adc_attenuation = [3.7, 11.0, 11.0, 11.0];
 
         document.getElementById('robot_model_name').value = robot_model_name[idx];
         document.getElementById('base_dia').value = base_dia[idx];
@@ -228,9 +229,9 @@ function restoreConfig(config) {
       if (is_custom) {
 	    select.options[idx].innerHTML = "CUSTOM &#9207;";
 	  } else {
-        const motor_max_rpm = [280, 300, 150, 100, 200, 245, 260, 408, 450, 225];
-        const wheel_ppr = [234.3, 350, 750, 1035, 270, 630, 204, 127.8, 120, 120];
-        const motor_voltage = [12, 6, 6, 6, 24, 24, 24, 24, 24, 12];
+        const motor_max_rpm = [100, 150, 300, 280, 200, 245, 260, 408, 450, 225];
+        const wheel_ppr = [1035, 750, 350, 234.3, 270, 630, 204, 127.8, 120, 120];
+        const motor_voltage = [6, 6, 6, 12, 24, 24, 24, 24, 24, 12];
         const motor_driver_type = ['IN1_IN2', 'IN1_IN2', 'IN1_IN2', 'IN1_IN2', 'PWM_CW', 'PWM_CW', 'PWM_CW', 'PWM_CW', 'PWM_CW', 'PWM_CW'];
         const motor_encoder_type = ['AB_QUAD', 'AB_QUAD', 'AB_QUAD', 'AB_QUAD', 'FG', 'FG', 'FG', 'FG', 'FG', 'FG'];
 
@@ -325,7 +326,7 @@ function restoreConfig(config) {
 		</div>
 		<div class="col-75">
           <div class="sub_input">
-          <input type="text" id="robot_model_name" name="robot_model_name" value="MAKERSPET_LOKI" pattern="[0-9a-zA-Z\-_]+" title="Robot model name, alphanumeric with no spaces" required minlength="2">
+          <input type="text" id="robot_model_name" name="robot_model_name" value="MAKERSPET_MINI" pattern="[0-9a-zA-Z\-_]+" title="Robot model name, alphanumeric with no spaces" required minlength="2">
           </div>
         </div>
       </div>
@@ -336,7 +337,7 @@ function restoreConfig(config) {
 		</div>
 		<div class="col-75">
           <div class="sub_input">
-          <input type="text" id="base_dia" name="base_dia" value="0.202" pattern="([0-9]+\.)?[0-9]+" title="Robot body outer diameter in meters" required minlength="1" maxlength="10" inputmode="decimal">
+          <input type="text" id="base_dia" name="base_dia" value="0.124" pattern="([0-9]+\.)?[0-9]+" title="Robot body outer diameter in meters" required minlength="1" maxlength="10" inputmode="decimal">
           </div>
         </div>
       </div>
@@ -347,7 +348,7 @@ function restoreConfig(config) {
 		</div>
 		<div class="col-75">
           <div class="sub_input">
-          <input type="text" id="wheel_track" name="wheel_track" value="0.159063" pattern="([0-9]+\.)?[0-9]+" title="Distance between wheel midpoints in meters" required minlength="1" maxlength="10" inputmode="decimal">
+          <input type="text" id="wheel_track" name="wheel_track" value="0.105043" pattern="([0-9]+\.)?[0-9]+" title="Distance between wheel midpoints in meters" required minlength="1" maxlength="10" inputmode="decimal">
           </div>
         </div>
       </div>
@@ -358,7 +359,7 @@ function restoreConfig(config) {
 		</div>
 		<div class="col-75">
           <div class="sub_input">
-          <input type="text" id="base_wheel_dia" name="base_wheel_dia" value="0.067" pattern="([0-9]+\.)?[0-9]+" title="Wheel diameter in meters" required minlength="1" maxlength="10" inputmode="decimal">
+          <input type="text" id="base_wheel_dia" name="base_wheel_dia" value="0.043" pattern="([0-9]+\.)?[0-9]+" title="Wheel diameter in meters" required minlength="1" maxlength="10" inputmode="decimal">
           </div>
         </div>
       </div>
@@ -369,7 +370,7 @@ function restoreConfig(config) {
 		</div>
 		<div class="col-75">
           <div class="sub_input">
-          <input type="text" id="max_wheel_accel" name="max_wheel_accel" value="2.0" pattern="([0-9]+\.)?[0-9]+" title="Maximum wheel-vs-floor acceleration, m2/s" required minlength="1" maxlength="10" inputmode="decimal">
+          <input type="text" id="max_wheel_accel" name="max_wheel_accel" value="1.0" pattern="([0-9]+\.)?[0-9]+" title="Maximum wheel-vs-floor acceleration, m2/s" required minlength="1" maxlength="10" inputmode="decimal">
           </div>
         </div>
       </div>
@@ -451,7 +452,7 @@ function restoreConfig(config) {
 		</div>
 		<div class="col-75">
           <div class="sub_input">
-          <input type="text" id="motor_max_rpm" name="motor_max_rpm" value="280" pattern="([0-9]+\.)?[0-9]+" title="Wheel (motor shaft) maximum RPM" required maxlength="10" minlength="1" inputmode="decimal">
+          <input type="text" id="motor_max_rpm" name="motor_max_rpm" value="100" pattern="([0-9]+\.)?[0-9]+" title="Wheel (motor shaft) maximum RPM" required maxlength="10" minlength="1" inputmode="decimal">
           </div>
         </div>
       </div>
@@ -462,7 +463,7 @@ function restoreConfig(config) {
 		</div>
 		<div class="col-75">
           <div class="sub_input">
-          <input type="text" id="wheel_ppr" name="wheel_ppr" value="234.3" pattern="([0-9]+\.)?[0-9]+" title="Pulses per revolution. Wheel (motor shaft) PPR = Motor Gear Ratio * Motor Encoder PPR" required maxlength="10" minlength="1" inputmode="decimal">
+          <input type="text" id="wheel_ppr" name="wheel_ppr" value="1035" pattern="([0-9]+\.)?[0-9]+" title="Pulses per revolution. Wheel (motor shaft) PPR = Motor Gear Ratio * Motor Encoder PPR" required maxlength="10" minlength="1" inputmode="decimal">
           </div>
         </div>
       </div>
@@ -473,7 +474,7 @@ function restoreConfig(config) {
 		</div>
 		<div class="col-75">
           <div class="sub_input">
-          <input type="number" id="motor_voltage" name="motor_voltage" value="12" title="Motor voltage - depends on your board, motor and motor driver capabilities" required min="6" max="24">
+          <input type="number" id="motor_voltage" name="motor_voltage" value="6" title="Motor voltage - depends on your board, motor and motor driver capabilities" required min="6" max="24">
           </div>
         </div>
       </div>
@@ -625,7 +626,7 @@ function restoreConfig(config) {
 		</div>
 		<div class="col-75">
           <div class="sub_input">
-          <input type="text" id="battery_adc_attenuation" name="battery_adc_attenuation" value="11.0" pattern="([0-9]+\.)?[0-9]+" maxlength="10" minlength="1" title="Battery ADC attenuation factor" required inputmode="decimal">
+          <input type="text" id="battery_adc_attenuation" name="battery_adc_attenuation" value="3.7" pattern="([0-9]+\.)?[0-9]+" maxlength="10" minlength="1" title="Battery ADC attenuation factor" required inputmode="decimal">
           </div>
         </div>
       </div>
