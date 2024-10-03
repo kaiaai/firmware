@@ -219,9 +219,13 @@ void setupLIDAR() {
                         if (strcmp(model, "LDROBOT-LD14P") == 0) {
                           lidar = new LDS_LDROBOT_LD14P();
                         } else {
-                          if (strcmp(model, "YDLIDAR-X4") != 0)
-                            Serial.print(" not recognized, defaulting to YDLIDAR X4");
-                          lidar = new LDS_YDLIDAR_X4();
+                          if (strcmp(model, "YDLIDAR-X4_PRO") == 0) {
+                            lidar = new LDS_YDLIDAR_X4_PRO();
+                          } else {
+                            if (strcmp(model, "YDLIDAR-X4") != 0)
+                              Serial.print(" not recognized, defaulting to YDLIDAR X4");
+                            lidar = new LDS_YDLIDAR_X4();
+                          }
                         }
                       }
                     }
