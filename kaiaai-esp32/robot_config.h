@@ -17,7 +17,7 @@
 
 class CONFIG {
 public:
-  static constexpr char* FW_VERSION = (char*)"0.6.0-iron";
+  static constexpr char* FW_VERSION = (char*)"0.7.0-iron";
 
   // ESP32 pin assignment
   static const uint8_t LED_PIN = 2; // ESP32 on-board LED
