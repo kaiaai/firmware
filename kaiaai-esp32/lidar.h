@@ -251,7 +251,11 @@ void setupLIDAR() {
   Serial.print(", baud rate ");
   Serial.println(baud_rate);
 
-  LdSerial.begin(baud_rate); // messes up GPIO 25 pinMode()
+  if (strcmp(model, "LDROBOT-LD14P") == 0)
+    LdSerial.begin(baud_rate, SERIAL_8N1, 16, 15);
+  else
+    LdSerial.begin(baud_rate); // messes up GPIO 25 pinMode()
+
   lidar->init();
   lidar->stop();
 }
