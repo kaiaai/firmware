@@ -110,6 +110,12 @@ This [blog post](https://kaia.ai/blog/arduino-platform-firmware-avaiable/) discu
 
 ## Change Log
 
+### v0.7.0
+- set Maker's Pet mini as the default robot
+- added more N20 motors
+- set/get LDROBOT LD14P rotation speed- MAKERSPET_MINI works
+- added YDLIDAR X4-PRO (not tested)
+
 ### v0.6.0
 - MAKERSPET_MINI works
   - tested with YDLIDAR SCL, LDROBOT LD14P
