@@ -1,4 +1,4 @@
-// Copyright 2023-2024 REMAKE.AI, KAIA.AI, MAKERSPET.COM
+// Copyright 2023-2024 KAIA.AI
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
 #pragma once
 
 #include "LDS_YDLIDAR_X4.h"
+#include "LDS_YDLIDAR_X4_PRO.h"
 #include "LDS_YDLIDAR_X3_PRO.h"
 #include "LDS_YDLIDAR_X3.h"
 #include "LDS_YDLIDAR_X2_X2L.h"

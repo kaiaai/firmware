@@ -76,7 +76,7 @@ public:
       request->send(200, CHAR_ENCODING, resp);
   
       unsigned long ms = millis();
-      while(millis() - ms < 3000)
+      while(millis() - ms < 500)
         yield();
       param_callback(NULL, NULL);
     });
