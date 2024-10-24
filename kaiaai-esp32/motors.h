@@ -110,7 +110,7 @@ void setMotorPWM(MotorController *motor_controller, float pwm) {
       ledcAttachPin(in2, pwm_channel);
       //ledcAttachChannel(in2, cfg.MOT_PWM_FREQ, cfg.MOT_PWM_BITS, pwm_channel);
       ledcWrite(pwm_channel, pwm_magnitude);
-      pinMode(in1, OUTPUT);
+      setPinMode(in1, OUTPUT);
       digitalWrite(in1, HIGH);
     break;
   }
@@ -122,13 +122,13 @@ void setupEncoders(motor_encoder_t motor_encoder_type) {
       motorLeft.init(MotorController::ENCODER_SIGNED, 4);
       motorRight.init(MotorController::ENCODER_SIGNED, 4);
 
-      pinMode(cfg.MOT_ENC_A_LEFT_PIN, INPUT);
-      pinMode(cfg.MOT_ENC_B_LEFT_PIN, INPUT);
+      setPinMode(cfg.MOT_ENC_A_LEFT_PIN, INPUT);
+      setPinMode(cfg.MOT_ENC_B_LEFT_PIN, INPUT);
       attachInterrupt(cfg.MOT_ENC_A_LEFT_PIN, quadEncoderALeftISR, CHANGE);
       attachInterrupt(cfg.MOT_ENC_B_LEFT_PIN, quadEncoderBLeftISR, CHANGE);
     
-      pinMode(cfg.MOT_ENC_A_RIGHT_PIN, INPUT);
-      pinMode(cfg.MOT_ENC_B_RIGHT_PIN, INPUT);
+      setPinMode(cfg.MOT_ENC_A_RIGHT_PIN, INPUT);
+      setPinMode(cfg.MOT_ENC_B_RIGHT_PIN, INPUT);
       attachInterrupt(cfg.MOT_ENC_A_RIGHT_PIN, quadEncoderARightISR, CHANGE);
       attachInterrupt(cfg.MOT_ENC_B_RIGHT_PIN, quadEncoderBRightISR, CHANGE);
       break;
@@ -136,10 +136,10 @@ void setupEncoders(motor_encoder_t motor_encoder_type) {
       motorLeft.init(MotorController::ENCODER_UNSIGNED, 2);
       motorRight.init(MotorController::ENCODER_UNSIGNED, 2);
    
-      pinMode(cfg.MOT_FG_LEFT_PIN, INPUT);
+      setPinMode(cfg.MOT_FG_LEFT_PIN, INPUT);
       attachInterrupt(cfg.MOT_FG_LEFT_PIN, unsignedEncoderLeftISR, CHANGE);
     
-      pinMode(cfg.MOT_FG_RIGHT_PIN, INPUT);
+      setPinMode(cfg.MOT_FG_RIGHT_PIN, INPUT);
       attachInterrupt(cfg.MOT_FG_RIGHT_PIN, unsignedEncoderRightISR, CHANGE);
       break;
   }
@@ -150,27 +150,27 @@ void setupDriver(motor_driver_t motor_driver_type) {
 
   switch(motorDriverType) {
     case MOT_DRIVER_PWM_CW:    
-      pinMode(cfg.MOT_CW_LEFT_PIN, OUTPUT);
-      pinMode(cfg.MOT_CW_RIGHT_PIN, OUTPUT);
+      setPinMode(cfg.MOT_CW_LEFT_PIN, OUTPUT);
+      setPinMode(cfg.MOT_CW_RIGHT_PIN, OUTPUT);
 
       ledcSetup(cfg.MOT_PWM_LEFT_CHANNEL, cfg.MOT_PWM_FREQ, cfg.MOT_PWM_BITS);
-      pinMode(cfg.MOT_PWM_LEFT_PIN, OUTPUT);
+      setPinMode(cfg.MOT_PWM_LEFT_PIN, OUTPUT);
       ledcAttachPin(cfg.MOT_PWM_LEFT_PIN, cfg.MOT_PWM_LEFT_CHANNEL);
       //ledcAttachChannel(cfg.MOT_PWM_LEFT_PIN, cfg.MOT_PWM_FREQ, cfg.MOT_PWM_BITS, cfg.MOT_PWM_LEFT_CHANNEL);
     
       ledcSetup(cfg.MOT_PWM_RIGHT_CHANNEL, cfg.MOT_PWM_FREQ, cfg.MOT_PWM_BITS);
-      pinMode(cfg.MOT_PWM_RIGHT_PIN, OUTPUT);
+      setPinMode(cfg.MOT_PWM_RIGHT_PIN, OUTPUT);
       ledcAttachPin(cfg.MOT_PWM_RIGHT_PIN, cfg.MOT_PWM_RIGHT_CHANNEL);
       //ledcAttachChannel(cfg.MOT_PWM_RIGHT_PIN, cfg.MOT_PWM_FREQ, cfg.MOT_PWM_BITS, cfg.MOT_PWM_RIGHT_CHANNEL);
       break;
     default:
-      pinMode(cfg.MOT_IN1_LEFT_PIN, OUTPUT);
-      pinMode(cfg.MOT_IN2_LEFT_PIN, OUTPUT);
+      setPinMode(cfg.MOT_IN1_LEFT_PIN, OUTPUT);
+      setPinMode(cfg.MOT_IN2_LEFT_PIN, OUTPUT);
       ledcSetup(cfg.MOT_PWM_LEFT_CHANNEL, cfg.MOT_PWM_FREQ, cfg.MOT_PWM_BITS);
       //ledcAttachChannel(cfg.MOT_IN1_LEFT_PIN, cfg.MOT_PWM_FREQ, cfg.MOT_PWM_BITS, cfg.MOT_PWM_LEFT_CHANNEL);
 
-      pinMode(cfg.MOT_IN1_RIGHT_PIN, OUTPUT);
-      pinMode(cfg.MOT_IN2_RIGHT_PIN, OUTPUT);
+      setPinMode(cfg.MOT_IN1_RIGHT_PIN, OUTPUT);
+      setPinMode(cfg.MOT_IN2_RIGHT_PIN, OUTPUT);
       ledcSetup(cfg.MOT_PWM_RIGHT_CHANNEL, cfg.MOT_PWM_FREQ, cfg.MOT_PWM_BITS);
       //ledcAttachChannel(cfg.MOT_IN2_RIGHT_PIN, cfg.MOT_PWM_FREQ, cfg.MOT_PWM_BITS, cfg.MOT_PWM_RIGHT_CHANNEL);
       break;

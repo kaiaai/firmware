@@ -134,12 +134,12 @@ void lidar_motor_pin_callback(float value, LDS::lds_pin_t lds_pin) {
   if (int(value) <= LDS::DIR_INPUT) {
     // Configure pin direction
     if (int(value) == LDS::DIR_OUTPUT_PWM) {
-      //pinMode(pin, OUTPUT);
+      //setPinMode(pin, OUTPUT);
       //ledcSetup(cfg.LIDAR_PWM_CHANNEL, cfg.LIDAR_PWM_FREQ, cfg.LIDAR_PWM_BITS);
       ledcAttachPin(pin, cfg.LIDAR_PWM_CHANNEL);
       //ledcAttachChannel(pin, cfg.LIDAR_PWM_FREQ, cfg.LIDAR_PWM_BITS, cfg.LIDAR_PWM_CHANNEL);
     } else
-      pinMode(pin, (int(value) == LDS::DIR_INPUT) ? INPUT : OUTPUT);
+      setPinMode(pin, (int(value) == LDS::DIR_INPUT) ? INPUT : OUTPUT);
     return;
   }
 
@@ -258,7 +258,7 @@ void setupLIDAR() {
   if (strcmp(model, "LDROBOT-LD14P") == 0)
     LdSerial.begin(baud_rate, SERIAL_8N1, 16, 15);
   else
-    LdSerial.begin(baud_rate); // messes up GPIO 25 pinMode()
+    LdSerial.begin(baud_rate); // messes up GPIO 25 setPinMode()
 
   lidar->init();
   lidar->stop();

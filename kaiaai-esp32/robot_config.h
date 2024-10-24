@@ -184,7 +184,7 @@ public:
   static const uint16_t LIDAR_BUF_LEN = 400;
   static const uint16_t LIDAR_SERIAL_RX_BUF_LEN = 1024;
 
-  static const uint32_t WIFI_CONN_TIMEOUT_MS = 30000;
+  static const uint32_t WIFI_CONN_TIMEOUT_MS = 30000000;
   static constexpr char * PARAM_AP_WIFI_SSID = (char *) "MAKER'S PET";
 
 public:

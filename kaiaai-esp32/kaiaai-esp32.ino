@@ -451,6 +451,39 @@ void loop() {
   printNB(String(motorRight.getTargetRPM()));  
   printlnNB();
 */
+
+/*
+  unsigned long ms = millis();
+  ms = ms >> 12;
+  static gpio_drive_cap_t gpio_strength_last = GPIO_DRIVE_CAP_DEFAULT;
+  gpio_drive_cap_t gpio_strength = GPIO_DRIVE_CAP_DEFAULT;
+  switch (ms % 4) {
+    case 0:
+      gpio_strength = GPIO_DRIVE_CAP_0;
+      break;
+    case 1:
+      gpio_strength = GPIO_DRIVE_CAP_1;
+      break;
+    case 2:
+      gpio_strength = GPIO_DRIVE_CAP_2;
+      break;
+    case 3:
+      gpio_strength = GPIO_DRIVE_CAP_3;
+      break;
+    default:
+      break;
+  }
+  if (gpio_strength != gpio_strength_last) {
+    esp_err_t ret;
+    ret = gpio_set_drive_capability((gpio_num_t) cfg.LED_PIN, gpio_strength);
+    gpio_strength_last = gpio_strength;
+    Serial.print(ret);
+    Serial.print(" ");
+    Serial.print(ret == ESP_OK);
+    Serial.print(" ");
+    Serial.println(gpio_strength);
+  }
+*/
 }
 
 void resetParams() {
@@ -539,8 +572,8 @@ void error_loop(int n_blinks){
 void setup() {
   Serial.begin(115200); // 500000
 
-  pinMode(0, INPUT);
-  pinMode(cfg.LED_PIN, OUTPUT);
+  setPinMode(0, INPUT);
+  setPinMode(cfg.LED_PIN, OUTPUT);
   digitalWrite(cfg.LED_PIN, HIGH);
 
   Serial.println();

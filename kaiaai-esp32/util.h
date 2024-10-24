@@ -17,6 +17,13 @@
 #include <arduino.h>
 #include "robot_config.h"
 
+void setPinMode(uint8_t pin, uint8_t mode,
+  gpio_drive_cap_t strength = GPIO_DRIVE_CAP_0) {
+  pinMode(pin, mode);
+  if (mode == OUTPUT)
+    gpio_set_drive_capability((gpio_num_t) pin, strength);
+}
+
 void blink(unsigned int delay_ms, unsigned int count) {
   for (unsigned int i = 0; i < count; i++) {
     digitalWrite(CONFIG::LED_PIN, LOW);
