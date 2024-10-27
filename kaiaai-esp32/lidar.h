@@ -26,7 +26,7 @@ extern CONFIG cfg;
 extern PARAM_FILE params;
 extern kaiaai_msgs__msg__KaiaaiTelemetry2 telem_msg;
 LDS *lidar;
-HardwareSerial LdSerial(2); // TX 17, RX 16
+HardwareSerial LdSerial(2); // RX 16, TX 17 default
 
 void spinTelem(bool);
 
@@ -255,10 +255,14 @@ void setupLIDAR() {
   Serial.print(", baud rate ");
   Serial.println(baud_rate);
 
-  if (strcmp(model, "LDROBOT-LD14P") == 0)
-    LdSerial.begin(baud_rate, SERIAL_8N1, 16, 15);
-  else
+  uint8_t tx_pin = 17; // RX GPIO16, TX GPIO17 default
+  if (strcmp(model, "LDROBOT-LD14P") == 0) {
+    tx_pin = 15;
+    LdSerial.begin(baud_rate, SERIAL_8N1, 16, tx_pin);
+  } else {
     LdSerial.begin(baud_rate); // messes up GPIO 25 setPinMode()
+  }
+  gpio_set_drive_capability((gpio_num_t) tx_pin, GPIO_DRIVE_CAP_0);
 
   lidar->init();
   lidar->stop();

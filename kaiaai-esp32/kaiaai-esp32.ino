@@ -570,7 +570,8 @@ void error_loop(int n_blinks){
 }
 
 void setup() {
-  Serial.begin(115200); // 500000
+  Serial.begin(115200); // 500000; TX GPIO1, RX GPIO3
+  gpio_set_drive_capability((gpio_num_t) 1, GPIO_DRIVE_CAP_0);
 
   setPinMode(0, INPUT);
   setPinMode(cfg.LED_PIN, OUTPUT);
