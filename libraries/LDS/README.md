@@ -59,6 +59,9 @@ Other models are in the works.
  <img src="http://img.youtube.com/vi/eyn5ccR_I1Y/maxresdefault.jpg" alt="CAMSENSE X1 LiDAR connected to Arduino, ROS2" width="720" height="405" border="10" />
 </a>
 
+## Example Code
+Please see the `examples` folder for sample Arduino sketches.
+
 ## Connecting to Arduino
 Please follow [this tutorial](https://kaia.ai/blog/tutorial-connect-ld14p-lidar/) to connect LDROBOT LD14P to Arduino ESP32.
 
@@ -68,9 +71,29 @@ Some LiDAR/LDS models do not have built-in motor control and therefore require a
 - for Neato XV11 use [this board](https://github.com/makerspet/pcb/tree/main/neato_delta_adapter)
 - for 3irobotix Delta-2A, -2B, -2C PRO, -2D, -2G use [this board](https://github.com/makerspet/pcb/tree/main/neato_delta_adapter)
 
-### ESP32 Modules
+### ESP32 Module Variants
 - When using the ESP32 WROVER board, it's worth using pins 32 and 33 instead of pins 16 and 17, which are used for QSPI
-- When using the YD ESP32-S3, consider the default TX1, RX1 GPIO15 and GPIO16 pins and change the example code to `HardwareSerial LidarSerial(1);`
+- ESP32-S3 has only two UARTs, as opposed to ESP32 having 3 UARTS
+  - When using the YD ESP32-S3, consider the default TX1, RX1 GPIO15 and GPIO16 pins and change the example code to `HardwareSerial LidarSerial(1);`
+```
+//ESP32-S3
+//HardwareSerial LidarSerial(2);
+HardwareSerial LidarSerial(1);
+...
+//LidarSerial.begin(baud_rate); // Use default GPIO TX 17, RX 16
+LidarSerial.begin(baud_rate, SERIAL_8N1, 16, 15); // GPIO16 as RX1, GPIO15 as TX1
+```
+
+- ESP32-C3 has only two UARTs, as opposed to ESP32 having 3 UARTS
+  - use UART1 for LiDAR and, for example, GPIO4 as RX1 and GPIO5 as TX
+```
+//ESP32-C3
+//HardwareSerial LidarSerial(2);
+HardwareSerial LidarSerial(1);
+...
+//LidarSerial.begin(baud_rate); // Use default GPIO TX 17, RX 16
+LidarSerial.begin(baud_rate, SERIAL_8N1, 4, 5); // GPIO4 as RX1, GPIO5 as TX1
+```
 
 ## Performance Notes
 - currently Delta-2A, -2B, -2G exhibit mysterious fixed pattern noise
@@ -78,6 +101,10 @@ Some LiDAR/LDS models do not have built-in motor control and therefore require a
   - so far I haven't heard back from 3irobotix support.
 
 ## Release notes
+
+## v0.5.9
+- added ESP32-C3 LD14P example
+- added ESP32-S3 LD14P example
 
 ## v0.5.8
 - LDROBOT LD14P commands

@@ -1,4 +1,4 @@
-// Copyright 2023-2024 REMAKE.AI, KAIA.AI, MAKERSPET.COM
+// Copyright 2023-2024 KAIA.AI
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,6 +16,72 @@
 
 #include <arduino.h>
 #include "robot_config.h"
+#include <SPIFFS.h>
+
+extern CONFIG cfg;
+
+bool init_fs(const char* file_path = NULL) {
+  if (!SPIFFS.begin(true)) {
+    Serial.println("Error mounting SPIFFS");
+    return false;
+  }
+  Serial.println("SPIFFS mounted successfully");
+
+  if ((file_path != NULL) && !SPIFFS.exists(file_path)) {
+    Serial.println("Sketch data not found. Please upload sketch data.");
+    return false;
+  }
+  return true;
+}
+
+bool file_exists(const char* FILE_PATH) {
+  if (!SPIFFS.exists(FILE_PATH)) {
+    Serial.println(String(FILE_PATH) + " not found");
+    return false;
+  }
+  return true;
+}
+
+bool write_file(const char* FILE_PATH, const char* text) {
+  Serial.print("Writing file ");
+  Serial.print(FILE_PATH);
+
+  File file = SPIFFS.open(FILE_PATH, FILE_WRITE);
+  if (!file) {
+    Serial.print(" - file open failed");
+    return false;
+  }
+
+  bool success = true;
+  if (text != NULL) {
+    success = file.print(text);
+    if (!success)
+      Serial.println(" - write failed");
+  }
+
+  file.close();
+  return success;
+}
+
+bool load_yaml(const char* FILE_PATH) {
+  Serial.print("Loading ");
+  Serial.print(FILE_PATH);
+  Serial.print(" ");
+  String err = cfg.load(FILE_PATH);
+  if (err.length() > 0) {
+    Serial.println(err);
+    return false;
+  }
+  Serial.println("OK");
+  return true;
+}
+
+inline void digiWrite(uint8_t gpio, uint8_t level, bool invert) {
+  if (invert)
+    level = level == HIGH ? LOW : HIGH;
+  digitalWrite(gpio, level);
+}
+
 
 void setPinMode(uint8_t pin, uint8_t mode,
   gpio_drive_cap_t strength = GPIO_DRIVE_CAP_0) {
@@ -26,12 +92,12 @@ void setPinMode(uint8_t pin, uint8_t mode,
 
 void blink(unsigned int delay_ms, unsigned int count) {
   for (unsigned int i = 0; i < count; i++) {
-    digitalWrite(CONFIG::LED_PIN, LOW);
+    digiWrite(cfg.led_sys_gpio, LOW, cfg.led_sys_invert);
     delay(delay_ms);
-    digitalWrite(CONFIG::LED_PIN, HIGH);
+    digiWrite(cfg.led_sys_gpio, HIGH, cfg.led_sys_invert);
     delay(delay_ms);
   }
-  digitalWrite(CONFIG::LED_PIN, LOW);
+  digiWrite(cfg.led_sys_gpio, LOW, cfg.led_sys_invert);
 }
 
 float absMin(float a, float b_abs) {
@@ -105,13 +171,13 @@ void printBytesAsHex(uint8_t * buffer, uint16_t length) {
   }
 }
 
-void printlnNB(const String s = "") { // non-blocking
+void printlnNB(const String & s = "") { // non-blocking
   uint16_t tx_room = (uint16_t) Serial.availableForWrite();
   if (tx_room >= s.length())
     Serial.println(s);
 }
 
-void printNB(const String s) { // non-blocking
+void printNB(const String & s) { // non-blocking
   uint16_t tx_room = (uint16_t) Serial.availableForWrite();
   if (tx_room >= s.length())
     Serial.print(s);

@@ -1,4 +1,4 @@
-// Copyright 2023-2024 REMAKE.AI, KAIA.AI, MAKERSPET.COM
+// Copyright 2023-2024 KAIA.AI
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,30 +14,25 @@
 
 #pragma once
 #include "robot_config.h"
-#include "param_file.h"
 
 extern CONFIG cfg;
-extern PARAM_FILE params;
-float bat_adc_multiplier = 1;
 
 float getBatteryMilliVolts() {
-  float voltage_mv = analogReadMilliVolts(cfg.BAT_ADC_PIN);
-  voltage_mv *= bat_adc_multiplier;
-  if (voltage_mv < cfg.BAT_PRESENT_MV_MIN)
-    voltage_mv = 0;
-  return voltage_mv;
+  float voltage_mv = analogReadMilliVolts(cfg.adc_bat_gpio);
+  //if (voltage_mv < cfg.adc_bat_voltage_empty)
+  //  voltage_mv = 0;
+  return voltage_mv * cfg.adc_bat_atten;
 }
 
 void setupADC() {
-//  if (!adcAttachPin(cfg.BAT_ADC_PIN))
+//  if (!adcAttachPin(cfg.adc_bat_gpio))
 //    Serial.println("adcAttachPin() FAILED");
 
-  bat_adc_multiplier = params.getAsFloat(cfg.PARAM_BATTERY_ADC_ATTENUATION);
   Serial.print("Battery ADC attenuation ");
-  Serial.print(bat_adc_multiplier);
+  Serial.print(cfg.adc_bat_atten);
 
   float batt_mv = getBatteryMilliVolts();
-  if (batt_mv < cfg.BAT_PRESENT_MV_MIN) {
+  if (batt_mv < cfg.adc_bat_voltage_empty) {
     Serial.println();
     Serial.println("Battery NOT detected. Check battery switch, "
       "connection or replace battery");

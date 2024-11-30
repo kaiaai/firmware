@@ -1,4 +1,4 @@
-// Copyright 2023-2024 REMAKE.AI, KAIA.AI, MAKERSPET.COM
+// Copyright 2023-2024 KAIA.AI
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,13 +16,11 @@
 
 #include <motor_ctl.h>
 #include "robot_config.h"
-#include "param_file.h"
 #include "util.h"
 
 const uint8_t MOTOR_COUNT = 2;
 MotorController motorLeft, motorRight;
 extern CONFIG cfg;
-extern PARAM_FILE params;
 
 enum motor_driver_t {
   MOT_DRIVER_PWM_CW,
@@ -44,40 +42,41 @@ void IRAM_ATTR unsignedEncoderRightISR() {
 }
 
 void IRAM_ATTR quadEncoderALeftISR() {
-  byte enc_a = digitalRead(cfg.MOT_ENC_A_LEFT_PIN);
-  byte enc_b = digitalRead(cfg.MOT_ENC_B_LEFT_PIN);
+  byte enc_a = digitalRead(cfg.mot_left_enc_gpio_a_fg);
+  byte enc_b = digitalRead(cfg.mot_left_enc_gpio_b);
   motorLeft.tickSignedEncoder(enc_a != enc_b);
 }
 
 void IRAM_ATTR quadEncoderARightISR() {
-  byte enc_a = digitalRead(cfg.MOT_ENC_A_RIGHT_PIN);
-  byte enc_b = digitalRead(cfg.MOT_ENC_B_RIGHT_PIN);
+  byte enc_a = digitalRead(cfg.mot_right_enc_gpio_a_fg);
+  byte enc_b = digitalRead(cfg.mot_right_enc_gpio_b);
   motorRight.tickSignedEncoder(enc_a != enc_b);
 }
 
 void IRAM_ATTR quadEncoderBLeftISR() {
-  byte enc_a = digitalRead(cfg.MOT_ENC_A_LEFT_PIN);
-  byte enc_b = digitalRead(cfg.MOT_ENC_B_LEFT_PIN);
+  byte enc_a = digitalRead(cfg.mot_left_enc_gpio_a_fg);
+  byte enc_b = digitalRead(cfg.mot_left_enc_gpio_b);
   motorLeft.tickSignedEncoder(enc_a == enc_b);
 }
 
 void IRAM_ATTR quadEncoderBRightISR() {
-  byte enc_a = digitalRead(cfg.MOT_ENC_A_RIGHT_PIN);
-  byte enc_b = digitalRead(cfg.MOT_ENC_B_RIGHT_PIN);
+  byte enc_a = digitalRead(cfg.mot_right_enc_gpio_a_fg);
+  byte enc_b = digitalRead(cfg.mot_right_enc_gpio_b);
   motorRight.tickSignedEncoder(enc_a == enc_b);
 }
 
 void setMotorPWM(MotorController *motor_controller, float pwm) {
-  //printNB("setMotorPWM ");
   bool is_right = motor_controller == &motorRight;
+
+  //printNB("setMotorPWM ");
   //printNB(is_right ? " right " : " left ");
   //printlnNB(String(pwm));
   
   uint8_t pwm_channel = is_right ? cfg.MOT_PWM_RIGHT_CHANNEL : cfg.MOT_PWM_LEFT_CHANNEL;
   int max_pwm = (1<<cfg.MOT_PWM_BITS) - 1;
-  uint8_t cw_pin = is_right ? cfg.MOT_CW_RIGHT_PIN : cfg.MOT_CW_LEFT_PIN;
-  uint8_t in1_pin = is_right ? cfg.MOT_IN1_RIGHT_PIN : cfg.MOT_IN1_LEFT_PIN;
-  uint8_t in2_pin = is_right ? cfg.MOT_IN2_RIGHT_PIN : cfg.MOT_IN2_LEFT_PIN;
+  uint8_t cw_pin = is_right ? cfg.mot_right_drv_gpio_in2_cw : cfg.mot_left_drv_gpio_in2_cw;
+  uint8_t in1_pin = is_right ? cfg.mot_right_drv_gpio_in1_pwm : cfg.mot_left_drv_gpio_in1_pwm;
+  uint8_t in2_pin = is_right ? cfg.mot_right_drv_gpio_in2_cw : cfg.mot_left_drv_gpio_in2_cw;
 
   pwm = pwm > 1 ? 1 : pwm;
   int pwm_magnitude = round(max_pwm*(1 - abs(pwm)));
@@ -122,25 +121,25 @@ void setupEncoders(motor_encoder_t motor_encoder_type) {
       motorLeft.init(MotorController::ENCODER_SIGNED, 4);
       motorRight.init(MotorController::ENCODER_SIGNED, 4);
 
-      setPinMode(cfg.MOT_ENC_A_LEFT_PIN, INPUT);
-      setPinMode(cfg.MOT_ENC_B_LEFT_PIN, INPUT);
-      attachInterrupt(cfg.MOT_ENC_A_LEFT_PIN, quadEncoderALeftISR, CHANGE);
-      attachInterrupt(cfg.MOT_ENC_B_LEFT_PIN, quadEncoderBLeftISR, CHANGE);
+      setPinMode(cfg.mot_left_enc_gpio_a_fg, INPUT);
+      setPinMode(cfg.mot_left_enc_gpio_b, INPUT);
+      attachInterrupt(cfg.mot_left_enc_gpio_a_fg, quadEncoderALeftISR, CHANGE);
+      attachInterrupt(cfg.mot_left_enc_gpio_b, quadEncoderBLeftISR, CHANGE);
     
-      setPinMode(cfg.MOT_ENC_A_RIGHT_PIN, INPUT);
-      setPinMode(cfg.MOT_ENC_B_RIGHT_PIN, INPUT);
-      attachInterrupt(cfg.MOT_ENC_A_RIGHT_PIN, quadEncoderARightISR, CHANGE);
-      attachInterrupt(cfg.MOT_ENC_B_RIGHT_PIN, quadEncoderBRightISR, CHANGE);
+      setPinMode(cfg.mot_right_enc_gpio_a_fg, INPUT);
+      setPinMode(cfg.mot_right_enc_gpio_b, INPUT);
+      attachInterrupt(cfg.mot_right_enc_gpio_a_fg, quadEncoderARightISR, CHANGE);
+      attachInterrupt(cfg.mot_right_enc_gpio_b, quadEncoderBRightISR, CHANGE);
       break;
     default:
       motorLeft.init(MotorController::ENCODER_UNSIGNED, 2);
       motorRight.init(MotorController::ENCODER_UNSIGNED, 2);
    
-      setPinMode(cfg.MOT_FG_LEFT_PIN, INPUT);
-      attachInterrupt(cfg.MOT_FG_LEFT_PIN, unsignedEncoderLeftISR, CHANGE);
+      setPinMode(cfg.mot_left_enc_gpio_a_fg, INPUT);
+      attachInterrupt(cfg.mot_left_enc_gpio_a_fg, unsignedEncoderLeftISR, CHANGE);
     
-      setPinMode(cfg.MOT_FG_RIGHT_PIN, INPUT);
-      attachInterrupt(cfg.MOT_FG_RIGHT_PIN, unsignedEncoderRightISR, CHANGE);
+      setPinMode(cfg.mot_right_enc_gpio_a_fg, INPUT);
+      attachInterrupt(cfg.mot_right_enc_gpio_a_fg, unsignedEncoderRightISR, CHANGE);
       break;
   }
 }
@@ -150,43 +149,46 @@ void setupDriver(motor_driver_t motor_driver_type) {
 
   switch(motorDriverType) {
     case MOT_DRIVER_PWM_CW:    
-      setPinMode(cfg.MOT_CW_LEFT_PIN, OUTPUT);
-      setPinMode(cfg.MOT_CW_RIGHT_PIN, OUTPUT);
+      setPinMode(cfg.mot_left_drv_gpio_in2_cw, OUTPUT);
+      setPinMode(cfg.mot_right_drv_gpio_in2_cw, OUTPUT);
 
       ledcSetup(cfg.MOT_PWM_LEFT_CHANNEL, cfg.MOT_PWM_FREQ, cfg.MOT_PWM_BITS);
-      setPinMode(cfg.MOT_PWM_LEFT_PIN, OUTPUT);
-      ledcAttachPin(cfg.MOT_PWM_LEFT_PIN, cfg.MOT_PWM_LEFT_CHANNEL);
-      //ledcAttachChannel(cfg.MOT_PWM_LEFT_PIN, cfg.MOT_PWM_FREQ, cfg.MOT_PWM_BITS, cfg.MOT_PWM_LEFT_CHANNEL);
+      setPinMode(cfg.mot_left_drv_gpio_in1_pwm, OUTPUT);
+      ledcAttachPin(cfg.mot_left_drv_gpio_in1_pwm, cfg.MOT_PWM_LEFT_CHANNEL);
+      //ledcAttachChannel(cfg.mot_left_drv_gpio_in1_pwm, cfg.MOT_PWM_FREQ,
+      //  cfg.MOT_PWM_BITS, cfg.MOT_PWM_LEFT_CHANNEL);
     
       ledcSetup(cfg.MOT_PWM_RIGHT_CHANNEL, cfg.MOT_PWM_FREQ, cfg.MOT_PWM_BITS);
-      setPinMode(cfg.MOT_PWM_RIGHT_PIN, OUTPUT);
-      ledcAttachPin(cfg.MOT_PWM_RIGHT_PIN, cfg.MOT_PWM_RIGHT_CHANNEL);
-      //ledcAttachChannel(cfg.MOT_PWM_RIGHT_PIN, cfg.MOT_PWM_FREQ, cfg.MOT_PWM_BITS, cfg.MOT_PWM_RIGHT_CHANNEL);
+      setPinMode(cfg.mot_right_drv_gpio_in1_pwm, OUTPUT);
+      ledcAttachPin(cfg.mot_right_drv_gpio_in1_pwm, cfg.MOT_PWM_RIGHT_CHANNEL);
+      //ledcAttachChannel(cfg.mot_right_drv_gpio_in1_pwm, cfg.MOT_PWM_FREQ,
+      //  cfg.MOT_PWM_BITS, cfg.MOT_PWM_RIGHT_CHANNEL);
       break;
     default:
-      setPinMode(cfg.MOT_IN1_LEFT_PIN, OUTPUT);
-      setPinMode(cfg.MOT_IN2_LEFT_PIN, OUTPUT);
+      setPinMode(cfg.mot_left_drv_gpio_in1_pwm, OUTPUT);
+      setPinMode(cfg.mot_left_drv_gpio_in2_cw, OUTPUT);
       ledcSetup(cfg.MOT_PWM_LEFT_CHANNEL, cfg.MOT_PWM_FREQ, cfg.MOT_PWM_BITS);
-      //ledcAttachChannel(cfg.MOT_IN1_LEFT_PIN, cfg.MOT_PWM_FREQ, cfg.MOT_PWM_BITS, cfg.MOT_PWM_LEFT_CHANNEL);
+      //ledcAttachChannel(cfg.mot_left_drv_gpio_in1_pwm, cfg.MOT_PWM_FREQ,
+      //  cfg.MOT_PWM_BITS, cfg.MOT_PWM_LEFT_CHANNEL);
 
-      setPinMode(cfg.MOT_IN1_RIGHT_PIN, OUTPUT);
-      setPinMode(cfg.MOT_IN2_RIGHT_PIN, OUTPUT);
+      setPinMode(cfg.mot_right_drv_gpio_in1_pwm, OUTPUT);
+      setPinMode(cfg.mot_right_drv_gpio_in2_cw, OUTPUT);
       ledcSetup(cfg.MOT_PWM_RIGHT_CHANNEL, cfg.MOT_PWM_FREQ, cfg.MOT_PWM_BITS);
-      //ledcAttachChannel(cfg.MOT_IN2_RIGHT_PIN, cfg.MOT_PWM_FREQ, cfg.MOT_PWM_BITS, cfg.MOT_PWM_RIGHT_CHANNEL);
+      //ledcAttachChannel(cfg.mot_right_drv_gpio_in2_cw, cfg.MOT_PWM_FREQ,
+      //  cfg.MOT_PWM_BITS, cfg.MOT_PWM_RIGHT_CHANNEL);
       break;
   }
 }
 
 void setupMotors() {
-  const char * motor_driver_type = params.get(cfg.PARAM_MOTOR_DRIVER_TYPE);
   Serial.print("Motor driver type ");
-  Serial.print(motor_driver_type);
+  Serial.print(cfg.motor_driver_type);
 
-  if (strcmp(motor_driver_type, "PWM_CW") == 0) {
+  if (cfg.motor_driver_type == "PWM_CW") {
     setupDriver(MOT_DRIVER_PWM_CW);
   } else {
-    if (strcmp(motor_driver_type, "IN1_IN2") != 0)
-      Serial.println(" not recognized, defaulting to IN1_IN2 generic");
+    if (cfg.motor_driver_type != "IN1_IN2")
+      Serial.print(" not recognized, defaulting to IN1_IN2");
     setupDriver(MOT_DRIVER_IN1_IN2);
   }
 
@@ -196,88 +198,66 @@ void setupMotors() {
   setMotorPWM(&motorLeft, 0);
   setMotorPWM(&motorRight, 0);
 
-  const char * motor_encoder_type = params.get(cfg.PARAM_MOTOR_ENCODER_TYPE);
   Serial.print("; motor encoder type ");
-  Serial.print(motor_encoder_type);
+  Serial.print(cfg.motor_encoder_type);
 
-  if (strcmp(motor_encoder_type, "FG") == 0) {
+  if (cfg.motor_encoder_type == "FG") {
     setupEncoders(MOT_ENCODER_FG);
   } else {
-    if (strcmp(motor_encoder_type, "AB_QUAD") != 0)
+    if (cfg.motor_encoder_type != "AB_QUAD")
       Serial.print(" not recognized, defaulting to AB_QUAD");
     setupEncoders(MOT_ENCODER_AB_QUAD);
   }
   Serial.println();
 
-  float value = params.getAsFloat(cfg.PARAM_MOTOR_MAX_RPM);
+  motorLeft.setMaxRPM(cfg.motor_rpm_max);
+  motorRight.setMaxRPM(cfg.motor_rpm_max);
   Serial.print("Motor Max RPM ");
-  Serial.print(value);
-  float derate = params.getAsFloat(cfg.PARAM_MOTOR_MAX_RPM_DERATE);
-  float max_RPM_derated = value * derate;
-  motorLeft.setMaxRPM(max_RPM_derated);
-  motorRight.setMaxRPM(max_RPM_derated);
-  Serial.print(", derated Max RPM ");
   Serial.print(motorLeft.getMaxRPM());
 
-  value = params.getAsFloat(cfg.PARAM_WHEEL_PPR);
-  motorLeft.setEncoderPPR(value);
-  motorRight.setEncoderPPR(value);
+  motorLeft.setEncoderPPR(cfg.motor_encoder_ppr);
+  motorRight.setEncoderPPR(cfg.motor_encoder_ppr);
   Serial.print("; encoder PPR ");
   Serial.print(motorLeft.getEncoderPPR());
-  Serial.print(" TPR "); // encoder ticks per revolution
+  Serial.print(" TPR "); // ticks per revolution
   Serial.println(motorLeft.getEncoderTPR());
 
-  float kp = params.getAsFloat(cfg.PARAM_MOTOR_PID_KP);
-  float ki = params.getAsFloat(cfg.PARAM_MOTOR_PID_KI);
-  float kd = params.getAsFloat(cfg.PARAM_MOTOR_PID_KD);
-  float period = params.getAsFloat(cfg.PARAM_MOTOR_PID_PERIOD);
-  const char * pid_mode = params.get(cfg.PARAM_MOTOR_PID_MODE);
-  bool on_error = strcmp(pid_mode, "ON_ERROR") == 0;
+  motorLeft.setPIDConfig(cfg.motor_driver_pid_kp, cfg.motor_driver_pid_ki,
+    cfg.motor_driver_pid_kd, cfg.motor_driver_pid_period, cfg.motor_driver_pid_kpm);
+  motorRight.setPIDConfig(cfg.motor_driver_pid_kp, cfg.motor_driver_pid_ki,
+    cfg.motor_driver_pid_kd, cfg.motor_driver_pid_period, cfg.motor_driver_pid_kpm);
 
-  motorLeft.setPIDConfig(kp, ki, kd, period, on_error);
-  motorRight.setPIDConfig(kp, ki, kd, period, on_error);
+  motorLeft.reverseMotor(cfg.mot_left_drv_reverse);
+  motorRight.reverseMotor(cfg.mot_right_drv_reverse);
 
-  const char * motor_reversed = params.get(cfg.PARAM_MOTOR_DIRECTION_REVERSED);
-  bool motor_reversed_left = false;
-  bool motor_reversed_right = false;
+  bool mot_reversed = cfg.mot_left_drv_reverse || cfg.mot_right_drv_reverse;
+  bool enc_reversed = cfg.mot_left_enc_reverse || cfg.mot_right_enc_reverse;
+  motorLeft.reverseEncoder(cfg.mot_left_enc_reverse);
+  motorRight.reverseEncoder(cfg.mot_right_enc_reverse);
 
-  if (strcmp(motor_reversed, "LEFT") == 0) {
-    motor_reversed_left = true;
-  } else if (strcmp(motor_reversed, "RIGHT") == 0) {
-    motor_reversed_right = true;
-  } else if (strcmp(motor_reversed, "BOTH") == 0) {
-    motor_reversed_left = true;
-    motor_reversed_right = true;    
+  if (mot_reversed)
+    Serial.print("Motor direction reversed: ");
+
+  if (cfg.mot_left_drv_reverse)
+    Serial.print("left ");
+  if (cfg.mot_left_drv_reverse)
+    Serial.print("right");
+
+  if (mot_reversed) {
+    Serial.print('.');
+    if (enc_reversed)
+      Serial.print(' ');
   }
 
-  motorLeft.reverseMotor(motor_reversed_left);
-  motorRight.reverseMotor(motor_reversed_right);
+  if (enc_reversed)
+    Serial.print("Encoder reversed: ");
+  if (cfg.mot_left_enc_reverse)
+    Serial.print("left ");
+  if (cfg.mot_right_enc_reverse)
+    Serial.print("right");
 
-  Serial.print("Motor direction reversed left ");
-  Serial.print(motor_reversed_left);
-  Serial.print(", right ");
-  Serial.print(motor_reversed_right);
-
-  const char * encoder_reversed = params.get(cfg.PARAM_MOTOR_ENCODER_REVERSED);
-  bool encoder_reversed_left = false;
-  bool encoder_reversed_right = false;
-
-  if (strcmp(encoder_reversed, "LEFT") == 0) {
-    encoder_reversed_left = true;
-  } else if (strcmp(encoder_reversed, "RIGHT") == 0) {
-    encoder_reversed_right = true;
-  } else if (strcmp(encoder_reversed, "BOTH") == 0) {
-    encoder_reversed_left = true;
-    encoder_reversed_right = true;    
-  }
-
-  motorLeft.reverseEncoder(encoder_reversed_left);
-  motorRight.reverseEncoder(encoder_reversed_right);
-
-  Serial.print("; encoder reversed left ");
-  Serial.print(encoder_reversed_left);
-  Serial.print(", right ");
-  Serial.println(encoder_reversed_right);
+  if (mot_reversed || enc_reversed)
+    Serial.println();
 }
 
 void setMotorSpeeds(float rpm_left, float rpm_right) {

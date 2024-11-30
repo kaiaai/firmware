@@ -1,0 +1,121 @@
+#
+# Board-specific assignments
+#
+board:
+  manufacturer: makerspet.com
+  model: BDC-30P
+  version: v1.1.0
+lidar:
+  gpio:
+    tx: 35
+    rx: 13
+    pwm: 32
+    en: 27
+led:
+  system: 
+    gpio: 2
+    invert: false
+button:
+  system:
+    gpio: 0
+motor:
+  driver:
+    type: IN1_IN2
+  encoder:
+    type: AB_QUAD
+  left:
+    encoder:
+      gpio:
+        a: 39
+        b: 36
+    driver:
+      gpio:
+        in1: 26
+        in2: 25
+  right:
+    encoder:
+      gpio:
+        a: 17
+        b: 16
+    driver:
+      gpio:
+        in1: 23
+        in2: 22
+adc:
+  battery:
+    attenuation: 7.0
+    gpio: 33
+    voltage:
+# 12V motors, 6x AA/D/C (1.2-1.6V) batteries
+      full: 9.9
+      empty: 7.2
+# 12V motors, 2S (2x 3.0-4.2V) cells
+#     full: 8.4
+#     empty: 6.0
+# 24V motors, 12x AA/D/C (1.2-1.6V) batteries
+#     full: 19.2
+#     empty: 14.4
+# 24V motors, 8x AA/D/C (1.2-1.6V) batteries
+#     full: 12.8
+#     empty: 9.6
+# 24V motors, 5S (2x 3.0-4.2V) cells
+#     full: 21.0
+#     empty: 15.0
+# 24V motors, 4S (2x 3.0-4.2V) cells
+#     full: 16.8
+#     empty: 12.0
+
+#
+# Robot configuration
+#
+lidar:
+  model: LDROBOT LD14P
+# model: NEATO XV11
+# model: SLAMTEC RPLIDAR A1
+# model: XIAOMI LDS02RR
+# model: YDLIDAR SCL
+# model: YDLIDAR X2
+# model: YDLIDAR X2L
+# model: YDLIDAR X3
+# model: YDLIDAR X3 PRO
+# model: 3IROBOTIX DELTA-2G
+# model: 3IROBOTIX DELTA-2A 115200
+# model: 3IROBOTIX DELTA-2A
+# model: 3IROBOTIX DELTA-2B
+# model: YDLIDAR X4 PRO
+# model: YDLIDAR X4
+  scan:
+    freq:
+      target: 5.0
+monitor:
+  baud: 115200
+base:
+  wheel:
+    track: 0.105043
+    diameter: 0.043
+    accel:
+      max: 2.0
+motor:
+  rpm:
+# derated
+    max: 180
+  driver:
+    type: IN1_IN2
+    pid:
+      period: 0.03
+      kp: 0.001
+      ki: 0.003
+      kd: 0
+      kpm: 0
+  encoder:
+    ppr: 1035
+  left:
+    encoder:
+      reverse: true
+    driver:
+      reverse: true
+  right:
+    encoder:
+      reverse: true
+    driver:
+      reverse: true

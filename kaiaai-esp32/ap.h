@@ -1,7 +1,4 @@
-// Based on:
-//   TODO Arduino library
-//
-// Copyright 2023-2024 REMAKE.AI, KAIA.AI, MAKERSPET.COM
+// Copyright 2023-2024 KAIA.AI
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,10 +18,13 @@
 #include <WiFi.h>
 #include <ESPAsyncWebSrv.h>
 #include <SPIFFS.h>
+#include "robot_config.h"
+
+extern CONFIG cfg;
 
 class AP {
 public:
-  typedef bool (*set_param_t)(const char*, const char*);
+  typedef String (*set_param_t)(const char*, const char*);
   void obtainConfig(const char * SSID_AP, set_param_t set_param_callback) {
     if (set_param_callback == NULL) {
       Serial.println("AP::obtainConfig() set_param_callback == NULL");
@@ -45,10 +45,7 @@ public:
     Serial.println(IP);
   
     server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-      //request->send(SPIFFS, "/www/index.html", CHAR_ENCODING);
-      request->send(SPIFFS, "/index.html", CHAR_ENCODING);
-      // request->send(SPIFFS, "/index.html", "text/html");
-      // request->send(SPIFFS, "/index.html", "utf-8");
+      request->send(SPIFFS, cfg.INDEX_HTML_PATH, CHAR_ENCODING);
     });
     
     //server.serveStatic("/", SPIFFS, "/www/");
@@ -56,18 +53,19 @@ public:
     
     server.on("/", HTTP_POST, [](AsyncWebServerRequest *request) {
       String resp = "<HTML><BODY>"
-        "<center><h1><br>Connecting to your router...</h1><p><table>";
+        "<center><h1><br>Connecting to WiFi...</h1><p><table>";
   
       int params = request->params();
+      //param_callback(NULL, cfg.CONFIG_YAML_ID);
       for (int i=0; i < params; i++) {
         AsyncWebParameter* p = request->getParam(i);
         if (p->isPost()) {
           //Serial.printf("POST[%s]: %s\n", p->name().c_str(), p->value().c_str());
-          param_callback(p->name().c_str(), p->value().c_str());
+          String ret = param_callback(p->name().c_str(), p->value().c_str());
           resp += "<tr><td>";
           resp += p->name();
           resp += "</td><td>";
-          resp += p->name() == "pass" ? "****" : p->value();
+          resp += ret;
           resp += "</td></tr>";
         }
       }
