@@ -119,6 +119,8 @@ public:
   float base_wheel_track_recip = 1.0f/0.105043f;
   uint8_t led_sys_gpio = 2;
   uint8_t led_sys_invert = false;
+  uint8_t button_sys_gpio = 0;
+  uint8_t button_sys_invert = false;
   String motor_driver_type = "IN1_IN2";
   String motor_encoder_type = "AB_QUAD";
   float motor_rpm_max = 200;
@@ -172,7 +174,6 @@ public:
 
     int line = 0;
     String s, field_name;
-    uint32_t name_len;
     const uint8_t MAX_LEVEL = 10;
     uint32_t level_ident[MAX_LEVEL] = {0};
     String level_name[MAX_LEVEL];
@@ -342,6 +343,16 @@ public:
       if (lname[1] == "system") {
         if (lname[2] == "gpio")
           led_sys_gpio = (uint8_t) pvalue.toInt();
+        else if (lname[2] == "invert")
+          led_sys_invert = true;
+      }
+      return;
+    }
+
+    if (nlevels == 3 && lname[0] == "button") {
+      if (lname[1] == "system") {
+        if (lname[2] == "gpio")
+          button_sys_gpio = (uint8_t) pvalue.toInt();
         else if (lname[2] == "invert")
           led_sys_invert = true;
       }

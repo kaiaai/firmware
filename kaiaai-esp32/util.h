@@ -82,6 +82,9 @@ inline void digiWrite(uint8_t gpio, uint8_t level, bool invert) {
   digitalWrite(gpio, level);
 }
 
+inline bool digiRead(uint8_t gpio, bool invert) {
+  return ((bool) digitalRead(gpio)) != invert;
+}
 
 void setPinMode(uint8_t pin, uint8_t mode,
   gpio_drive_cap_t strength = GPIO_DRIVE_CAP_0) {

@@ -494,7 +494,7 @@ bool isBootButtonPressed(uint8_t sec) {
 
   uint32_t msec = sec * 1000;
   unsigned long start_time_ms = millis();
-  while (!digitalRead(0)) {
+  while (!digiRead(cfg.button_sys_gpio, cfg.button_sys_invert)) {
     delay(50);
     digitalWrite(cfg.led_sys_gpio, !digitalRead(cfg.led_sys_gpio));
     if (millis() - start_time_ms > msec) {
@@ -561,15 +561,17 @@ void error_loop(int n_blinks){
 
 void setup() {
   Serial.begin(cfg.MONITOR_BAUD);
-  gpio_set_drive_capability((gpio_num_t) 1, GPIO_DRIVE_CAP_0);
-
-  setPinMode(0, INPUT);
-  setPinMode(cfg.led_sys_gpio, OUTPUT);
-  digiWrite(cfg.led_sys_gpio, HIGH, cfg.led_sys_invert);
-
+  while(!Serial);
   Serial.println();
   Serial.print("Kaia.ai firmware version ");
   Serial.println(cfg.FW_VERSION);
+
+  //gpio_set_drive_capability((gpio_num_t) 1, GPIO_DRIVE_CAP_0);
+
+  cfg.led_sys_gpio = 47; // Nano
+  setPinMode(cfg.led_sys_gpio, OUTPUT);
+  digiWrite(cfg.led_sys_gpio, HIGH, cfg.led_sys_invert);
+  setPinMode(cfg.button_sys_gpio, INPUT);
 
   if (!init_fs(cfg.INDEX_HTML_PATH))
     blink_error_code(cfg.ERR_SPIFFS_INIT);
@@ -581,16 +583,16 @@ void setup() {
 
   if (!file_exists(cfg.NETWORK_YAML_PATH))
     launch_web_config = true;
+  else {
+    if (!load_yaml(cfg.NETWORK_YAML_PATH))
+      launch_web_config = true;
+  }
 
   if (!file_exists(cfg.CONFIG_YAML_PATH))
     launch_web_config = true;
-
-  if (!launch_web_config)
-    launch_web_config = !load_yaml(cfg.NETWORK_YAML_PATH);
-
-  if (!launch_web_config) {
+  else {
     bool success = load_yaml(cfg.CONFIG_YAML_PATH);
-    
+
     if (success) {
       if (cfg.monitor_baud != cfg.MONITOR_BAUD)
         Serial.begin(cfg.monitor_baud);
@@ -606,8 +608,8 @@ void setup() {
       setupLIDAR();
       setupADC();
       setupMotors();
-    }
-    launch_web_config = !success;
+    } else
+      launch_web_config = true;
   }
 
   if (cfg.ssid.length() == 0) {

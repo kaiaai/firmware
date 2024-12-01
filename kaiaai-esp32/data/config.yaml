@@ -1,23 +1,34 @@
+# red GPIO0 AKA B1 BOOT1 active-low
+# blue GPIO45, green GPIO46
+# SCK yellow GPIO48 D13 active-high
+# PMEG6020AELRX C552938 0.20-0.10 60V 670mV@2A
+# https://docs.arduino.cc/tutorials/nano-esp32/cheat-sheet/
 #
 # Board-specific assignments
 #
 board:
   manufacturer: makerspet.com
-  model: MINI-S3MINI
-  version: v3.2.0
+  model: MINI-NANOS3
+  version: v3.1.0
 lidar:
   gpio:
-    tx: 15
-    rx: 17
-    pwm: 26
-    en: 33
+# D18 GPIO2
+    tx: 2
+# D19 GPIO3
+    rx: 3
+# D21 GPIO11
+    pwm: 11
+# D17 GPIO1
+    en: 1
 led:
   system: 
-    gpio: 2
+# D13 GPIO48
+    gpio: 48
     invert: false
 button:
   system:
-    gpio: 0
+# D2 GPIO5
+    gpio: 5
 motor:
   driver:
     type: IN1_IN2
@@ -26,24 +37,33 @@ motor:
   left:
     encoder:
       gpio:
-        a: 10
-        b: 11
+# D11 GPIO38
+        a: 38
+# D12 GPIO47
+        b: 47
     driver:
       gpio:
-        in1: 13
-        in2: 12
+# D9 GPIO18
+        in1: 18
+# D10 GPIO21
+        in2: 21
   right:
     encoder:
       gpio:
-        a: 36
-        b: 35
+# D0 GPIO44
+        a: 44
+# D1 GPIO43
+        b: 43
     driver:
       gpio:
-        in1: 48
-        in2: 34
+# D23 GPIO13
+        in1: 13
+# D24 GPIO14
+        in2: 14
 adc:
   battery:
     attenuation: 3.7
+# D20 GPIO4
     gpio: 4
     voltage:
 # 6V motors, 6x AA/D/C (1.2-1.6V) batteries
@@ -93,13 +113,3 @@ motor:
       kpm: 0
   encoder:
     ppr: 1035
-  left:
-    encoder:
-      reverse: true
-    driver:
-      reverse: true
-  right:
-    encoder:
-      reverse: true
-    driver:
-      reverse: true
