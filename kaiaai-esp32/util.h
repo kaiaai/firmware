@@ -20,28 +20,6 @@
 
 extern CONFIG cfg;
 
-bool init_fs(const char* file_path = NULL) {
-  if (!SPIFFS.begin(true)) {
-    Serial.println("Error mounting SPIFFS");
-    return false;
-  }
-  Serial.println("SPIFFS mounted successfully");
-
-  if ((file_path != NULL) && !SPIFFS.exists(file_path)) {
-    Serial.println("Sketch data not found. Please upload sketch data.");
-    return false;
-  }
-  return true;
-}
-
-bool file_exists(const char* FILE_PATH) {
-  if (!SPIFFS.exists(FILE_PATH)) {
-    Serial.println(String(FILE_PATH) + " not found");
-    return false;
-  }
-  return true;
-}
-
 bool write_file(const char* FILE_PATH, const char* text) {
   Serial.print("Writing file ");
   Serial.print(FILE_PATH);
@@ -63,34 +41,39 @@ bool write_file(const char* FILE_PATH, const char* text) {
   return success;
 }
 
-bool load_yaml(const char* FILE_PATH) {
-  Serial.print("Loading ");
-  Serial.print(FILE_PATH);
-  Serial.print(" ");
-  String err = cfg.load(FILE_PATH);
-  if (err.length() > 0) {
-    Serial.println(err);
-    return false;
-  }
-  Serial.println("OK");
-  return true;
-}
-
 inline void digiWrite(uint8_t gpio, uint8_t level, bool invert) {
+  if (gpio == cfg.UNDEFINED_GPIO)
+    return;
+
   if (invert)
     level = level == HIGH ? LOW : HIGH;
+
   digitalWrite(gpio, level);
 }
 
 inline bool digiRead(uint8_t gpio, bool invert) {
+  if (gpio == cfg.UNDEFINED_GPIO)
+    return invert;
+
   return ((bool) digitalRead(gpio)) != invert;
 }
 
-void setPinMode(uint8_t pin, uint8_t mode,
+bool setPinDrive(uint8_t pin, gpio_drive_cap_t strength = GPIO_DRIVE_CAP_0) {
+  if (pin == cfg.UNDEFINED_GPIO)
+    return false;
+
+  esp_err_t err = gpio_set_drive_capability((gpio_num_t) pin, strength);
+  return err == ESP_OK;
+}
+
+bool setPinMode(uint8_t pin, uint8_t mode,
   gpio_drive_cap_t strength = GPIO_DRIVE_CAP_0) {
+
+  if (pin == cfg.UNDEFINED_GPIO)
+    return false;
+  
   pinMode(pin, mode);
-  if (mode == OUTPUT)
-    gpio_set_drive_capability((gpio_num_t) pin, strength);
+  return setPinDrive(pin, strength);
 }
 
 void blink(unsigned int delay_ms, unsigned int count) {

@@ -25,6 +25,7 @@
 #include "lidar.h"
 #include "ros.h"
 #include "adc.h"
+#include <SPIFFS.h>
 
 #define RCCHECK(fn,E) { rcl_ret_t temp_rc = fn; \
   if(temp_rc != RCL_RET_OK)error_loop(E);}
@@ -560,67 +561,80 @@ void error_loop(int n_blinks){
 }
 
 void setup() {
+
+  bool spiffs_ok = SPIFFS.begin(true);
+//  blink_error_code(cfg.ERR_SPIFFS_INIT);
+  bool html_exists = false;
+  if (spiffs_ok)
+    html_exists = SPIFFS.exists(cfg.INDEX_HTML_PATH);
+
+  bool wifi_yaml_exists = SPIFFS.exists(cfg.NETWORK_YAML_PATH);
+  String wifi_yaml_err;
+  if (wifi_yaml_exists)
+    wifi_yaml_err = cfg.load(cfg.NETWORK_YAML_PATH);
+
+  bool config_yaml_exists = SPIFFS.exists(cfg.CONFIG_YAML_PATH);
+  String config_yaml_err;
+  if (config_yaml_exists)
+    config_yaml_err = cfg.load(cfg.CONFIG_YAML_PATH);
+
   Serial.begin(cfg.MONITOR_BAUD);
-  while(!Serial);
+  setPinDrive(cfg.monitor_gpio_tx);
+  while(!Serial)
+    delay(0);
+
   Serial.println();
   Serial.print("Kaia.ai firmware version ");
   Serial.println(cfg.FW_VERSION);
 
-  //gpio_set_drive_capability((gpio_num_t) 1, GPIO_DRIVE_CAP_0);
+  if (spiffs_ok) {
+    Serial.println("SPIFFS mounted successfully");
+    if (!html_exists)
+      Serial.println("Sketch data not found. Please upload sketch data.");
+  } else
+    Serial.println("Error mounting SPIFFS");
 
-  cfg.led_sys_gpio = 47; // Nano
+  if (wifi_yaml_exists) {
+    Serial.print(cfg.NETWORK_YAML_PATH);
+    Serial.print(" found; ");
+    if (wifi_yaml_err) {
+      Serial.print("error parsing: ");
+      Serial.println(wifi_yaml_err);
+    } else
+      Serial.println("loaded OK");
+  }
+
+  if (config_yaml_exists) {
+    Serial.print(cfg.CONFIG_YAML_PATH);
+    Serial.print(" found; ");
+    if (config_yaml_err) {
+      Serial.print("error parsing: ");
+      Serial.println(config_yaml_err);
+    } else
+      Serial.println("loaded OK");
+  }
+
   setPinMode(cfg.led_sys_gpio, OUTPUT);
   digiWrite(cfg.led_sys_gpio, HIGH, cfg.led_sys_invert);
+
   setPinMode(cfg.button_sys_gpio, INPUT);
 
-  if (!init_fs(cfg.INDEX_HTML_PATH))
-    blink_error_code(cfg.ERR_SPIFFS_INIT);
-
-  Serial.println("To enter web config push-and-release EN, "
-    "then push-and-hold BOOT within 1 sec");
-  delay(1000);
-  bool launch_web_config = isBootButtonPressed(cfg.RESET_SETTINGS_HOLD_SEC);
-
-  if (!file_exists(cfg.NETWORK_YAML_PATH))
-    launch_web_config = true;
-  else {
-    if (!load_yaml(cfg.NETWORK_YAML_PATH))
-      launch_web_config = true;
-  }
-
-  if (!file_exists(cfg.CONFIG_YAML_PATH))
-    launch_web_config = true;
-  else {
-    bool success = load_yaml(cfg.CONFIG_YAML_PATH);
-
-    if (success) {
-      if (cfg.monitor_baud != cfg.MONITOR_BAUD)
-        Serial.begin(cfg.monitor_baud);
-
-      setPinMode(cfg.led_sys_gpio, OUTPUT);
-      Serial.print("Board model ");
-      Serial.print(cfg.board_model);
-      Serial.print(", version ");
-      Serial.print(cfg.board_version);
-      Serial.print(", manufacturer ");
-      Serial.println(cfg.board_manufacturer);
-      // cfg.board_manufacturer = board_model = board_version = "";
-      setupLIDAR();
-      setupADC();
-      setupMotors();
-    } else
-      launch_web_config = true;
-  }
+  bool launch_web_config = false;
 
   if (cfg.ssid.length() == 0) {
-    Serial.println("SSID not specified");
+    Serial.println("WiFi SSID unknown");
     launch_web_config = true;
   }
 
   if (cfg.dest_ip.length() == 0) {
-    Serial.println("dest_ip not specified");
+    Serial.println("dest_ip unknown");
     launch_web_config = true;
   }
+
+  Serial.println("To enter web config push-and-release EN, "
+    "then push-and-hold BOOT within 1 sec");
+  delay(1000);
+  launch_web_config |= isBootButtonPressed(cfg.RESET_SETTINGS_HOLD_SEC);
 
   if (launch_web_config) {
     digiWrite(cfg.led_sys_gpio, HIGH, cfg.led_sys_invert);
@@ -628,8 +642,23 @@ void setup() {
     AP ap;
     ap.obtainConfig(cfg.SSID_AP, set_param_callback);
     return;
-  } else
-     while(!initWiFi(cfg.ssid, cfg.pass));
+  }
+
+  Serial.print("Board model ");
+  Serial.print(cfg.board_model);
+  Serial.print(", version ");
+  Serial.print(cfg.board_version);
+  Serial.print(", manufacturer ");
+  Serial.println(cfg.board_manufacturer);
+  cfg.board_manufacturer = ""; // free up a little memory
+  cfg.board_model = "";
+  cfg.board_version = "";
+
+  setupLIDAR();
+  setupADC();
+  setupMotors();
+
+  while(!initWiFi(cfg.ssid, cfg.pass));
 
   set_microros_wifi_transports(cfg.dest_ip.c_str(), cfg.dest_port);
   delay(2000);

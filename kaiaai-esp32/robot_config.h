@@ -64,6 +64,7 @@ public:
   static const uint32_t WIFI_CONN_TIMEOUT_MS = 30000;
   static constexpr char * SSID_AP = (char *) "KAIA.AI";
   static const uint32_t MONITOR_BAUD = 115200;
+  static const uint8_t UNDEFINED_GPIO = 255;
 
   // Micro-ROS config
   static constexpr char * UROS_NODE_NAME = (char *)"pet"; // temp hardcoded
@@ -110,17 +111,18 @@ public:
   String pass = "";
   String dest_ip = "";
   String board_manufacturer = "N/A";
-  String board_model = "generic";
+  String board_model = "N/A";
   String board_version = "N/A";
   unsigned int dest_port = 8888;
   float base_wheel_dia = 0.043f;
   float base_wheel_accel_max = 1.0;
   float base_wheel_track = 0.105043f;
   float base_wheel_track_recip = 1.0f/0.105043f;
-  uint8_t led_sys_gpio = 2;
+  uint8_t led_sys_gpio = UNDEFINED_GPIO;
   uint8_t led_sys_invert = false;
-  uint8_t button_sys_gpio = 0;
+  uint8_t button_sys_gpio = UNDEFINED_GPIO;
   uint8_t button_sys_invert = false;
+  uint8_t monitor_gpio_tx = UNDEFINED_GPIO;
   String motor_driver_type = "IN1_IN2";
   String motor_encoder_type = "AB_QUAD";
   float motor_rpm_max = 200;
@@ -321,9 +323,18 @@ public:
       return;
     }
 
-    if (nlevels == 2 && lname[0] == "monitor" && lname[1] == "baud") {
-      monitor_baud = (uint32_t) pvalue.toInt();
-       return;
+    if (lname[0] == "monitor") {
+      switch(nlevels) {
+        case 2:
+          if (lname[1] == "baud")
+            monitor_baud = (uint32_t) pvalue.toInt();
+          break;
+        case 3:
+          if (lname[1] == "gpio" && lname[2] == "tx")
+            monitor_gpio_tx = (uint8_t) pvalue.toInt();
+          break;
+      }
+      return;
     }
 
     if (nlevels >= 3 && lname[0] == "base") {
