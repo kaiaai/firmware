@@ -420,13 +420,17 @@ void updateROSParams() {
 }
 
 void loop() {
+  static bool wifi_ok_prev = true;
 
-  if (WiFi.status() != WL_CONNECTED) {
+  bool wifi_ok = WiFi.status() == WL_CONNECTED;
+  if (wifi_ok && !wifi_ok_prev) {
+    lidar->start();
+    Serial.println("WiFi connection restored");
+  } else if (!wifi_ok && wifi_ok_prev) {
     lidar->stop();
-    setMotorSpeeds(0, 0);
-    Serial.println("WiFi connection lost: stopping motors, LiDAR.");
-    return;
+    Serial.println("WiFi connection lost: pausing motors, LiDAR");
   }
+  wifi_ok_prev = wifi_ok;
 
   lidar->loop();
 
@@ -441,65 +445,14 @@ void loop() {
 
   spinTelem(false);
   spinPing();
-  updateSpeedRamp();
+
+  if (wifi_ok)
+    updateSpeedRamp();
+  else
+    setMotorSpeeds(0, 0);
 
   motorLeft.update();
   motorRight.update();
-
-/*
-  printNB(String(motorLeft.getEncoderValue()));
-  printNB("\t");
-  printNB(String(motorRight.getEncoderValue()));
-  printNB("\t");
-
-  printNB(String(motorLeft.getCurrentRPM()));
-  printNB("\t");
-  printNB(String(motorRight.getCurrentRPM()));
-  printNB("\t");
-
-  printNB(String(motorLeft.getCurrentPWM()));
-  printNB("\t");
-  printNB(String(motorRight.getCurrentPWM()));
-  printNB("\t");
-
-  printNB(String(motorLeft.getTargetRPM()));
-  printNB("\t");
-  printNB(String(motorRight.getTargetRPM()));  
-  printlnNB();
-*/
-
-/*
-  unsigned long ms = millis();
-  ms = ms >> 12;
-  static gpio_drive_cap_t gpio_strength_last = GPIO_DRIVE_CAP_DEFAULT;
-  gpio_drive_cap_t gpio_strength = GPIO_DRIVE_CAP_DEFAULT;
-  switch (ms % 4) {
-    case 0:
-      gpio_strength = GPIO_DRIVE_CAP_0;
-      break;
-    case 1:
-      gpio_strength = GPIO_DRIVE_CAP_1;
-      break;
-    case 2:
-      gpio_strength = GPIO_DRIVE_CAP_2;
-      break;
-    case 3:
-      gpio_strength = GPIO_DRIVE_CAP_3;
-      break;
-    default:
-      break;
-  }
-  if (gpio_strength != gpio_strength_last) {
-    esp_err_t ret;
-    ret = gpio_set_drive_capability((gpio_num_t) cfg.led_sys_gpio, gpio_strength);
-    gpio_strength_last = gpio_strength;
-    Serial.print(ret);
-    Serial.print(" ");
-    Serial.print(ret == ESP_OK);
-    Serial.print(" ");
-    Serial.println(gpio_strength);
-  }
-*/
 }
 
 bool isBootButtonPressed(uint8_t sec) {
