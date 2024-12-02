@@ -58,7 +58,7 @@ inline bool digiRead(uint8_t gpio, bool invert) {
   return ((bool) digitalRead(gpio)) != invert;
 }
 
-bool setPinDrive(uint8_t pin, gpio_drive_cap_t strength = GPIO_DRIVE_CAP_0) {
+inline bool setPinDrive(uint8_t pin, gpio_drive_cap_t strength = GPIO_DRIVE_CAP_0) {
   if (pin == cfg.UNDEFINED_GPIO)
     return false;
 
@@ -66,7 +66,7 @@ bool setPinDrive(uint8_t pin, gpio_drive_cap_t strength = GPIO_DRIVE_CAP_0) {
   return err == ESP_OK;
 }
 
-bool setPinMode(uint8_t pin, uint8_t mode,
+inline bool setPinMode(uint8_t pin, uint8_t mode,
   gpio_drive_cap_t strength = GPIO_DRIVE_CAP_0) {
 
   if (pin == cfg.UNDEFINED_GPIO)

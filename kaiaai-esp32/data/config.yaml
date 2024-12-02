@@ -24,11 +24,11 @@ led:
   system: 
 # D13 GPIO48
     gpio: 48
-    invert: false
-button:
-  system:
+#button:
+# system:
 # D2 GPIO5
-    gpio: 5
+#   gpio: 5
+#   invert: true
 motor:
   driver:
     type: IN1_IN2

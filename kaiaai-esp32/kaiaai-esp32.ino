@@ -27,11 +27,6 @@
 #include "adc.h"
 #include <SPIFFS.h>
 
-#define RCCHECK(fn,E) { rcl_ret_t temp_rc = fn; \
-  if(temp_rc != RCL_RET_OK)error_loop(E);}
-#define BLCHECK(fn) { CONFIG::error_blink_count temp_cnt = fn; \
-  if(temp_cnt != CONFIG::ERR_NONE)error_loop(temp_cnt);}
-
 CONFIG cfg;
 kaiaai_msgs__msg__JointPosVel joint[MOTOR_COUNT];
 float joint_prev_pos[MOTOR_COUNT] = {0};
@@ -255,7 +250,8 @@ void spinTelem(bool force_pub) {
   publishTelem(step_time_us);
   telem_prev_pub_time_us = time_now_us;
 
-  digitalWrite(cfg.led_sys_gpio, !digitalRead(cfg.led_sys_gpio));
+  digiWrite(cfg.led_sys_gpio, !digiRead(cfg.led_sys_gpio, cfg.led_sys_invert),
+    cfg.led_sys_invert);
   //if (++telem_pub_count % 5 == 0) {
   //  Serial.print("RPM L ");
   //  Serial.print(motorLeft.getCurrentRPM());
@@ -326,8 +322,12 @@ void publishTelem(unsigned long step_time_us) {
   calcOdometry(step_time_us, joint_pos_delta[0], joint_pos_delta[1]);
 //  calcOdometry2(step_time_us, joint_pos_delta[0], joint_pos_delta[1]);
 
-  RCSOFTCHECK(rcl_publish(&telem_pub, &telem_msg, NULL));
-
+  rcl_ret_t rc = rcl_publish(&telem_pub, &telem_msg, NULL);
+  if (rc != RCL_RET_OK) {
+    Serial.print("rcl_publish(telem_msg");
+    Serial.print(") error ");
+    Serial.println(rc);
+  }
   
   //Serial.print(telem_msg.odom_pos_x, 8);
   //Serial.print("\t");
@@ -398,13 +398,23 @@ void spinPing() {
 void updateROSParams() {
   if (ros_config_params_changed) {
     ros_config_params_changed = false;
-    BLCHECK(updateROSConfigParams());
+    rcl_ret_t ret = updateROSConfigParams();
+    if (ret != RCL_RET_OK) {
+      Serial.print("updateROSConfigParams() error ");
+      Serial.println(ret);
+    }
   }
 
   unsigned long time_now_us = esp_timer_get_time();
   unsigned long step_time_us = time_now_us - ros_params_update_prev_time_us;
   if (step_time_us >= cfg.UROS_PARAMS_UPDATE_PERIOD_US) {
-    BLCHECK(updateROSRealTimeParams());
+
+    rcl_ret_t ret = updateROSRealTimeParams();
+    if (ret != RCL_RET_OK) {
+      Serial.print("updateROSRealTimeParams() error ");
+      Serial.println(ret);
+    }
+
     ros_params_update_prev_time_us = time_now_us;
   }
 }
@@ -421,7 +431,12 @@ void loop() {
   lidar->loop();
 
   // Process micro-ROS callbacks
-  RCCHECK(rclc_executor_spin_some(&executor, RCL_MS_TO_NS(1)), cfg.ERR_UROS_SPIN);
+  rcl_ret_t ret = rclc_executor_spin_some(&executor, RCL_MS_TO_NS(1));
+  if (ret != RCL_RET_OK) {
+    Serial.print("rclc_executor_spin_some() error ");
+    Serial.println(ret);
+  }
+
   updateROSParams();
 
   spinTelem(false);
@@ -488,19 +503,19 @@ void loop() {
 }
 
 bool isBootButtonPressed(uint8_t sec) {
-  if (!digitalRead(0))
+  if (digiRead(cfg.button_sys_gpio, cfg.button_sys_invert))
     Serial.println("BOOT button pressed. Keep pressing for web config.");
   else
     return false;
 
   uint32_t msec = sec * 1000;
   unsigned long start_time_ms = millis();
-  while (!digiRead(cfg.button_sys_gpio, cfg.button_sys_invert)) {
+  while (digiRead(cfg.button_sys_gpio, cfg.button_sys_invert)) {
     delay(50);
-    digitalWrite(cfg.led_sys_gpio, !digitalRead(cfg.led_sys_gpio));
-    if (millis() - start_time_ms > msec) {
+    digiWrite(cfg.led_sys_gpio, !digiRead(cfg.led_sys_gpio, cfg.led_sys_invert),
+      cfg.led_sys_invert);
+    if (millis() - start_time_ms > msec)
       return true;
-    }
   }
   return false;
 }
@@ -531,9 +546,10 @@ void resetTelemMsg() {
   telem_msg.wifi_rssi_dbm = 0;
 }
 
+/*
 void blink_error_code(int n_blinks) {
   unsigned int i = 0;
-  while(i++ < cfg.ERR_REBOOT_BLINK_CYCLES){
+  while(i++ < cfg.ERR_REBOOT_BLINK_CYCLES) {
     blink(cfg.LONG_BLINK_MS, 1);
     digiWrite(cfg.led_sys_gpio, LOW, cfg.led_sys_invert);
     delay(cfg.SHORT_BLINK_PAUSE_MS);
@@ -559,6 +575,7 @@ void error_loop(int n_blinks){
 
   ESP.restart();
 }
+*/
 
 void setup() {
 
@@ -597,7 +614,7 @@ void setup() {
   if (wifi_yaml_exists) {
     Serial.print(cfg.NETWORK_YAML_PATH);
     Serial.print(" found; ");
-    if (wifi_yaml_err) {
+    if (wifi_yaml_err.length() != 0) {
       Serial.print("error parsing: ");
       Serial.println(wifi_yaml_err);
     } else
@@ -607,7 +624,7 @@ void setup() {
   if (config_yaml_exists) {
     Serial.print(cfg.CONFIG_YAML_PATH);
     Serial.print(" found; ");
-    if (config_yaml_err) {
+    if (config_yaml_err.length() != 0) {
       Serial.print("error parsing: ");
       Serial.println(config_yaml_err);
     } else
@@ -663,10 +680,17 @@ void setup() {
   set_microros_wifi_transports(cfg.dest_ip.c_str(), cfg.dest_port);
   delay(2000);
 
-  BLCHECK(setupMicroROS(&twist_sub_callback));
+  setupMicroROS(&twist_sub_callback);
+
   //pubDiagnostics();
 
-  BLCHECK(addROSParams());
+  rcl_ret_t rc = addROSParams();
+  if (rc != RCL_RET_OK) {
+    Serial.print("addROSParams(");
+    Serial.print(") error ");
+    Serial.println(rc);
+  }
+
   ros_config_params_changed = true;
   updateROSParams();
   Serial.println("Micro-ROS initialized");
@@ -677,7 +701,7 @@ void setup() {
   
   resetTelemMsg();
   
-  if (startLIDAR() != LDS::RESULT_OK)
-    blink_error_code(cfg.ERR_LIDAR_START);
+  startLIDAR();
+    //blink_error_code(cfg.ERR_LIDAR_START);
     //error_loop(cfg.ERR_LIDAR_START);
 }
