@@ -212,6 +212,7 @@ static inline bool initWiFi(const String & ssid, const String & passw) {
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, passw);
 
+  const uint32_t blink_delay = 500;
   unsigned long startMillis = millis();
 
   while (WiFi.status() != WL_CONNECTED) {
@@ -226,10 +227,10 @@ static inline bool initWiFi(const String & ssid, const String & passw) {
     }
 
     digiWrite(cfg.led_sys_gpio, HIGH, cfg.led_sys_invert);
-    delay(500);
+    delay(blink_delay);
     digiWrite(cfg.led_sys_gpio, LOW, cfg.led_sys_invert);
     //Serial.print('.'); // F('.') crashes
-    delay(500);
+    delay(blink_delay);
   }
 
   digiWrite(cfg.led_sys_gpio, LOW, cfg.led_sys_invert);
@@ -555,7 +556,9 @@ void setup() {
 
   Serial.println();
   Serial.print("Kaia.ai firmware version ");
-  Serial.println(cfg.FW_VERSION);
+  Serial.print(cfg.FW_VERSION);
+  Serial.print("; ESP IDF version ");
+  Serial.println(esp_get_idf_version());
 
   if (spiffs_ok) {
     Serial.println("SPIFFS mounted successfully");

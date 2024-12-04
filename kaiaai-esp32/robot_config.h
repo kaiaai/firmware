@@ -121,7 +121,7 @@ public:
   uint8_t led_sys_gpio = UNDEFINED_GPIO;
   uint8_t led_sys_invert = false;
   uint8_t button_sys_gpio = UNDEFINED_GPIO;
-  uint8_t button_sys_invert = false;
+  uint8_t button_sys_invert = true;
   uint8_t monitor_gpio_tx = UNDEFINED_GPIO;
   String motor_driver_type = "IN1_IN2";
   String motor_encoder_type = "AB_QUAD";
@@ -355,7 +355,7 @@ public:
         if (lname[2] == "gpio")
           led_sys_gpio = (uint8_t) pvalue.toInt();
         else if (lname[2] == "invert")
-          led_sys_invert = true;
+          led_sys_invert = stringToBool(pvalue);
       }
       return;
     }
@@ -365,7 +365,7 @@ public:
         if (lname[2] == "gpio")
           button_sys_gpio = (uint8_t) pvalue.toInt();
         else if (lname[2] == "invert")
-          led_sys_invert = true;
+          button_sys_invert = stringToBool(pvalue);
       }
       return;
     }
