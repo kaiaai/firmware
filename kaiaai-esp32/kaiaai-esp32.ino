@@ -556,8 +556,9 @@ void setup() {
 
   Serial.println();
   Serial.print("Kaia.ai firmware version ");
-  Serial.print(cfg.FW_VERSION);
-  Serial.print("; ESP IDF version ");
+  Serial.println(cfg.FW_VERSION);
+
+  Serial.print("ESP IDF version ");
   Serial.println(esp_get_idf_version());
 
   if (spiffs_ok) {
