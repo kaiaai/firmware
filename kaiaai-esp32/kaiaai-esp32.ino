@@ -457,14 +457,14 @@ void loop() {
 }
 
 bool isBootButtonPressed(uint8_t sec) {
-  if (digiRead(cfg.button_sys_gpio, cfg.button_sys_invert))
+  if (digiRead(cfg.button_boot_gpio, cfg.button_boot_invert))
     Serial.println("BOOT button pressed. Keep pressing for web config.");
   else
     return false;
 
   uint32_t msec = sec * 1000;
   unsigned long start_time_ms = millis();
-  while (digiRead(cfg.button_sys_gpio, cfg.button_sys_invert)) {
+  while (digiRead(cfg.button_boot_gpio, cfg.button_boot_invert)) {
     delay(50);
     digiWrite(cfg.led_sys_gpio, !digiRead(cfg.led_sys_gpio, cfg.led_sys_invert),
       cfg.led_sys_invert);
@@ -591,7 +591,7 @@ void setup() {
   setPinMode(cfg.led_sys_gpio, OUTPUT);
   digiWrite(cfg.led_sys_gpio, HIGH, cfg.led_sys_invert);
 
-  setPinMode(cfg.button_sys_gpio, INPUT);
+  setPinMode(cfg.button_boot_gpio, INPUT);
 
   bool launch_web_config = false;
 

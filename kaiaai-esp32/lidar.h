@@ -132,10 +132,15 @@ void lidar_motor_pin_callback(float value, LDS::lds_pin_t lds_pin) {
   if (int(value) <= LDS::DIR_INPUT) {
     // Configure pin direction
     if (int(value) == LDS::DIR_OUTPUT_PWM) {
+      #if ESP_IDF_VERSION_MAJOR >= 5
+      if (!ledcAttachChannel(pin, cfg.LIDAR_PWM_FREQ,
+        cfg.LIDAR_PWM_BITS, cfg.LIDAR_PWM_CHANNEL))
+        Serial.println("lidar_motor_pin_callback() ledcAttachChannel() error");
+      #else
       //setPinMode(pin, OUTPUT);
       //ledcSetup(cfg.LIDAR_PWM_CHANNEL, cfg.LIDAR_PWM_FREQ, cfg.LIDAR_PWM_BITS);
       ledcAttachPin(pin, cfg.LIDAR_PWM_CHANNEL);
-      //ledcAttachChannel(pin, cfg.LIDAR_PWM_FREQ, cfg.LIDAR_PWM_BITS, cfg.LIDAR_PWM_CHANNEL);
+      #endif
     } else
       setPinMode(pin, (int(value) == LDS::DIR_INPUT) ? INPUT : OUTPUT);
     return;
@@ -175,7 +180,14 @@ void lidar_error_callback(LDS::result_t code, const String aux_info) {
 }
 
 void setupLIDAR() {
-  ledcSetup(cfg.LIDAR_PWM_CHANNEL, cfg.LIDAR_PWM_FREQ, cfg.LIDAR_PWM_BITS);
+  #if ESP_IDF_VERSION_MAJOR >= 5
+  if (!ledcAttachChannel(cfg.lidar_gpio_pwm, cfg.LIDAR_PWM_FREQ,
+    cfg.LIDAR_PWM_BITS, cfg.LIDAR_PWM_CHANNEL))
+    Serial.println("setupLIDAR() ledcAttachChannel() error");
+  #else
+  if (!ledcSetup(cfg.LIDAR_PWM_CHANNEL, cfg.LIDAR_PWM_FREQ, cfg.LIDAR_PWM_BITS))
+    Serial.println("setupLIDAR() ledcSetup() error");
+  #endif
 
   Serial.print("LIDAR model ");
   Serial.print(cfg.lidar_model);

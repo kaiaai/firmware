@@ -43,7 +43,11 @@ extern "C"
     udp_client.beginPacket(locator->address, locator->port);
     size_t sent = udp_client.write(buf, len);
     udp_client.endPacket();
+    #if ESP_IDF_VERSION_MAJOR >= 5
+    udp_client.clear();
+    #else
     udp_client.flush();
+    #endif
 
     return sent;
   }

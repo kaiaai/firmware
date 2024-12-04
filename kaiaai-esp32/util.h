@@ -73,7 +73,7 @@ inline bool setPinMode(uint8_t pin, uint8_t mode,
     return false;
   
   pinMode(pin, mode);
-  return setPinDrive(pin, strength);
+  return mode == INPUT ? true : setPinDrive(pin, strength);
 }
 
 void blink(unsigned int delay_ms, unsigned int count) {

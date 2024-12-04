@@ -120,8 +120,8 @@ public:
   float base_wheel_track_recip = 1.0f/0.105043f;
   uint8_t led_sys_gpio = UNDEFINED_GPIO;
   uint8_t led_sys_invert = false;
-  uint8_t button_sys_gpio = UNDEFINED_GPIO;
-  uint8_t button_sys_invert = true;
+  uint8_t button_boot_gpio = UNDEFINED_GPIO;
+  uint8_t button_boot_invert = true;
   uint8_t monitor_gpio_tx = UNDEFINED_GPIO;
   String motor_driver_type = "IN1_IN2";
   String motor_encoder_type = "AB_QUAD";
@@ -361,11 +361,11 @@ public:
     }
 
     if (nlevels == 3 && lname[0] == "button") {
-      if (lname[1] == "system") {
+      if (lname[1] == "boot") {
         if (lname[2] == "gpio")
-          button_sys_gpio = (uint8_t) pvalue.toInt();
+          button_boot_gpio = (uint8_t) pvalue.toInt();
         else if (lname[2] == "invert")
-          button_sys_invert = stringToBool(pvalue);
+          button_boot_invert = stringToBool(pvalue);
       }
       return;
     }

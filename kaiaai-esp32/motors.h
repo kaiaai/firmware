@@ -106,8 +106,14 @@ void setMotorPWM(MotorController *motor_controller, float pwm) {
       uint8_t in1 = pwm > 0 ? in1_pin : in2_pin;
       uint8_t in2 = pwm > 0 ? in2_pin : in1_pin;
       
+      #if ESP_IDF_VERSION_MAJOR >= 5
+      if (!ledcAttachChannel(in2, cfg.MOT_PWM_FREQ,
+        cfg.MOT_PWM_BITS, pwm_channel))
+        Serial.println("setMotorPWM() ledcAttachChannel() error");
+      #else
       ledcAttachPin(in2, pwm_channel);
-      //ledcAttachChannel(in2, cfg.MOT_PWM_FREQ, cfg.MOT_PWM_BITS, pwm_channel);
+      #endif
+
       ledcWrite(pwm_channel, pwm_magnitude);
       setPinMode(in1, OUTPUT);
       digitalWrite(in1, HIGH);
@@ -148,34 +154,45 @@ void setupDriver(motor_driver_t motor_driver_type) {
   motorDriverType = motor_driver_type;
 
   switch(motorDriverType) {
-    case MOT_DRIVER_PWM_CW:    
+    case MOT_DRIVER_PWM_CW:
       setPinMode(cfg.mot_left_drv_gpio_in2_cw, OUTPUT);
       setPinMode(cfg.mot_right_drv_gpio_in2_cw, OUTPUT);
-
-      ledcSetup(cfg.MOT_PWM_LEFT_CHANNEL, cfg.MOT_PWM_FREQ, cfg.MOT_PWM_BITS);
       setPinMode(cfg.mot_left_drv_gpio_in1_pwm, OUTPUT);
-      ledcAttachPin(cfg.mot_left_drv_gpio_in1_pwm, cfg.MOT_PWM_LEFT_CHANNEL);
-      //ledcAttachChannel(cfg.mot_left_drv_gpio_in1_pwm, cfg.MOT_PWM_FREQ,
-      //  cfg.MOT_PWM_BITS, cfg.MOT_PWM_LEFT_CHANNEL);
-    
-      ledcSetup(cfg.MOT_PWM_RIGHT_CHANNEL, cfg.MOT_PWM_FREQ, cfg.MOT_PWM_BITS);
       setPinMode(cfg.mot_right_drv_gpio_in1_pwm, OUTPUT);
+
+      #if ESP_IDF_VERSION_MAJOR >= 5
+      if (!ledcAttachChannel(cfg.mot_left_drv_gpio_in1_pwm, cfg.MOT_PWM_FREQ,
+             cfg.MOT_PWM_BITS, cfg.MOT_PWM_LEFT_CHANNEL) ||
+          !ledcAttachChannel(cfg.mot_right_drv_gpio_in1_pwm, cfg.MOT_PWM_FREQ,
+             cfg.MOT_PWM_BITS, cfg.MOT_PWM_RIGHT_CHANNEL))
+        Serial.println("setupDriver() ledcAttachChannel() error");
+      #else
+      if (!ledcSetup(cfg.MOT_PWM_LEFT_CHANNEL, cfg.MOT_PWM_FREQ, cfg.MOT_PWM_BITS) ||
+          !ledcSetup(cfg.MOT_PWM_RIGHT_CHANNEL, cfg.MOT_PWM_FREQ, cfg.MOT_PWM_BITS))
+        Serial.println("setupDriver() ledcSetup() error");
+      ledcAttachPin(cfg.mot_left_drv_gpio_in1_pwm, cfg.MOT_PWM_LEFT_CHANNEL);
       ledcAttachPin(cfg.mot_right_drv_gpio_in1_pwm, cfg.MOT_PWM_RIGHT_CHANNEL);
-      //ledcAttachChannel(cfg.mot_right_drv_gpio_in1_pwm, cfg.MOT_PWM_FREQ,
-      //  cfg.MOT_PWM_BITS, cfg.MOT_PWM_RIGHT_CHANNEL);
+      #endif
+    
       break;
     default:
       setPinMode(cfg.mot_left_drv_gpio_in1_pwm, OUTPUT);
       setPinMode(cfg.mot_left_drv_gpio_in2_cw, OUTPUT);
-      ledcSetup(cfg.MOT_PWM_LEFT_CHANNEL, cfg.MOT_PWM_FREQ, cfg.MOT_PWM_BITS);
-      //ledcAttachChannel(cfg.mot_left_drv_gpio_in1_pwm, cfg.MOT_PWM_FREQ,
-      //  cfg.MOT_PWM_BITS, cfg.MOT_PWM_LEFT_CHANNEL);
-
       setPinMode(cfg.mot_right_drv_gpio_in1_pwm, OUTPUT);
       setPinMode(cfg.mot_right_drv_gpio_in2_cw, OUTPUT);
-      ledcSetup(cfg.MOT_PWM_RIGHT_CHANNEL, cfg.MOT_PWM_FREQ, cfg.MOT_PWM_BITS);
-      //ledcAttachChannel(cfg.mot_right_drv_gpio_in2_cw, cfg.MOT_PWM_FREQ,
-      //  cfg.MOT_PWM_BITS, cfg.MOT_PWM_RIGHT_CHANNEL);
+
+      #if ESP_IDF_VERSION_MAJOR >= 5
+      if (!ledcAttachChannel(cfg.mot_left_drv_gpio_in1_pwm, cfg.MOT_PWM_FREQ,
+             cfg.MOT_PWM_BITS, cfg.MOT_PWM_LEFT_CHANNEL) ||
+          !ledcAttachChannel(cfg.mot_right_drv_gpio_in2_cw, cfg.MOT_PWM_FREQ,
+             cfg.MOT_PWM_BITS, cfg.MOT_PWM_RIGHT_CHANNEL))
+        Serial.println("setupDriver() ledcAttachChannel() error");            
+      #else
+      if (!ledcSetup(cfg.MOT_PWM_LEFT_CHANNEL, cfg.MOT_PWM_FREQ, cfg.MOT_PWM_BITS) ||
+          !ledcSetup(cfg.MOT_PWM_RIGHT_CHANNEL, cfg.MOT_PWM_FREQ, cfg.MOT_PWM_BITS))
+        Serial.println("setupDriver() ledcSetup() error");            
+      #endif
+
       break;
   }
 }
