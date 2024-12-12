@@ -129,28 +129,31 @@ void lidar_motor_pin_callback(float value, LDS::lds_pin_t lds_pin) {
   int pin = (lds_pin == LDS::LDS_MOTOR_EN_PIN) ?
     cfg.lidar_gpio_en : cfg.lidar_gpio_pwm;
 
-  if (int(value) <= LDS::DIR_INPUT) {
+  if (value <= (float)LDS::DIR_INPUT) {
     // Configure pin direction
-    if (int(value) == LDS::DIR_OUTPUT_PWM) {
-      #if ESP_IDF_VERSION_MAJOR >= 5
+    if (value == (float)LDS::DIR_OUTPUT_PWM) {
+      #if ESP_IDF_VERSION_MAJOR < 5
+      ledcSetup(cfg.LIDAR_PWM_CHANNEL, cfg.LIDAR_PWM_FREQ, cfg.LIDAR_PWM_BITS);
+      ledcAttachPin(pin, cfg.LIDAR_PWM_CHANNEL);
+      #else      
       if (!ledcAttachChannel(pin, cfg.LIDAR_PWM_FREQ,
         cfg.LIDAR_PWM_BITS, cfg.LIDAR_PWM_CHANNEL))
         Serial.println("lidar_motor_pin_callback() ledcAttachChannel() error");
-      #else
-      //setPinMode(pin, OUTPUT);
-      //ledcSetup(cfg.LIDAR_PWM_CHANNEL, cfg.LIDAR_PWM_FREQ, cfg.LIDAR_PWM_BITS);
-      ledcAttachPin(pin, cfg.LIDAR_PWM_CHANNEL);
       #endif
     } else
-      setPinMode(pin, (int(value) == LDS::DIR_INPUT) ? INPUT : OUTPUT);
+      setPinMode(pin, (value == (float)LDS::DIR_INPUT) ? INPUT : OUTPUT);
     return;
   }
 
-  if (int(value) < LDS::VALUE_PWM) // set constant output
-    digitalWrite(pin, (int(value) == LDS::VALUE_HIGH) ? HIGH : LOW);
+  if (value < (float)LDS::VALUE_PWM) // set constant output
+    digitalWrite(pin, (value == (float)LDS::VALUE_HIGH) ? HIGH : LOW);
   else { // set PWM duty cycle
     int pwm_value = ((1<<cfg.LIDAR_PWM_BITS)-1)*value;
+    #if ESP_IDF_VERSION_MAJOR < 5
     ledcWrite(cfg.LIDAR_PWM_CHANNEL, pwm_value);
+    #else
+    ledcWriteChannel(cfg.LIDAR_PWM_CHANNEL, pwm_value);
+    #endif
   }
 }
 
