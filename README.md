@@ -52,9 +52,19 @@ This [blog post](https://kaia.ai/blog/arduino-platform-firmware-avaiable/) discu
 
 ## Compatible Motors
 
+### Steering
+- supports 2 motors with a coaster wheel
+- 4WD slip steering, mechanum, 3WD omniwheels on the TODO list
+
+### Brushed Motors
+- supports motor drivers with two inputs (IN1/IN2)
+  - including L298N, TB6612FNG, DRV8871, DRV8833, DRV8835, etc.
+- supports motors with two (quadrature) encoder outputs
+  - including N20, GA25-370, etc.
+
 ### Brushless (BLDC) Motors
 - supports ESC controller (PWM, CW and FG pins)
-- BLDC motors with these specifications should (generally) work:
+- BLDC motors with these specifications are recommended
   - 9..24V voltage (higher voltage increases efficiency)
   - models JGA25-2418, JGA25-2430; 24.4mm outer diameter
   - ~190..450 no-load (max) RPM, ~140..350 rated RPM
@@ -68,13 +78,8 @@ This [blog post](https://kaia.ai/blog/arduino-platform-firmware-avaiable/) discu
   - JGA25-BL2418 24V 408RPM 127.8PPR
   - CHR-GM25-BL2418 24V 450RPM 120PPR
 
-### Brushed Motors
-- supports motor drivers with two inputs (IN1/IN2)
-  - including L298N, TB6612FNG, DRV8871, DRV8833, DRV8835 and similar
-- supports motors with two (quadrature) encoder outputs
-  - including N20, GA25-370, etc.
-
 ### Where to Purchase Motors/Components
+- [Maker's Pet online store](https://makerspet.com/store)
 - AliExpress
 - Ebay
 - Amazon
