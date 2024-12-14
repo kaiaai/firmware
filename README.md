@@ -53,8 +53,8 @@ This [blog post](https://kaia.ai/blog/arduino-platform-firmware-avaiable/) discu
 ## Compatible Motors
 
 ### Steering
-- supports 2 motors with a coaster wheel
-- 4WD slip steering, mechanum, 3WD omniwheels on the TODO list
+- supports differential steering (2 motors with a coaster wheel)
+- 4WD skid steering, mechanum, 3WD omniwheels on the TODO list
 
 ### Brushed Motors
 - supports motor drivers with two inputs (IN1/IN2)
