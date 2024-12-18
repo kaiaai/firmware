@@ -47,6 +47,10 @@ bool ramp_enabled = true;
 unsigned long stat_sum_spin_telem_period_us = 0;
 unsigned long stat_max_spin_telem_period_us = 0;
 
+#if ESP_IDF_VERSION_MAJOR >= 5
+  #error Espressif IDF v5 is not yet supported
+#endif
+
 void twist_sub_callback(const void *msgin) {
   const geometry_msgs__msg__Twist * msg = (const geometry_msgs__msg__Twist *)msgin;
 
