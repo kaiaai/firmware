@@ -350,11 +350,11 @@ public:
       return;
     }
 
-    if (nlevels == 3 && lname[0] == "led") {
-      if (lname[1] == "system") {
-        if (lname[2] == "gpio")
+    if (nlevels == 4 && lname[0] == "led") {
+      if (lname[1] == "system" && lname[2] == "driver") {
+        if (lname[3] == "gpio")
           led_sys_gpio = (uint8_t) pvalue.toInt();
-        else if (lname[2] == "invert")
+        else if (lname[3] == "invert")
           led_sys_invert = stringToBool(pvalue);
       }
       return;

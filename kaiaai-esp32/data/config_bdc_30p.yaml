@@ -3,7 +3,7 @@
 #
 board:
   manufacturer: makerspet.com
-  model: BDC-38C4
+  model: BDC-30P
   version: v1.1.0
 lidar:
   gpio:
