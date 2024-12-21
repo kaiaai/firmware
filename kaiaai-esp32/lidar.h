@@ -24,7 +24,7 @@
 extern CONFIG cfg;
 extern kaiaai_msgs__msg__KaiaaiTelemetry2 telem_msg;
 LDS *lidar;
-HardwareSerial LdSerial(1);
+HardwareSerial LdSerial(2);
 
 void spinTelem(bool);
 
@@ -129,6 +129,9 @@ void lidar_motor_pin_callback(float value, LDS::lds_pin_t lds_pin) {
   int pin = (lds_pin == LDS::LDS_MOTOR_EN_PIN) ?
     cfg.lidar_gpio_en : cfg.lidar_gpio_pwm;
 
+  if (pin == 255)
+    return;
+
   if (value <= (float)LDS::DIR_INPUT) {
     // Configure pin direction
     if (value == (float)LDS::DIR_OUTPUT_PWM) {
@@ -167,9 +170,6 @@ void lidar_info_callback(LDS::info_t code, const String info) {
 void lidar_error_callback(LDS::result_t code, const String aux_info) {
 //  return;
 
-
-
-
   if (code != LDS::ERROR_NOT_READY) {
     String s = "LiDAR ";
     s = s + String(lidar->resultCodeToString(code));
@@ -183,14 +183,16 @@ void lidar_error_callback(LDS::result_t code, const String aux_info) {
 }
 
 void setupLIDAR() {
-  #if ESP_IDF_VERSION_MAJOR >= 5
-  if (!ledcAttachChannel(cfg.lidar_gpio_pwm, cfg.LIDAR_PWM_FREQ,
-    cfg.LIDAR_PWM_BITS, cfg.LIDAR_PWM_CHANNEL))
-    Serial.println("setupLIDAR() ledcAttachChannel() error");
-  #else
-  if (!ledcSetup(cfg.LIDAR_PWM_CHANNEL, cfg.LIDAR_PWM_FREQ, cfg.LIDAR_PWM_BITS))
-    Serial.println("setupLIDAR() ledcSetup() error");
-  #endif
+  if (cfg.lidar_gpio_pwm != 255) {
+    #if ESP_IDF_VERSION_MAJOR >= 5
+    if (!ledcAttachChannel(cfg.lidar_gpio_pwm, cfg.LIDAR_PWM_FREQ,
+      cfg.LIDAR_PWM_BITS, cfg.LIDAR_PWM_CHANNEL))
+      Serial.println("setupLIDAR() ledcAttachChannel() error");
+    #else
+    if (!ledcSetup(cfg.LIDAR_PWM_CHANNEL, cfg.LIDAR_PWM_FREQ, cfg.LIDAR_PWM_BITS))
+      Serial.println("setupLIDAR() ledcSetup() error");
+    #endif
+  }
 
   Serial.print("LIDAR model ");
   Serial.print(cfg.lidar_model);
@@ -266,16 +268,6 @@ void setupLIDAR() {
   uint32_t baud_rate = lidar->getSerialBaudRate();
   Serial.print(", baud rate ");
   Serial.println(baud_rate);
-
-  /*
-  uint8_t tx_pin = 17; // RX GPIO16, TX GPIO17 default
-  if (strcmp(model, "LDROBOT-LD14P") == 0) {
-    tx_pin = 15;
-    LdSerial.begin(baud_rate, SERIAL_8N1, 16, tx_pin);
-  } else {
-    LdSerial.begin(baud_rate); // messes up GPIO 25 setPinMode()
-  }
-  */
 
   LdSerial.begin(baud_rate, SERIAL_8N1, cfg.lidar_gpio_tx, cfg.lidar_gpio_rx);
   gpio_set_drive_capability((gpio_num_t) cfg.lidar_gpio_rx, GPIO_DRIVE_CAP_0);

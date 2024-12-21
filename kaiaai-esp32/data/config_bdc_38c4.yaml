@@ -3,18 +3,20 @@
 #
 board:
   manufacturer: makerspet.com
-  model: MINI-32E
-  version: v3.2.0
+  model: BDC-38C4
+  version: v1.1.0
 lidar:
   gpio:
-    tx: 13
-    rx: 4
+    tx: 35
+    rx: 27
+    pwm: 13
+    en: 32
 led:
   system:
     driver:
       type: direct
-      gpio: 33
-      invert: true
+      gpio: 2
+      invert: false
 button:
   boot:
     gpio: 0
@@ -30,28 +32,27 @@ motor:
   left:
     encoder:
       gpio:
-        a: 25
-        b: 35
+        a: 39
+        b: 36
     driver:
       gpio:
         in1: 26
-        in2: 27
+        in2: 25
   right:
     encoder:
       gpio:
-        a: 19
-        b: 18
+        a: 17
+        b: 16
     driver:
       gpio:
-        in1: 17
-        in2: 16
+        in1: 23
+        in2: 22
 adc:
   battery:
-    attenuation: 3.5
-    gpio: 34
+    attenuation: 7.0
+    gpio: 33
     voltage:
-# 12V motors, 6x AA/D/C (1.2-1.6V) batteries
-      full: 9.6
+      full: 9.9
       empty: 7.2
 
 #

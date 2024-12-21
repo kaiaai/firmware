@@ -3,25 +3,23 @@
 #
 board:
   manufacturer: makerspet.com
-  model: MINI-32E
+  model: MINI-S3M
   version: v3.2.0
 lidar:
   gpio:
-    tx: 13
-    rx: 4
+    tx: 14
+    rx: 26
 led:
-  system:
-    driver:
-      type: direct
-      gpio: 33
-      invert: true
+  system: 
+    gpio: 1
+    invert: false
 button:
   boot:
     gpio: 0
     invert: true
 monitor:
   gpio:
-    tx: 1
+    tx: 43
 motor:
   driver:
     type: IN1_IN2
@@ -30,25 +28,25 @@ motor:
   left:
     encoder:
       gpio:
-        a: 25
-        b: 35
+        a: 11
+        b: 10
     driver:
       gpio:
-        in1: 26
-        in2: 27
+        in1: 13
+        in2: 12
   right:
     encoder:
       gpio:
-        a: 19
-        b: 18
+        a: 39
+        b: 38
     driver:
       gpio:
-        in1: 17
-        in2: 16
+        in1: 36
+        in2: 35
 adc:
   battery:
     attenuation: 3.5
-    gpio: 34
+    gpio: 6
     voltage:
 # 12V motors, 6x AA/D/C (1.2-1.6V) batteries
       full: 9.6

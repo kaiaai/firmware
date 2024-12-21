@@ -35,7 +35,7 @@ motor:
     driver:
       gpio:
         in1: 26
-        in2: 27
+        in2: 35
   right:
     encoder:
       gpio:
