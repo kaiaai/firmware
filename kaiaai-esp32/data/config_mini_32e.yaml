@@ -4,7 +4,7 @@
 board:
   manufacturer: makerspet.com
   model: MINI-32E
-  version: v3.2.0
+  version: v3.3.0
 lidar:
   gpio:
     tx: 13

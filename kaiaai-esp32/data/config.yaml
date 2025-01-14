@@ -4,7 +4,7 @@
 board:
   manufacturer: makerspet.com
   model: MINI-32E
-  version: v3.2.0
+  version: v3.3.0
 lidar:
   gpio:
     tx: 13
@@ -35,7 +35,7 @@ motor:
     driver:
       gpio:
         in1: 26
-        in2: 27
+        in2: 35
   right:
     encoder:
       gpio:

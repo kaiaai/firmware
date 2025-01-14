@@ -4,15 +4,17 @@
 board:
   manufacturer: makerspet.com
   model: MINI-S3M
-  version: v3.2.0
+  version: v3.3.0
 lidar:
   gpio:
     tx: 14
-    rx: 26
+    rx: 21
 led:
   system: 
-    gpio: 1
-    invert: false
+    driver:
+      type: direct
+      gpio: 1
+      invert: false
 button:
   boot:
     gpio: 0
@@ -37,12 +39,12 @@ motor:
   right:
     encoder:
       gpio:
-        a: 39
-        b: 38
+        a: 41
+        b: 40
     driver:
       gpio:
-        in1: 36
-        in2: 35
+        in1: 39
+        in2: 38
 adc:
   battery:
     attenuation: 3.5
