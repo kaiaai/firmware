@@ -3,25 +3,29 @@
 #
 board:
   manufacturer: makerspet.com
-  model: MINI-32E
-  version: v3.3.0
+  model: ESP32-S3-DevKitC-1
+  version: v1.1
 lidar:
   gpio:
-    tx: 13
-    rx: 4
+    tx: 14
+    rx: 21
 led:
-  system:
+  system: 
     driver:
       type: direct
-      gpio: 33
-      invert: true
+      gpio: 97
+# RGB_BUILTIN 97, crashes setPinMode()
+# GPIO38 physical
+      invert: false
 button:
   boot:
     gpio: 0
-    invert: true
+#   invert: true
+    invert: false
+# BOOT is stuck LOW when using USB serial
 monitor:
   gpio:
-    tx: 1
+    tx: 43
 motor:
   driver:
     type: IN1_IN2
@@ -30,25 +34,25 @@ motor:
   left:
     encoder:
       gpio:
-        a: 25
-        b: 35
+        a: 11
+        b: 10
     driver:
       gpio:
-        in1: 26
-        in2: 27
+        in1: 13
+        in2: 12
   right:
     encoder:
       gpio:
-        a: 19
-        b: 18
+        a: 41
+        b: 40
     driver:
       gpio:
-        in1: 17
-        in2: 16
+        in1: 39
+        in2: 38
 adc:
   battery:
     attenuation: 3.5
-    gpio: 34
+    gpio: 6
     voltage:
 # 12V motors, 6x AA/D/C (1.2-1.6V) batteries
       full: 9.6
