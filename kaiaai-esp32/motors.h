@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include <motor_ctl.h>
+#include <motor_ctl_kaia.h>
 #include "robot_config.h"
 #include "util.h"
 
