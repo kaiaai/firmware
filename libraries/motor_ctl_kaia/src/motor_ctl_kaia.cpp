@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "motor_ctl.h"
+#include "motor_ctl_kaia.h"
 
 void MotorController::init(encoder_type_t encoder_type, uint8_t ticks_per_pulse) {
 
