@@ -147,7 +147,7 @@ void printByteAsHex(uint8_t b) {
   Serial.print(b, HEX);
 }
 
-void printBytesAsHex(uint8_t * buffer, uint16_t length) {
+void printBytesAsHex(const uint8_t * buffer, uint16_t length) {
   if (length == 0)
     return;
 
