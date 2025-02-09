@@ -108,22 +108,6 @@ button:disabled, button[disabled] {
   <title>Kaia.ai Robot Configurator</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 <script>
-const CONFIG_YAML = "/config.yaml";
-fetch(CONFIG_YAML)
-  .then(function(response) {
-    if (!response.ok) {
-      console.log(CONFIG_YAML + ' not found');
-	} else {
-      response.text().then(function(text) {
-        document.getElementById('config.yaml').value = text;
-      });
-	}
-  })
-  .catch((error) => {
-    console.log('Exception fetching ' + CONFIG_YAML);
-  });
-</script>
-<script>
 const NETWORK_YAML = "/network.yaml";
 fetch(NETWORK_YAML)
   .then(function(response) {
@@ -241,26 +225,13 @@ fetch(NETWORK_YAML)
       </div>
       </div>
       </fieldset>
-      <br>
-      <fieldset>
-	  <legend>Board &amp; Robot</legend>
-	  <div class="row">
-	    <div class="col-25">
-          <label for="config.yaml">config.yaml</label>
-		</div>
-		<div class="col-75">
-          <textarea id="config.yaml" name="config.yaml" rows="10" cols="50" title="Paste your board and robot YAML configuration file here"></textarea>
-        </div>
-      </div>
-      </fieldset>
-
 	  <br>
       <div class="row">
 	    <div class="col-25">
           <input type="reset" id="reset" value="Clear">
 		</div>
 		<div class="col-75">
-          <input type="submit" value="Configure and Connect">
+          <input type="submit" value="Connect">
 		</div>
       </div>
     </form>

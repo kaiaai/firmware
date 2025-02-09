@@ -189,22 +189,10 @@ String set_param_callback(const char * param_name, const char * param_value) {
 
   if (param_name == NULL) {
     write_file(cfg.NETWORK_YAML_PATH, text.c_str());
-    Serial.println(String(cfg.NETWORK_YAML_PATH) + " saved, restarting...");
+    Serial.println(", restarting...");
     delay(100);
     ESP.restart();
     return "";
-  } else if (strcmp(param_name, cfg.CONFIG_YAML_ID) == 0) {
-    write_file(cfg.CONFIG_YAML_PATH, param_value);
-    Serial.print(String(cfg.CONFIG_YAML_PATH) + " saved, parsing ");
-
-    String err = cfg.load(cfg.CONFIG_YAML_PATH);
-    if (err.length() > 0) {
-      Serial.print(" error: ");
-      Serial.println(err);
-      return err;
-    }
-    Serial.println(" OK");
-    return "OK";
   } else {
     text = text + String(param_name) + ": " + String(param_value) + '\n';
     return strcmp(param_name, "pass") == 0 ? "****" : String(param_value);

@@ -56,7 +56,6 @@ public:
         "<center><h1><br>Connecting to WiFi...</h1><p><table>";
   
       int params = request->params();
-      //param_callback(NULL, cfg.CONFIG_YAML_ID);
       for (int i=0; i < params; i++) {
         AsyncWebParameter* p = request->getParam(i);
         if (p->isPost()) {
