@@ -108,13 +108,14 @@ This [blog post](https://kaia.ai/blog/arduino-platform-firmware-avaiable/) discu
 ## Change Log
 
 ### v0.8.0
-- simplified web config GUI
-  - web config got too complicated, too many parameters to set manually
-  - copy-and-paste a YAML text file in the simplified web config
-  - added multiple board support: assign GPIO pins in config.yaml
-  - Kaia.ai-compatible boards will come with a GPIO assignment config file
+- moved board config from web to config.yaml
+- upload config.yaml as sketch data
   - config.yaml stores board/robot config
   - network.yaml stores network-only config portion for security reasons
+- web config GUI now only configures WiFi
+  - web config got too complicated, too many parameters to set manually
+- added multiple board support: assign GPIO pins in config.yaml
+  - Kaia.ai-compatible boards will come with a GPIO assignment config file
 - cleaned up some micro-ROS parameters
 - simplified motor PID library
   - removed ON_ERROR vs. ON_MEASUREMENT
