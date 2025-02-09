@@ -1,4 +1,4 @@
-// Copyright 2023-2024 REMAKE.AI, KAIA.AI, MAKERSPET.COM
+// Copyright 2023-2024 KAIA.AI
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,22 +16,74 @@
 
 #include <arduino.h>
 #include "robot_config.h"
+#include <SPIFFS.h>
 
-void setPinMode(uint8_t pin, uint8_t mode,
+extern CONFIG cfg;
+
+bool write_file(const char* FILE_PATH, const char* text) {
+  Serial.print("Writing file ");
+  Serial.print(FILE_PATH);
+
+  File file = SPIFFS.open(FILE_PATH, FILE_WRITE);
+  if (!file) {
+    Serial.print(" - file open failed");
+    return false;
+  }
+
+  bool success = true;
+  if (text != NULL) {
+    success = file.print(text);
+    if (!success)
+      Serial.println(" - write failed");
+  }
+
+  file.close();
+  return success;
+}
+
+inline void digiWrite(uint8_t gpio, uint8_t level, bool invert) {
+  if (gpio == cfg.UNDEFINED_GPIO)
+    return;
+
+  if (invert)
+    level = level == HIGH ? LOW : HIGH;
+
+  digitalWrite(gpio, level);
+}
+
+inline bool digiRead(uint8_t gpio, bool invert) {
+  if (gpio == cfg.UNDEFINED_GPIO)
+    return invert;
+
+  return ((bool) digitalRead(gpio)) != invert;
+}
+
+inline bool setPinDrive(uint8_t pin, gpio_drive_cap_t strength = GPIO_DRIVE_CAP_0) {
+  if (pin == cfg.UNDEFINED_GPIO)
+    return false;
+
+  esp_err_t err = gpio_set_drive_capability((gpio_num_t) pin, strength);
+  return err == ESP_OK;
+}
+
+inline bool setPinMode(uint8_t pin, uint8_t mode,
   gpio_drive_cap_t strength = GPIO_DRIVE_CAP_0) {
+
+  if (pin == cfg.UNDEFINED_GPIO)
+    return false;
+  
   pinMode(pin, mode);
-  if (mode == OUTPUT)
-    gpio_set_drive_capability((gpio_num_t) pin, strength);
+  return mode == INPUT ? true : setPinDrive(pin, strength);
 }
 
 void blink(unsigned int delay_ms, unsigned int count) {
   for (unsigned int i = 0; i < count; i++) {
-    digitalWrite(CONFIG::LED_PIN, LOW);
+    digiWrite(cfg.led_sys_gpio, LOW, cfg.led_sys_invert);
     delay(delay_ms);
-    digitalWrite(CONFIG::LED_PIN, HIGH);
+    digiWrite(cfg.led_sys_gpio, HIGH, cfg.led_sys_invert);
     delay(delay_ms);
   }
-  digitalWrite(CONFIG::LED_PIN, LOW);
+  digiWrite(cfg.led_sys_gpio, LOW, cfg.led_sys_invert);
 }
 
 float absMin(float a, float b_abs) {
@@ -95,7 +147,7 @@ void printByteAsHex(uint8_t b) {
   Serial.print(b, HEX);
 }
 
-void printBytesAsHex(uint8_t * buffer, uint16_t length) {
+void printBytesAsHex(const uint8_t * buffer, uint16_t length) {
   if (length == 0)
     return;
 
@@ -105,13 +157,13 @@ void printBytesAsHex(uint8_t * buffer, uint16_t length) {
   }
 }
 
-void printlnNB(const String s = "") { // non-blocking
+void printlnNB(const String & s = "") { // non-blocking
   uint16_t tx_room = (uint16_t) Serial.availableForWrite();
   if (tx_room >= s.length())
     Serial.println(s);
 }
 
-void printNB(const String s) { // non-blocking
+void printNB(const String & s) { // non-blocking
   uint16_t tx_room = (uint16_t) Serial.availableForWrite();
   if (tx_room >= s.length())
     Serial.print(s);

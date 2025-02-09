@@ -1,0 +1,4 @@
+*.sh text eol=lf
+*.meta text eol=lf
+*.cmake text eol=lf
+*.repos text eol=lf

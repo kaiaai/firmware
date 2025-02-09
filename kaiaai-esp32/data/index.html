@@ -108,44 +108,34 @@ button:disabled, button[disabled] {
   <title>Kaia.ai Robot Configurator</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 <script>
-fetch("/config.old")
+const NETWORK_YAML = "/network.yaml";
+fetch(NETWORK_YAML)
   .then(function(response) {
     if (!response.ok) {
-      console.log('Unable to fetch config');  
+      console.log(NETWORK_YAML + ' not found');
 	} else {
       response.text().then(function(text) {
+        text = text.replace(/\r\n/g, '\n');
         var lines = text.split('\n');
 		//console.log(lines);
-        var config = {};
         for (var idx = 0; idx < lines.length-1;) {
-	      param_name = lines[idx++];
-	      param_value = lines[idx++];
-          //console.log(`${param_name}: ${param_value}`);
-		  config[param_name] = param_value;
+          a = lines[idx++].split(': ');
+          //console.log(`${a}`);
+          key = a.shift();
+          if (key.length > 0) {
+            val = a.join(': ');
+            //console.log(`${key}: ${val}`);
+            document.getElementById(key).value = val;
+		  }
         }
-		restoreConfig(config);
       });
 	}
   })
   .catch((error) => {
-    console.log('Unable to fetch config');
+    console.log('Exception fetching ' + NETWORK_YAML);
   });
-
-function restoreConfig(config) {
-  //console.log('Restoring config');
-  robot_model_combo = document.getElementById("robot_model");
-  robot_model_combo.value = "CUSTOM_MODEL"
-  motor_model_combo = document.getElementById("motor_model");
-  motor_model_combo.value = "CUSTOM_MODEL"
-  for (const key in config) {
-    //console.log(key);
-    document.getElementById(key).value = config[key];
-  }
-  populateProps(robot_model_combo);
-  populateProps(motor_model_combo);
-}
 </script>
-  <script>
+<script>
   function show(id, enable) {
 	var x = document.getElementById(id);
     //console.log(id, enable, x.style.display);
@@ -177,72 +167,6 @@ function restoreConfig(config) {
 	  x.innerHTML = "Local PC IPv4 &#9205";
 	} else {
 	  x.innerHTML = "Local PC IPv4 &#9207";
-	}
-  }
-  function toggleLiDARProps() {
-    var is_visible = showToggle('lidar_props_div');
-	var x = document.getElementById('lidar_model_label');
-	if (is_visible) {
-	  x.innerHTML = "LiDAR Model &#9205";
-	} else {
-	  x.innerHTML = "LiDAR Model &#9207";
-	}
-  }
-  function toggleAdvancedProps() {
-    var is_visible = showToggle('advanced_props_div');
-	var x = document.getElementById('advanced_props_label');
-	if (is_visible) {
-	  x.innerHTML = "Advanced &#9205;";
-	} else {
-	  x.innerHTML = "Advanced &#9207;";
-	}
-  }
-
-  function populateProps(select) {
-    id = select.id;
-    idx = select.selectedIndex;
-    is_custom = (idx == select.length - 1);
-    if (id === 'robot_model') {
-      show('robot_model_div', is_custom);
-      if (is_custom) {
-	    select.options[idx].innerHTML = "CUSTOM &#9207;";
-	  } else {
-
-        const robot_model_name = ["MAKERSPET_MINI", "MAKERSPET_LOKI", "MAKERSPET_FIDO", "MAKERSPET_SNOOPY", "CUSTOM_MODEL"];
-        const base_dia = [0.124, 0.2042, 0.2542, 0.300];
-        const wheel_track = [0.105043, 0.159063, 0.214322, 0.262794];
-        const base_wheel_dia = [0.043, 0.067, 0.067, 0.067];
-        const max_wheel_accel = [1.0, 2.0, 2.0, 2.0];
-        const battery_adc_attenuation = [3.7, 11.0, 11.0, 11.0];
-
-        document.getElementById('robot_model_name').value = robot_model_name[idx];
-        document.getElementById('base_dia').value = base_dia[idx];
-        document.getElementById('wheel_track').value = wheel_track[idx];
-        document.getElementById('base_wheel_dia').value = base_wheel_dia[idx];
-        document.getElementById('max_wheel_accel').value = max_wheel_accel[idx];
-        document.getElementById('battery_adc_attenuation').value = battery_adc_attenuation[idx];
-
-	    select.options[select.length - 1].innerHTML = "CUSTOM &#9205;";
-      }
-	} else if (id === 'motor_model') {
-      show('motor_model_div', is_custom);
-      if (is_custom) {
-	    select.options[idx].innerHTML = "CUSTOM &#9207;";
-	  } else {
-        const motor_max_rpm = [100, 100, 150, 150, 300, 280, 200, 245, 260, 408, 450, 225];
-        const wheel_ppr = [1035, 1045, 750, 693, 350, 234.3, 270, 630, 204, 127.8, 120, 120];
-        const motor_voltage = [6, 6, 6, 6, 6, 12, 24, 24, 24, 24, 24, 12];
-        const motor_driver_type = ['IN1_IN2', 'IN1_IN2', 'IN1_IN2', 'IN1_IN2', 'IN1_IN2', 'IN1_IN2', 'PWM_CW', 'PWM_CW', 'PWM_CW', 'PWM_CW', 'PWM_CW', 'PWM_CW'];
-        const motor_encoder_type = ['AB_QUAD', 'AB_QUAD', 'AB_QUAD', 'AB_QUAD', 'AB_QUAD', 'AB_QUAD', 'FG', 'FG', 'FG', 'FG', 'FG', 'FG'];
-
-        document.getElementById('motor_max_rpm').value = motor_max_rpm[idx];
-        document.getElementById('wheel_ppr').value = wheel_ppr[idx];
-        document.getElementById('motor_voltage').value = motor_voltage[idx];
-        document.getElementById('motor_driver_type').value = motor_driver_type[idx];
-        document.getElementById('motor_encoder_type').value = motor_encoder_type[idx];
-
-	    select.options[select.length - 1].innerHTML = "CUSTOM &#9205;";
-      }
 	}
   }
   </script>
@@ -299,351 +223,15 @@ function restoreConfig(config) {
           </div>
         </div>
       </div>
-
-      </fieldset>
-      <br>
-      <fieldset>
-	  <legend>Body</legend>
-	  <div class="row">
-	    <div class="col-25">
-          <label for="robot_model">Robot model</label>
-		</div>
-		<div class="col-75">
-          <select name="robot_model" id="robot_model" required onchange="populateProps(this);" title="Kaia.ai-compatible robot models. Select CUSTOM if your model is not listed.">
-              <option value="MAKERSPET_MINI">MAKERSPET_MINI</option>
-              <option value="MAKERSPET_LOKI">MAKERSPET_LOKI</option>
-              <option value="MAKERSPET_FIDO">MAKERSPET_FIDO</option>
-              <option value="MAKERSPET_SNOOPY">MAKERSPET_SNOOPY</option>
-              <option value="CUSTOM_MODEL">CUSTOM &#9205;</option>
-            </select>
-        </div>
-      </div>
-
-      <div id="robot_model_div" style="display:none">
-	  <div class="row">
-	    <div class="col-25">
-          <label for="robot_model_name">Model name</label>
-		</div>
-		<div class="col-75">
-          <div class="sub_input">
-          <input type="text" id="robot_model_name" name="robot_model_name" value="MAKERSPET_MINI" pattern="[0-9a-zA-Z\-_]+" title="Robot model name, alphanumeric with no spaces" required minlength="2">
-          </div>
-        </div>
-      </div>
-
-	  <div class="row">
-	    <div class="col-25">
-          <label for="base_dia">Base Diameter</label>
-		</div>
-		<div class="col-75">
-          <div class="sub_input">
-          <input type="text" id="base_dia" name="base_dia" value="0.124" pattern="([0-9]+\.)?[0-9]+" title="Robot body outer diameter in meters" required minlength="1" maxlength="10" inputmode="decimal">
-          </div>
-        </div>
-      </div>
-
-	  <div class="row">
-	    <div class="col-25">
-          <label for="wheel_track">Wheel Track</label>
-		</div>
-		<div class="col-75">
-          <div class="sub_input">
-          <input type="text" id="wheel_track" name="wheel_track" value="0.105043" pattern="([0-9]+\.)?[0-9]+" title="Distance between wheel midpoints in meters" required minlength="1" maxlength="10" inputmode="decimal">
-          </div>
-        </div>
-      </div>
-
-	  <div class="row">
-	    <div class="col-25">
-          <label for="base_wheel_dia">Wheel Diameter</label>
-		</div>
-		<div class="col-75">
-          <div class="sub_input">
-          <input type="text" id="base_wheel_dia" name="base_wheel_dia" value="0.043" pattern="([0-9]+\.)?[0-9]+" title="Wheel diameter in meters" required minlength="1" maxlength="10" inputmode="decimal">
-          </div>
-        </div>
-      </div>
-
-	  <div class="row">
-	    <div class="col-25">
-          <label for="max_wheel_accel">Max Acceleration</label>
-		</div>
-		<div class="col-75">
-          <div class="sub_input">
-          <input type="text" id="max_wheel_accel" name="max_wheel_accel" value="1.0" pattern="([0-9]+\.)?[0-9]+" title="Maximum wheel-vs-floor acceleration, m2/s" required minlength="1" maxlength="10" inputmode="decimal">
-          </div>
-        </div>
-      </div>
       </div>
       </fieldset>
-      <br>
-      <fieldset>
-	  <legend>Sensors</legend>
-	  <div class="row">
-	    <div class="col-25">
-          <label for="lidar_model" class="clickable" id="lidar_model_label" onclick="toggleLiDARProps()">LiDAR Model &#9205;</label>
-		</div>
-		<div class="col-75">
-          <select name="lidar_model" id="lidar_model" required title="LiDAR manufacturer and model">
-            <option value="LDROBOT-LD14P">LDROBOT LD14P</option>
-            <option value="YDLIDAR-SCL">YDLIDAR SCL</option>
-            <option value="YDLIDAR-X4">YDLIDAR X4</option>
-            <option value="YDLIDAR-X4-PRO">YDLIDAR X4 PRO</option>
-            <option value="YDLIDAR-X3-PRO">YDLIDAR X3 PRO</option>
-            <option value="YDLIDAR-X3">YDLIDAR X3</option>
-            <option value="YDLIDAR-X2-X2L">YDLIDAR X2/X2L</option>
-            <option value="XIAOMI-LDS02RR">Xiaomi Mi LDS02RR</option>
-            <option value="NEATO-XV11">Neato XV11</option>
-            <option value="SLAMTEC-RPLIDAR-A1">SLAMTEC RPLIDAR A1</option>
-            <option value="3IROBOTIX-DELTA-2A">3irobotix Delta-2A</option>
-            <option value="3IROBOTIX-DELTA-2B">3irobotix Delta-2B</option>
-            <option value="3IROBOTIX-DELTA-2G">3irobotix Delta-2G</option>
-            <option value="3IROBOTIX-DELTA-2A-115200">3irobotix Delta-2A 115200 baud</option>
-            <option value="CAMSENSE-X1">Camsense X1</option>
-          </select>
-        </div>
-      </div>
-
-      <div id="lidar_props_div" style="display:none">
-	  <div class="row">
-	    <div class="col-25">
-          <label for="lidar_scan_freq_hz">Scan Frequency, Hz</label>
-		</div>
-		<div class="col-75">
-          <div class="sub_input">
-          <input type="text" id="lidar_scan_freq_hz" name="lidar_scan_freq_hz" value="5.0" pattern="([0-9]+\.)?[0-9]+" maxlength="6" minlength="1" required inputmode="decimal" title="Desired LiDAR scan frequency. Make sure that your LiDAR model supports it.">
-          </div>
-        </div>
-      </div>
-	  </div>
-
-      </fieldset>
-      <br>
-      <fieldset>
-	  <legend>Motors</legend>
-	  <div class="row">
-	    <div class="col-25">
-          <label for="motor_model">Motor Model</label>
-		</div>
-		<div class="col-75">
-          <select name="motor_model" id="motor_model" required onchange="populateProps(this);" title="Select CUSTOM if your motor model is not listed">
-            <optgroup label="Brushed">
-              <option value="6V_100RPM_1035PPR_IN1_IN2">N20 6V 100RPM 1:148 1035PPR using IN1/IN2 generic driver</option>
-              <option value="6V_100RPM_1045PPR_IN1_IN2">N20 6V 100RPM 1:149 1045PPR using IN1/IN2 generic driver</option>
-              <option value="6V_150RPM_750PPR_IN1_IN2">N20 6V 150RPM 1:107 750PPR using IN1/IN2 generic driver</option>
-              <option value="6V_150RPM_693PPR_IN1_IN2">N20 6V 150RPM 1:99 693PPR using IN1/IN2 generic driver</option>
-              <option value="6V_300RPM_350PPR_IN1_IN2">N20 6V 300RPM 1:50 350PPR using IN1/IN2 generic driver</option>
-              <option value="12V_280RPM_234.3PPR_IN1_IN2">25GA-370 12V 280RPM 234.3PPR using IN1/IN2 generic driver</option>
-            </optgroup>
-            <optgroup label="Brushless">
-              <option value="24V_200RPM_270PPR_PWM_CW_FG">CHR-GM25-BL2418 24V 200RPM 270PPR 2.5W</option>
-              <option value="24V_245RPM_630PPR_PWM_CW_FG">JGA25-BL2418 24V 245RPM 630PPR</option>
-              <option value="24V_260RPM_204PPR_PWM_CW_FG">CHR-GM25-BL2418 24V 260RPM 204PPR 2.5W</option>
-              <option value="24V_408RPM_127.8PPR_PWM_CW_FG">JGA25-BL2418 24V 408RPM 127.8PPR</option>
-              <option value="24V_450RPM_120PPR_PWM_CW_FG">CHR-GM25-BL2418 24V 450RPM 120PPR 2.5W</option>
-              <option value="12V_225RPM_120PPR_PWM_CW_FG">CHR-GM25-BL2418 12V 225RPM 120PPR 0.65W</option>
-            </optgroup>
-            <option value="CUSTOM_MODEL">CUSTOM &#9205;</option>
-          </select>
-        </div>
-      </div>
-
-      <div id="motor_model_div" style="display:none">
-	  <div class="row">
-	    <div class="col-25">
-          <label for="motor_max_rpm">Motor max RPM</label>
-		</div>
-		<div class="col-75">
-          <div class="sub_input">
-          <input type="text" id="motor_max_rpm" name="motor_max_rpm" value="100" pattern="([0-9]+\.)?[0-9]+" title="Wheel (motor shaft) maximum RPM" required maxlength="10" minlength="1" inputmode="decimal">
-          </div>
-        </div>
-      </div>
-
-	  <div class="row">
-	    <div class="col-25">
-          <label for="wheel_ppr">Wheel PPR</label>
-		</div>
-		<div class="col-75">
-          <div class="sub_input">
-          <input type="text" id="wheel_ppr" name="wheel_ppr" value="1035" pattern="([0-9]+\.)?[0-9]+" title="Pulses per revolution. Wheel (motor shaft) PPR = Motor Gear Ratio * Motor Encoder PPR" required maxlength="10" minlength="1" inputmode="decimal">
-          </div>
-        </div>
-      </div>
-
-	  <div class="row">
-	    <div class="col-25">
-          <label for="motor_voltage">Motor Voltage</label>
-		</div>
-		<div class="col-75">
-          <div class="sub_input">
-          <input type="number" id="motor_voltage" name="motor_voltage" value="6" title="Motor voltage - depends on your board, motor and motor driver capabilities" required min="6" max="24">
-          </div>
-        </div>
-      </div>
-
-	  <div class="row">
-	    <div class="col-25">
-          <label for="motor_driver_type">Motor Driver</label>
-		</div>
-		<div class="col-75">
-          <div class="sub_input">
-          <select name="motor_driver_type" id="motor_driver_type" required title="Signals to control the motor driver">
-            <option value="IN1_IN2">Motor driver ICs with IN1/IN2 inputs (generic)</option>
-            <option value="PWM_CW">PWM/CW (including brushless)</option>
-          </select>
-          </div>
-        </div>
-      </div>
-
-	  <div class="row">
-	    <div class="col-25">
-          <label for="motor_encoder_type">Motor Encoder</label>
-		</div>
-		<div class="col-75">
-          <div class="sub_input">
-          <select name="motor_encoder_type" id="motor_encoder_type" required title="Quadrature encoder (provides the rotation direction) vs. single-output encoder (does not provide the direction)">
-            <option value="AB_QUAD">Quadrature with two output A/B phase signals</option>
-            <option value="FG">Single FG output signal</option>
-          </select>
-          </div>
-        </div>
-      </div>
-      </div>
-
-      </fieldset>
-
-	  <div class="row">
-	    <div class="col-25">
-          <label class="clickable" id="advanced_props_label" onclick="toggleAdvancedProps()">Advanced &#9205;</label>
-        </div>
-      </div>
-      <div id="advanced_props_div" style="display:none">
-      <fieldset>
-	  <legend>Motor Control</legend>
-
-	  <div class="row">
-	    <div class="col-25">
-          <label for="motor_direction_reversed">Rotation Direction</label>
-		</div>
-		<div class="col-75">
-          <div class="sub_input">
-          <select name="motor_direction_reversed" id="motor_direction_reversed" required title="Swap motor rotation direction if motor is wired incorrectly">
-            <option value="NONE">Default</option>
-            <option value="LEFT">Left motor reversed</option>
-            <option value="RIGHT">Right motor reversed</option>
-            <option value="BOTH" selected>Both motors reversed</option>
-          </select>
-          </div>
-        </div>
-      </div>
-
-	  <div class="row">
-	    <div class="col-25">
-          <label for="motor_encoder_reversed">Encoder Direction</label>
-		</div>
-		<div class="col-75">
-          <div class="sub_input">
-          <select name="motor_encoder_reversed" id="motor_encoder_reversed" required title="Swap encoder phases if motor encoder is wired incorrectly">
-            <option value="NONE">Default</option>
-            <option value="LEFT">Left motor encoder reversed</option>
-            <option value="RIGHT">Right motor encoder reversed</option>
-            <option value="BOTH" selected>Both motor encoders reversed</option>
-          </select>
-          </div>
-        </div>
-      </div>
-
-	  <div class="row">
-	    <div class="col-25">
-          <label for="motor_pid_kp">PID Kp</label>
-		</div>
-		<div class="col-75">
-          <div class="sub_input">
-          <input type="text" id="motor_pid_kp" name="motor_pid_kp" value="0.001" pattern="([0-9]+\.)?[0-9]+" required title="Motor controller PID Kp coefficient" maxlength="10" minlength="1" inputmode="decimal">
-          </div>
-        </div>
-      </div>
-
-	  <div class="row">
-	    <div class="col-25">
-          <label for="motor_pid_ki">PID Ki</label>
-		</div>
-		<div class="col-75">
-          <div class="sub_input">
-          <input type="text" id="motor_pid_ki" name="motor_pid_ki" value="0.003" pattern="([0-9]+\.)?[0-9]+" maxlength="10" minlength="1" required inputmode="decimal" title="Motor controller PID Ki coefficient">
-          </div>
-        </div>
-      </div>
-
-	  <div class="row">
-	    <div class="col-25">
-          <label for="motor_pid_kd">PID Kd</label>
-		</div>
-		<div class="col-75">
-          <div class="sub_input">
-          <input type="text" id="motor_pid_kd" name="motor_pid_kd" value="0" pattern="([0-9]+\.)?[0-9]+" maxlength="10" minlength="1" required inputmode="decimal" title="Motor controller PID Kd coefficient">
-          </div>
-        </div>
-      </div>
-
-	  <div class="row">
-	    <div class="col-25">
-          <label for="motor_pid_mode">PID Mode</label>
-		</div>
-		<div class="col-75">
-          <div class="sub_input">
-          <select name="motor_pid_mode" id="motor_pid_mode" required title="Motor controller PID mode - proportional on error vs. proportional on measurement">
-            <option value="ON_MEASUREMENT">On Measurement</option>
-            <option value="ON_ERROR">On Error</option>
-          </select>
-          </div>
-        </div>
-      </div>
-
-	  <div class="row">
-	    <div class="col-25">
-          <label for="motor_pid_period">PID Period</label>
-		</div>
-		<div class="col-75">
-          <div class="sub_input">
-          <input type="text" id="motor_pid_period" name="motor_pid_period" value="0.03" pattern="([0-9]+\.)?[0-9]+" maxlength="10" minlength="1" title="Motor controller PID update period in seconds" required inputmode="decimal">
-          </div>
-        </div>
-      </div>
-
-	  <div class="row">
-	    <div class="col-25">
-          <label for="motor_max_rpm_derate">Max RPM Derate</label>
-		</div>
-		<div class="col-75">
-          <div class="sub_input">
-          <input type="text" id="motor_max_rpm_derate" name="motor_max_rpm_derate" value="0.9" pattern="([0-9]+\.)?[0-9]+" maxlength="10" minlength="1" title="Motor controller maximum RPM reduction factor" required inputmode="decimal">
-          </div>
-        </div>
-      </div>
-
-	  <div class="row">
-	    <div class="col-25">
-          <label for="battery_adc_attenuation">Battery Attenuation</label>
-		</div>
-		<div class="col-75">
-          <div class="sub_input">
-          <input type="text" id="battery_adc_attenuation" name="battery_adc_attenuation" value="3.7" pattern="([0-9]+\.)?[0-9]+" maxlength="10" minlength="1" title="Battery ADC attenuation factor" required inputmode="decimal">
-          </div>
-        </div>
-      </div>
-
-      </fieldset>
-      </div>
-
 	  <br>
       <div class="row">
 	    <div class="col-25">
-          <input type="reset" id="reset" value="Reset">
+          <input type="reset" id="reset" value="Clear">
 		</div>
 		<div class="col-75">
-          <input type ="submit" value="Configure and Connect">
+          <input type="submit" value="Connect">
 		</div>
       </div>
     </form>

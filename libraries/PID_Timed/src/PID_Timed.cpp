@@ -7,21 +7,15 @@
 PID::PID() {}
 
 PID::PID(double* Input, double* Output, double* Setpoint,
-  double Kp, double Ki, double Kd, double referenceSampleTime,
-  int POn, int ControllerDirection)
+  double Kpe, double Ki, double Kd, double referenceSampleTime,
+  double Kpm=0)
 {
-  Init(Input, Output, Setpoint, Kp, Ki, Kd, referenceSampleTime, POn, ControllerDirection);
-}
-
-PID::PID(double* Input, double* Output, double* Setpoint,
-  double Kp, double Ki, double Kd, double referenceSampleTime, int ControllerDirection)
-  :PID::PID(Input, Output, Setpoint, Kp, Ki, Kd, referenceSampleTime, P_ON_E, ControllerDirection)
-{
+  Init(Input, Output, Setpoint, Kpe, Ki, Kd, referenceSampleTime, Kpm);
 }
 
 void PID::Init(double* Input, double* Output, double* Setpoint,
-  double Kp, double Ki, double Kd, double referenceSampleTime,
-  int POn, int ControllerDirection) {
+  double Kpe, double Ki, double Kd, double referenceSampleTime,
+  double Kpm=0) {
   myOutput = Output;
   myInput = Input;
   mySetpoint = Setpoint;
@@ -32,8 +26,7 @@ void PID::Init(double* Input, double* Output, double* Setpoint,
 
   ReferenceSampleTime = referenceSampleTime;
 
-  PID::SetControllerDirection(ControllerDirection);
-  PID::SetTunings(Kp, Ki, Kd, POn);
+  PID::SetTunings(Kpe, Ki, Kd, Kpm);
 }
 
 // This, as they say, is where the magic happens.  this function should be called
@@ -43,27 +36,25 @@ void PID::Init(double* Input, double* Output, double* Setpoint,
 bool PID::Compute(double SampleTime)
 {
   if(!inAuto) return false;
-   
+
+  // Approximate process as linear when SampleTime ~= ReferenceSampleTime
   double ratio  = SampleTime / ReferenceSampleTime;
-  ki = dispKi * ratio;
-  kd = dispKd / ratio;
-   
+
   // Compute all the working error variables
   double input = *myInput;
-  double error = *mySetpoint - input;
-  double dInput = (input - lastInput);
-  outputSum+= (ki * error);
+  double error = *mySetpoint - input; // absolute error
+  double dInput = input - lastInput; // -dError
+  dInput /= ratio;
+  outputSum += ki * error * ratio;
 
-  // Add Proportional on Measurement, if P_ON_M is specified
-  if(!pOnE) outputSum-= kp * dInput;
+  // Add Proportional on Measurement
+  outputSum -= kpm * dInput;
 
   if(outputSum > outMax) outputSum= outMax;
   else if(outputSum < outMin) outputSum= outMin;
 
-  // Add Proportional on Error, if P_ON_E is specified
-  double output;
-  if(pOnE) output = kp * error;
-  else output = 0;
+  // Add Proportional on Error
+  double output = kpe * error;
 
   // Compute Rest of PID Output
   output += outputSum - kd * dInput;
@@ -82,37 +73,19 @@ void PID::clearErrorIntegral() {
   lastInput = *myInput;
 }
 
-void PID::SetTunings(double Kp, double Ki, double Kd, int POn)
+void PID::SetTunings(double Kpe, double Ki, double Kd, double Kpm=0)
 {
-  if (Kp<0 || Ki<0 || Kd<0) return;
+  if (Kpe<0 || Ki<0 || Kd<0 || Kpm<0) return;
 
-  pOnE = POn == P_ON_E;
-
-  kp = Kp;
+  kpe = Kpe;
+  kpm = Kpm;
   ki = Ki;
   kd = Kd;
-
-  if (controllerDirection == REVERSE)
-  {
-    kp = (0 - kp);
-    ki = (0 - ki);
-    kd = (0 - kd);
-   }
-   dispKp = kp; dispKi = ki; dispKd = kd;
-}
-
-void PID::SetTunings(double Kp, double Ki, double Kd) {
-  SetTunings(Kp, Ki, Kd, pOnE ? P_ON_E : P_ON_M); 
 }
 
 void PID::SetReferenceSampleTime(double SampleTime)
 {
   ReferenceSampleTime = SampleTime;
-}
-
-double PID::GetReferenceSampleTime()
-{
-  return ReferenceSampleTime;
 }
 
 void PID::SetOutputLimits(double Min, double Max)
@@ -158,42 +131,26 @@ void PID::Initialize()
 // to +Input) or a REVERSE acting process(+Output leads to -Input.)  we need to
 // know which one, because otherwise we may increase the output when we should
 // be decreasing.  This is called from the constructor.
-void PID::SetControllerDirection(int Direction)
-{
-  if(inAuto && Direction !=controllerDirection)
-  {
-    kp = (0 - kp);
-    ki = (0 - ki);
-    kd = (0 - kd);
-  }
-  controllerDirection = Direction;
-}
 
-double PID::GetKp() { return  dispKp; }
-double PID::GetKi() { return  dispKi; }
-double PID::GetKd() { return  dispKd; }
-bool PID::isOnError() { return pOnE; }
+// For REVERSE-acting process, set ki, kd, kpe, kpm to -ki, -kd, -kpe, -kpm
+
+double PID::GetKpe() { return  kpe; }
+double PID::GetKpm() { return  kpm; }
+double PID::GetKi() { return  ki; }
+double PID::GetKd() { return  kd; }
 bool PID::isEnabled() { return inAuto; }
-int PID::GetDirection() { return controllerDirection; }
+double PID::GetReferenceSampleTime() { return ReferenceSampleTime; }
 
 PID_FLOAT::PID_FLOAT() {}
 
 PID_FLOAT::PID_FLOAT(float* Input, float* Output, float* Setpoint,
-  float Kp, float Ki, float Kd, float referenceSampleTime,
-  int POn, int ControllerDirection)
+  float Kpe, float Ki, float Kd, float referenceSampleTime, float Kpm=0)
 {
-  Init(Input, Output, Setpoint, Kp, Ki, Kd, referenceSampleTime, POn, ControllerDirection);
-}
-
-PID_FLOAT::PID_FLOAT(float* Input, float* Output, float* Setpoint,
-  float Kp, float Ki, float Kd, float referenceSampleTime, int ControllerDirection)
-  :PID_FLOAT::PID_FLOAT(Input, Output, Setpoint, Kp, Ki, Kd, referenceSampleTime, P_ON_E, ControllerDirection)
-{
+  Init(Input, Output, Setpoint, Kpe, Ki, Kd, referenceSampleTime, Kpm);
 }
 
 void PID_FLOAT::Init(float* Input, float* Output, float* Setpoint,
-  float Kp, float Ki, float Kd, float referenceSampleTime,
-  int POn, int ControllerDirection) {
+  float Kpe, float Ki, float Kd, float referenceSampleTime, float Kpm=0) {
   myOutput = Output;
   myInput = Input;
   mySetpoint = Setpoint;
@@ -204,8 +161,7 @@ void PID_FLOAT::Init(float* Input, float* Output, float* Setpoint,
 
   ReferenceSampleTime = referenceSampleTime;
 
-  PID_FLOAT::SetControllerDirection(ControllerDirection);
-  PID_FLOAT::SetTunings(Kp, Ki, Kd, POn);
+  PID_FLOAT::SetTunings(Kpe, Ki, Kd, Kpm);
 }
 
 // This, as they say, is where the magic happens.  this function should be called
@@ -215,27 +171,25 @@ void PID_FLOAT::Init(float* Input, float* Output, float* Setpoint,
 bool PID_FLOAT::Compute(float SampleTime)
 {
   if(!inAuto) return false;
-   
+
+  // Approximate process is linear when SampleTime ~= ReferenceSampleTime
   float ratio  = SampleTime / ReferenceSampleTime;
-  ki = dispKi * ratio;
-  kd = dispKd / ratio;
    
   // Compute all the working error variables
   float input = *myInput;
-  float error = *mySetpoint - input;
-  float dInput = (input - lastInput);
-  outputSum+= (ki * error);
+  float error = *mySetpoint - input; // absolute error
+  float dInput = input - lastInput; // -dError
+  dInput /= ratio;
+  outputSum += ki * ratio * error;
 
-  // Add Proportional on Measurement, if P_ON_M is specified
-  if(!pOnE) outputSum-= kp * dInput;
+  // Add Proportional on Measurement
+  outputSum -= kpm * dInput;
 
   if(outputSum > outMax) outputSum= outMax;
   else if(outputSum < outMin) outputSum= outMin;
 
-  // Add Proportional on Error, if P_ON_E is specified
-  float output;
-  if(pOnE) output = kp * error;
-  else output = 0;
+  // Add Proportional on Error
+  float output = kpe * error;
 
   // Compute Rest of PID Output
   output += outputSum - kd * dInput;
@@ -254,37 +208,19 @@ void PID_FLOAT::clearErrorIntegral() {
   lastInput = *myInput;
 }
 
-void PID_FLOAT::SetTunings(float Kp, float Ki, float Kd, int POn)
+void PID_FLOAT::SetTunings(float Kpe, float Ki, float Kd, float Kpm=0)
 {
-  if (Kp<0 || Ki<0 || Kd<0) return;
+  if (Kpe<0 || Ki<0 || Kd<0 || Kpm<0) return;
 
-  pOnE = POn == P_ON_E;
-
-  kp = Kp;
+  kpe = Kpe;
+  kpm = Kpm;
   ki = Ki;
   kd = Kd;
-
-  if (controllerDirection == REVERSE)
-  {
-    kp = (0 - kp);
-    ki = (0 - ki);
-    kd = (0 - kd);
-   }
-   dispKp = kp; dispKi = ki; dispKd = kd;
-}
-
-void PID_FLOAT::SetTunings(float Kp, float Ki, float Kd) {
-  SetTunings(Kp, Ki, Kd, pOnE ? P_ON_E : P_ON_M); 
 }
 
 void PID_FLOAT::SetReferenceSampleTime(float SampleTime)
 {
   ReferenceSampleTime = SampleTime;
-}
-
-float PID_FLOAT::GetReferenceSampleTime()
-{
-  return ReferenceSampleTime;
 }
 
 void PID_FLOAT::SetOutputLimits(float Min, float Max)
@@ -330,20 +266,12 @@ void PID_FLOAT::Initialize()
 // to +Input) or a REVERSE acting process(+Output leads to -Input.)  we need to
 // know which one, because otherwise we may increase the output when we should
 // be decreasing.  This is called from the constructor.
-void PID_FLOAT::SetControllerDirection(int Direction)
-{
-  if(inAuto && Direction !=controllerDirection)
-  {
-    kp = (0 - kp);
-    ki = (0 - ki);
-    kd = (0 - kd);
-  }
-  controllerDirection = Direction;
-}
 
-float PID_FLOAT::GetKp() { return  dispKp; }
-float PID_FLOAT::GetKi() { return  dispKi; }
-float PID_FLOAT::GetKd() { return  dispKd; }
-bool PID_FLOAT::isOnError() { return pOnE; }
+// For REVERSE-acting process, set ki, kd, kpe, kpm to -ki, -kd, -kpe, -kpm
+
+float PID_FLOAT::GetKpe() { return  kpe; }
+float PID_FLOAT::GetKpm() { return  kpm; }
+float PID_FLOAT::GetKi() { return  ki; }
+float PID_FLOAT::GetKd() { return  kd; }
 bool PID_FLOAT::isEnabled() { return inAuto; }
-int PID_FLOAT::GetDirection() { return controllerDirection; }
+float PID_FLOAT::GetReferenceSampleTime() { return ReferenceSampleTime; }

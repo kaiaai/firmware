@@ -22,19 +22,12 @@
 #include <stdio.h>
 #include "motors.h"
 #include "ap.h"
-#include "param_file.h"
 #include "lidar.h"
 #include "ros.h"
 #include "adc.h"
-
-#define RCCHECK(fn,E) { rcl_ret_t temp_rc = fn; \
-  if(temp_rc != RCL_RET_OK)error_loop(E);}
-#define BLCHECK(fn) { CONFIG::error_blink_count temp_cnt = fn; \
-  if(temp_cnt != CONFIG::ERR_NONE)error_loop(temp_cnt);}
+#include <SPIFFS.h>
 
 CONFIG cfg;
-PARAM_FILE params(cfg.getParamNames(), cfg.getParamValues(), cfg.PARAM_COUNT);
-
 kaiaai_msgs__msg__JointPosVel joint[MOTOR_COUNT];
 float joint_prev_pos[MOTOR_COUNT] = {0};
 uint8_t lidar_buf[cfg.LIDAR_BUF_LEN] = {0};
@@ -53,6 +46,10 @@ bool ramp_enabled = true;
 
 unsigned long stat_sum_spin_telem_period_us = 0;
 unsigned long stat_max_spin_telem_period_us = 0;
+
+#if ESP_IDF_VERSION_MAJOR >= 5
+  #error Espressif IDF v5 is not yet supported
+#endif
 
 void twist_sub_callback(const void *msgin) {
   const geometry_msgs__msg__Twist * msg = (const geometry_msgs__msg__Twist *)msgin;
@@ -186,36 +183,28 @@ void updateSpeedRamp() {
   setMotorSpeeds(rpm_left, rpm_right);
 }
 
-bool set_param_callback(const char * param_name, const char * param_value) {
-  if (param_name != NULL)
-    return params.setByName(param_name, param_value);
+String set_param_callback(const char * param_name, const char * param_value) {
 
-  params.save();
-  Serial.println("Parameters saved, restarting..");
-  delay(100);
-  ESP.restart();
+  static String text;
 
-  return false;
+  if (param_name == NULL) {
+    write_file(cfg.NETWORK_YAML_PATH, text.c_str());
+    Serial.println(", restarting...");
+    delay(100);
+    ESP.restart();
+    return "";
+  } else {
+    text = text + String(param_name) + ": " + String(param_value) + '\n';
+    return strcmp(param_name, "pass") == 0 ? "****" : String(param_value);
+  }
 }
 
-static inline bool initWiFi(String ssid, String passw) {
-
-  if(ssid.length() == 0){
-    Serial.println("Undefined SSID");
-    return false;
-  }
+static inline bool initWiFi(const String & ssid, const String & passw) {
 
   WiFi.mode(WIFI_STA);
-  //localIP.fromString(ip.c_str());
-  //localGateway.fromString(gateway.c_str());
-
-  //if (!WiFi.config(localIP, localGateway, subnet)){
-  //  Serial.println("STA Failed to configure");
-  //  return false;
-  //}
-
   WiFi.begin(ssid, passw);
 
+  const uint32_t blink_delay = 500;
   unsigned long startMillis = millis();
 
   while (WiFi.status() != WL_CONNECTED) {
@@ -229,14 +218,14 @@ static inline bool initWiFi(String ssid, String passw) {
       return false;
     }
 
-    digitalWrite(cfg.LED_PIN, HIGH);
-    delay(500);
-    digitalWrite(cfg.LED_PIN, LOW);
-    //Serial.print('.'); // Don't use F('.'), it crashes code!!
-    delay(500);
+    digiWrite(cfg.led_sys_gpio, HIGH, cfg.led_sys_invert);
+    delay(blink_delay);
+    digiWrite(cfg.led_sys_gpio, LOW, cfg.led_sys_invert);
+    //Serial.print('.'); // F('.') crashes
+    delay(blink_delay);
   }
 
-  digitalWrite(cfg.LED_PIN, LOW);
+  digiWrite(cfg.led_sys_gpio, LOW, cfg.led_sys_invert);
   Serial.print(" connected, ");
   Serial.print("IP ");
   Serial.println(WiFi.localIP());
@@ -254,7 +243,8 @@ void spinTelem(bool force_pub) {
   publishTelem(step_time_us);
   telem_prev_pub_time_us = time_now_us;
 
-  digitalWrite(cfg.LED_PIN, !digitalRead(cfg.LED_PIN));
+  digiWrite(cfg.led_sys_gpio, !digiRead(cfg.led_sys_gpio, cfg.led_sys_invert),
+    cfg.led_sys_invert);
   //if (++telem_pub_count % 5 == 0) {
   //  Serial.print("RPM L ");
   //  Serial.print(motorLeft.getCurrentRPM());
@@ -325,8 +315,12 @@ void publishTelem(unsigned long step_time_us) {
   calcOdometry(step_time_us, joint_pos_delta[0], joint_pos_delta[1]);
 //  calcOdometry2(step_time_us, joint_pos_delta[0], joint_pos_delta[1]);
 
-  RCSOFTCHECK(rcl_publish(&telem_pub, &telem_msg, NULL));
-
+  rcl_ret_t rc = rcl_publish(&telem_pub, &telem_msg, NULL);
+  if (rc != RCL_RET_OK) {
+    Serial.print("rcl_publish(telem_msg");
+    Serial.print(") error ");
+    Serial.println(rc);
+  }
   
   //Serial.print(telem_msg.odom_pos_x, 8);
   //Serial.print("\t");
@@ -397,119 +391,77 @@ void spinPing() {
 void updateROSParams() {
   if (ros_config_params_changed) {
     ros_config_params_changed = false;
-    BLCHECK(updateROSConfigParams());
+    rcl_ret_t ret = updateROSConfigParams();
+    if (ret != RCL_RET_OK) {
+      Serial.print("updateROSConfigParams() error ");
+      Serial.println(ret);
+    }
   }
 
   unsigned long time_now_us = esp_timer_get_time();
   unsigned long step_time_us = time_now_us - ros_params_update_prev_time_us;
   if (step_time_us >= cfg.UROS_PARAMS_UPDATE_PERIOD_US) {
-    BLCHECK(updateROSRealTimeParams());
+
+    rcl_ret_t ret = updateROSRealTimeParams();
+    if (ret != RCL_RET_OK) {
+      Serial.print("updateROSRealTimeParams() error ");
+      Serial.println(ret);
+    }
+
     ros_params_update_prev_time_us = time_now_us;
   }
 }
 
 void loop() {
+  static bool wifi_ok_prev = true;
 
-  if (WiFi.status() != WL_CONNECTED) {
+  bool wifi_ok = WiFi.status() == WL_CONNECTED;
+  if (wifi_ok && !wifi_ok_prev) {
+    lidar->start();
+    Serial.println("WiFi connection restored");
+  } else if (!wifi_ok && wifi_ok_prev) {
     lidar->stop();
-    setMotorSpeeds(0, 0);
-    Serial.println("WiFi connection lost: stopping motors, LiDAR.");
-    return;
+    Serial.println("WiFi connection lost: pausing motors, LiDAR");
   }
+  wifi_ok_prev = wifi_ok;
 
   lidar->loop();
 
   // Process micro-ROS callbacks
-  RCCHECK(rclc_executor_spin_some(&executor, RCL_MS_TO_NS(1)), cfg.ERR_UROS_SPIN);
+  rcl_ret_t ret = rclc_executor_spin_some(&executor, RCL_MS_TO_NS(1));
+  if (ret != RCL_RET_OK) {
+    Serial.print("rclc_executor_spin_some() error ");
+    Serial.println(ret);
+  }
+
   updateROSParams();
 
   spinTelem(false);
   spinPing();
-  updateSpeedRamp();
+
+  if (wifi_ok)
+    updateSpeedRamp();
+  else
+    setMotorSpeeds(0, 0);
 
   motorLeft.update();
   motorRight.update();
-
-/*
-  printNB(String(motorLeft.getEncoderValue()));
-  printNB("\t");
-  printNB(String(motorRight.getEncoderValue()));
-  printNB("\t");
-
-  printNB(String(motorLeft.getCurrentRPM()));
-  printNB("\t");
-  printNB(String(motorRight.getCurrentRPM()));
-  printNB("\t");
-
-  printNB(String(motorLeft.getCurrentPWM()));
-  printNB("\t");
-  printNB(String(motorRight.getCurrentPWM()));
-  printNB("\t");
-
-  printNB(String(motorLeft.getTargetRPM()));
-  printNB("\t");
-  printNB(String(motorRight.getTargetRPM()));  
-  printlnNB();
-*/
-
-/*
-  unsigned long ms = millis();
-  ms = ms >> 12;
-  static gpio_drive_cap_t gpio_strength_last = GPIO_DRIVE_CAP_DEFAULT;
-  gpio_drive_cap_t gpio_strength = GPIO_DRIVE_CAP_DEFAULT;
-  switch (ms % 4) {
-    case 0:
-      gpio_strength = GPIO_DRIVE_CAP_0;
-      break;
-    case 1:
-      gpio_strength = GPIO_DRIVE_CAP_1;
-      break;
-    case 2:
-      gpio_strength = GPIO_DRIVE_CAP_2;
-      break;
-    case 3:
-      gpio_strength = GPIO_DRIVE_CAP_3;
-      break;
-    default:
-      break;
-  }
-  if (gpio_strength != gpio_strength_last) {
-    esp_err_t ret;
-    ret = gpio_set_drive_capability((gpio_num_t) cfg.LED_PIN, gpio_strength);
-    gpio_strength_last = gpio_strength;
-    Serial.print(ret);
-    Serial.print(" ");
-    Serial.print(ret == ESP_OK);
-    Serial.print(" ");
-    Serial.println(gpio_strength);
-  }
-*/
-}
-
-void resetParams() {
-  Serial.println("** Restarting in web config mode **");
-  params.purge();
-  digitalWrite(cfg.LED_PIN, HIGH);
-  Serial.flush();
-  delay(5000);
-
-  ESP.restart();
 }
 
 bool isBootButtonPressed(uint8_t sec) {
-  if (!digitalRead(0))
+  if (digiRead(cfg.button_boot_gpio, cfg.button_boot_invert))
     Serial.println("BOOT button pressed. Keep pressing for web config.");
   else
     return false;
 
   uint32_t msec = sec * 1000;
   unsigned long start_time_ms = millis();
-  while (!digitalRead(0)) {
+  while (digiRead(cfg.button_boot_gpio, cfg.button_boot_invert)) {
     delay(50);
-    digitalWrite(cfg.LED_PIN, !digitalRead(cfg.LED_PIN));
-    if (millis() - start_time_ms > msec) {
+    digiWrite(cfg.led_sys_gpio, !digiRead(cfg.led_sys_gpio, cfg.led_sys_invert),
+      cfg.led_sys_invert);
+    if (millis() - start_time_ms > msec)
       return true;
-    }
   }
   return false;
 }
@@ -540,11 +492,12 @@ void resetTelemMsg() {
   telem_msg.wifi_rssi_dbm = 0;
 }
 
+/*
 void blink_error_code(int n_blinks) {
   unsigned int i = 0;
-  while(i++ < cfg.ERR_REBOOT_BLINK_CYCLES){
+  while(i++ < cfg.ERR_REBOOT_BLINK_CYCLES) {
     blink(cfg.LONG_BLINK_MS, 1);
-    digitalWrite(cfg.LED_PIN, LOW);
+    digiWrite(cfg.led_sys_gpio, LOW, cfg.led_sys_invert);
     delay(cfg.SHORT_BLINK_PAUSE_MS);
     blink(cfg.SHORT_BLINK_MS, n_blinks);
     delay(cfg.LONG_BLINK_PAUSE_MS);
@@ -568,64 +521,125 @@ void error_loop(int n_blinks){
 
   ESP.restart();
 }
+*/
 
 void setup() {
-  Serial.begin(115200); // 500000; TX GPIO1, RX GPIO3
-  gpio_set_drive_capability((gpio_num_t) 1, GPIO_DRIVE_CAP_0);
 
-  setPinMode(0, INPUT);
-  setPinMode(cfg.LED_PIN, OUTPUT);
-  digitalWrite(cfg.LED_PIN, HIGH);
+  bool spiffs_ok = SPIFFS.begin(true);
+//  blink_error_code(cfg.ERR_SPIFFS_INIT);
+  bool html_exists = false;
+  if (spiffs_ok)
+    html_exists = SPIFFS.exists(cfg.INDEX_HTML_PATH);
 
-  Serial.println();
+  bool wifi_yaml_exists = SPIFFS.exists(cfg.NETWORK_YAML_PATH);
+  String wifi_yaml_err;
+  if (wifi_yaml_exists)
+    wifi_yaml_err = cfg.load(cfg.NETWORK_YAML_PATH);
+
+  bool config_yaml_exists = SPIFFS.exists(cfg.CONFIG_YAML_PATH);
+  String config_yaml_err;
+  if (config_yaml_exists)
+    config_yaml_err = cfg.load(cfg.CONFIG_YAML_PATH);
+
+  Serial.begin(cfg.MONITOR_BAUD);
+  setPinDrive(cfg.monitor_gpio_tx);
+  while(!Serial)
+    delay(0);
+
   Serial.println();
   Serial.print("Kaia.ai firmware version ");
   Serial.println(cfg.FW_VERSION);
+
+  Serial.print("ESP IDF version ");
+  Serial.println(esp_get_idf_version());
+
+  if (spiffs_ok) {
+    Serial.println("SPIFFS mounted successfully");
+    if (!html_exists)
+      Serial.println("Sketch data not found. Please upload sketch data.");
+  } else
+    Serial.println("Error mounting SPIFFS");
+
+  if (wifi_yaml_exists) {
+    Serial.print(cfg.NETWORK_YAML_PATH);
+    Serial.print(" found; ");
+    if (wifi_yaml_err.length() != 0) {
+      Serial.print("error parsing: ");
+      Serial.println(wifi_yaml_err);
+    } else
+      Serial.println("loaded OK");
+  }
+
+  if (config_yaml_exists) {
+    Serial.print(cfg.CONFIG_YAML_PATH);
+    Serial.print(" found; ");
+    if (config_yaml_err.length() != 0) {
+      Serial.print("error parsing: ");
+      Serial.println(config_yaml_err);
+    } else
+      Serial.println("loaded OK");
+  }
+
+  setPinMode(cfg.led_sys_gpio, OUTPUT);
+  digiWrite(cfg.led_sys_gpio, HIGH, cfg.led_sys_invert);
+
+  setPinMode(cfg.button_boot_gpio, INPUT);
+
+  bool launch_web_config = false;
+
+  if (cfg.ssid.length() == 0) {
+    Serial.println("WiFi SSID unknown");
+    launch_web_config = true;
+  }
+
+  if (cfg.dest_ip.length() == 0) {
+    Serial.println("dest_ip unknown");
+    launch_web_config = true;
+  }
+
   Serial.println("To enter web config push-and-release EN, "
     "then push-and-hold BOOT within 1 sec");
-
   delay(1000);
-  if (isBootButtonPressed(cfg.RESET_SETTINGS_HOLD_SEC)) {
-    params.init();
-    resetParams();
-  }
+  launch_web_config |= isBootButtonPressed(cfg.RESET_SETTINGS_HOLD_SEC);
 
-  if (!params.init())
-    blink_error_code(cfg.ERR_SPIFFS_INIT);
-
-//  if (!params.load() ||
-//      !initWiFi(params.get(cfg.PARAM_SSID), params.get(cfg.PARAM_PASS)))
-  bool ok = params.load();
-  if (ok) {
-    cfg.setWheelDia(params.getAsFloat(cfg.PARAM_BASE_WHEEL_DIA));  
-    cfg.setMaxWheelAccel(params.getAsFloat(cfg.PARAM_MAX_WHEEL_ACCEL));  
-    cfg.setWheelTrack(params.getAsFloat(cfg.PARAM_BASE_WHEEL_TRACK));
-  
-    setupLIDAR();
-    setupADC();
-    setupMotors();
-  }
-
-  if (!ok || !initWiFi(params.get(cfg.PARAM_SSID), params.get(cfg.PARAM_PASS)))
-  {
-    digitalWrite(cfg.LED_PIN, HIGH);
-    if (ok)
-      params.save(true);
+  if (launch_web_config) {
+    digiWrite(cfg.led_sys_gpio, HIGH, cfg.led_sys_invert);
 
     AP ap;
-    ap.obtainConfig(cfg.PARAM_AP_WIFI_SSID, set_param_callback);
+    ap.obtainConfig(cfg.SSID_AP, set_param_callback);
     return;
   }
 
-  set_microros_wifi_transports(params.get(cfg.PARAM_DEST_IP),
-    params.getAsInt(cfg.PARAM_DEST_PORT));
+  Serial.print("Board model ");
+  Serial.print(cfg.board_model);
+  Serial.print(", version ");
+  Serial.print(cfg.board_version);
+  Serial.print(", manufacturer ");
+  Serial.println(cfg.board_manufacturer);
+  cfg.board_manufacturer = ""; // free up a little memory
+  cfg.board_model = "";
+  cfg.board_version = "";
 
+  setupLIDAR();
+  setupADC();
+  setupMotors();
+
+  while(!initWiFi(cfg.ssid, cfg.pass));
+
+  set_microros_wifi_transports(cfg.dest_ip.c_str(), cfg.dest_port);
   delay(2000);
 
-  BLCHECK(setupMicroROS(&twist_sub_callback));
+  setupMicroROS(&twist_sub_callback);
+
   //pubDiagnostics();
 
-  BLCHECK(addROSParams());
+  rcl_ret_t rc = addROSParams();
+  if (rc != RCL_RET_OK) {
+    Serial.print("addROSParams(");
+    Serial.print(") error ");
+    Serial.println(rc);
+  }
+
   ros_config_params_changed = true;
   updateROSParams();
   Serial.println("Micro-ROS initialized");
@@ -636,7 +650,7 @@ void setup() {
   
   resetTelemMsg();
   
-  if (startLIDAR() != LDS::RESULT_OK)
-    blink_error_code(cfg.ERR_LIDAR_START);
+  startLIDAR();
+    //blink_error_code(cfg.ERR_LIDAR_START);
     //error_loop(cfg.ERR_LIDAR_START);
 }

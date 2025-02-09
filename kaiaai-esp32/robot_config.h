@@ -1,4 +1,4 @@
-// Copyright 2023-2024 REMAKE.AI, KAIA.AI, MAKERSPET.COM
+// Copyright 2023-2024 KAIA.AI
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,37 +17,11 @@
 
 class CONFIG {
 public:
-  static constexpr char* FW_VERSION = (char*)"0.7.0-iron";
-
-  // ESP32 pin assignment
-  static const uint8_t LED_PIN = 2; // ESP32 on-board LED
-  static const uint8_t BAT_ADC_PIN = 36;
-
-  // LiDAR
-  static const uint8_t LIDAR_PWM_PIN = 15;
-  static const uint8_t LIDAR_EN_PIN = 19;
+  static constexpr char* FW_VERSION = (char*)"0.8.0-iron";
+  static constexpr char* CONFIG_YAML_PATH = (char *)"/config.yaml";
+  static constexpr char* NETWORK_YAML_PATH = (char *)"/network.yaml";
+  static constexpr char* INDEX_HTML_PATH = (char *)"/index.html";
   
-  // Brushless motors
-//  static const uint8_t MOT_PWM_LEFT_PIN = 33; // weaker pulldown
-  static const uint8_t MOT_PWM_LEFT_PIN = 27;
-  static const uint8_t MOT_CW_LEFT_PIN = 23;
-  static const uint8_t MOT_FG_LEFT_PIN = 34;
-
-  static const uint8_t MOT_PWM_RIGHT_PIN = 25; //weaker pulldown, was 13;
-  static const uint8_t MOT_CW_RIGHT_PIN = 13;  //25;
-  static const uint8_t MOT_FG_RIGHT_PIN = 35;
-  
-  // Brushed motors
-  static const uint8_t MOT_ENC_A_RIGHT_PIN = MOT_FG_RIGHT_PIN;
-  static const uint8_t MOT_ENC_B_RIGHT_PIN = 26;
-  static const uint8_t MOT_IN1_RIGHT_PIN = MOT_PWM_RIGHT_PIN;
-  static const uint8_t MOT_IN2_RIGHT_PIN = MOT_CW_RIGHT_PIN;
-
-  static const uint8_t MOT_ENC_A_LEFT_PIN = MOT_FG_LEFT_PIN;
-  static const uint8_t MOT_ENC_B_LEFT_PIN = 32;
-  static const uint8_t MOT_IN1_LEFT_PIN = MOT_PWM_LEFT_PIN;
-  static const uint8_t MOT_IN2_LEFT_PIN = MOT_CW_LEFT_PIN;
-
   // PWM channels
   enum pwm_channel {
     MOT_PWM_LEFT_CHANNEL = 0,
@@ -56,44 +30,9 @@ public:
   };
   static const uint16_t MOT_PWM_FREQ = 20000; // 15..25KHz
   static const uint8_t MOT_PWM_BITS = 10;
-
   static const uint32_t LIDAR_PWM_FREQ = 10000;
   static const uint8_t LIDAR_PWM_BITS = 11;
-
   static const uint8_t RESET_SETTINGS_HOLD_SEC = 3; // Hold BOOT button to reset WiFi
-
-  static const uint16_t BAT_PRESENT_MV_MIN = 4000;
-
-  enum param_name_index {
-    PARAM_SSID,
-    PARAM_PASS,
-    PARAM_DEST_IP,
-    PARAM_DEST_PORT,
-    PARAM_ROBOT_MODEL,
-    PARAM_ROBOT_MODEL_NAME,
-    PARAM_LIDAR_MODEL,
-    PARAM_LIDAR_SCAN_FREQ_HZ,
-    PARAM_MOTOR_MODEL,
-    PARAM_BASE_DIA,
-    PARAM_BASE_WHEEL_TRACK,
-    PARAM_BASE_WHEEL_DIA,
-    PARAM_MAX_WHEEL_ACCEL,
-    PARAM_MOTOR_MAX_RPM,
-    PARAM_WHEEL_PPR,
-    PARAM_MOTOR_VOLTAGE,
-    PARAM_MOTOR_DRIVER_TYPE,
-    PARAM_MOTOR_ENCODER_TYPE,
-    PARAM_MOTOR_DIRECTION_REVERSED,
-    PARAM_MOTOR_ENCODER_REVERSED,
-    PARAM_MOTOR_PID_KP,
-    PARAM_MOTOR_PID_KI,
-    PARAM_MOTOR_PID_KD,
-    PARAM_MOTOR_PID_MODE,
-    PARAM_MOTOR_PID_PERIOD,
-    PARAM_MOTOR_MAX_RPM_DERATE,
-    PARAM_BATTERY_ADC_ATTENUATION,
-    PARAM_COUNT,
-  };
 
 public: // Misc constants
   enum error_blink_count { // ESP32 blinks when firmware init fails
@@ -112,27 +51,6 @@ public: // Misc constants
     ERR_SPIFFS_INIT = 12,
   };
 
-protected:
-  String param_value[PARAM_COUNT] = {"", "", "", "8888",
-    "MAKERSPET_LOKI", "MAKERSPET_LOKI", "YDLIDAR X4",
-    "204.2", "159.063", "12V_280RPM_234.3PPR_TB6612FNG",
-    "67", "2.0", "280", "234.3", "12",
-    "TB6612FNG", "ENCA_ENCB_QUAD", "NONE", "NONE",
-    "0.001", "0.001", "0", "ON_MEASUREMENT", "0.03", "0.9", "11"};
-  char* PARAM_NAME[PARAM_COUNT] = {(char *)"ssid", (char *)"pass",
-    (char *)"dest_ip", (char *)"dest_port", (char *)"robot_model",
-    (char *)"robot_model_name", (char *)"lidar_model",
-    (char *)"lidar_scan_freq_hz", (char *)"motor_model",
-    (char *)"base_dia", (char *)"wheel_track",
-    (char *)"base_wheel_dia", (char *)"max_wheel_accel",
-    (char *)"motor_max_rpm", (char *)"wheel_ppr", (char *)"motor_voltage",
-    (char *)"motor_driver_type", (char *)"motor_encoder_type",
-    (char *)"motor_direction_reversed", (char *)"motor_encoder_reversed",
-    (char *)"motor_pid_kp", (char *)"motor_pid_ki",
-    (char *)"motor_pid_kd", (char *)"motor_pid_mode",
-    (char *)"motor_pid_period", (char *)"motor_max_rpm_derate",
-    (char *)"battery_adc_attenuation",};
-
 public:
   static const uint8_t ERR_REBOOT_BLINK_CYCLES = 3; // Blink out an error a few times, then reboot
   static const uint32_t LONG_BLINK_MS = 1000;
@@ -140,6 +58,12 @@ public:
   static const uint32_t SHORT_BLINK_MS = 200;
   static const uint32_t SHORT_BLINK_PAUSE_MS = 500;
   static const uint32_t SPIN_TELEM_STATS = 100;
+  static const uint16_t LIDAR_BUF_LEN = 400;
+  static const uint16_t LIDAR_SERIAL_RX_BUF_LEN = 1024;
+  static const uint32_t WIFI_CONN_TIMEOUT_MS = 30000;
+  static constexpr char * SSID_AP = (char *) "KAIA.AI";
+  static const uint32_t MONITOR_BAUD = 115200;
+  static const uint8_t UNDEFINED_GPIO = 255;
 
   // Micro-ROS config
   static constexpr char * UROS_NODE_NAME = (char *)"pet"; // temp hardcoded
@@ -153,7 +77,7 @@ public:
   static const uint32_t UROS_PARAMS_UPDATE_PERIOD_US = 500*1000;
 
   // ROS Parameters
-  const uint8_t UROS_PARAM_COUNT = 25;
+  const uint8_t UROS_PARAM_COUNT = 20;
   static constexpr char * UROS_PARAM_LIDAR_SCAN_FREQ_TARGET = (char *)"lidar.scan.freq.target";
   static constexpr char * UROS_PARAM_LIDAR_SCAN_FREQ_NOW = (char *)"lidar.scan.freq.now";
   static constexpr char * UROS_PARAM_MOTOR_LEFT_ENCODER_NOW = (char *)"motor.left.encoder.now";
@@ -168,47 +92,378 @@ public:
   static constexpr char * UROS_PARAM_MOTOR_RIGHT_PWM_NOW = (char *)"motor.right.pwm.now";
 
   static constexpr char * UROS_PARAM_MOTOR_ENCODER_PPR = (char *)"motor.encoder.ppr";
-  static constexpr char * UROS_PARAM_MOTOR_ENCODER_TPR = (char *)"motor.encoder.tpr";
-  static constexpr char * UROS_PARAM_MOTOR_RPM_MAX_DERATED = (char *)"motor.rpm.max.derated";
-  static constexpr char * UROS_PARAM_MOTOR_PID_KP = (char *)"motor.pid.kp";
-  static constexpr char * UROS_PARAM_MOTOR_PID_KI = (char *)"motor.pid.ki";
-  static constexpr char * UROS_PARAM_MOTOR_PID_KD = (char *)"motor.pid.kd";
-  static constexpr char * UROS_PARAM_MOTOR_PID_ON_ERROR = (char *)"motor.pid.on_error";
-  static constexpr char * UROS_PARAM_MOTOR_PID_PERIOD = (char *)"motor.pid.period";
+  //static constexpr char * UROS_PARAM_MOTOR_ENCODER_TPR = (char *)"motor.encoder.tpr";
+  static constexpr char * UROS_PARAM_MOTOR_RPM_MAX = (char *)"motor.rpm.max";
+  static constexpr char * UROS_PARAM_MOTOR_PID_KP = (char *)"motor.driver.pid.kp";
+  static constexpr char * UROS_PARAM_MOTOR_PID_KI = (char *)"motor.driver.pid.ki";
+  static constexpr char * UROS_PARAM_MOTOR_PID_KD = (char *)"motor.driver.pid.kd";
+  static constexpr char * UROS_PARAM_MOTOR_PID_KPM = (char *)"motor.driver.pid.kpm";
+  static constexpr char * UROS_PARAM_MOTOR_PID_PERIOD = (char *)"motor.driver.pid.period";
 
-  static constexpr char * UROS_PARAM_MAX_WHEEL_ACCEL = (char *)"base.wheel.accel.max";
-  static constexpr char * UROS_PARAM_BASE_DIA = (char *)"base.diameter";
+  static constexpr char * UROS_PARAM_BASE_WHEEL_ACCEL_MAX = (char *)"base.wheel.accel.max";
+  //static constexpr char * UROS_PARAM_BASE_DIA = (char *)"base.diameter";
   static constexpr char * UROS_PARAM_BASE_WHEEL_TRACK = (char *)"base.wheel.track";
   static constexpr char * UROS_PARAM_BASE_WHEEL_DIA = (char *)"base.wheel.diameter";
 
-  static const uint16_t LIDAR_BUF_LEN = 400;
-  static const uint16_t LIDAR_SERIAL_RX_BUF_LEN = 1024;
-
-  static const uint32_t WIFI_CONN_TIMEOUT_MS = 30000000;
-  static constexpr char * PARAM_AP_WIFI_SSID = (char *) "MAKER'S PET";
-
 public:
-  // Hack  
+  String ssid = "";
+  String pass = "";
+  String dest_ip = "";
+  String board_manufacturer = "N/A";
+  String board_model = "N/A";
+  String board_version = "N/A";
+  unsigned int dest_port = 8888;
+  float base_wheel_dia = 0.043f;
+  float base_wheel_accel_max = 1.0;
+  float base_wheel_track = 0.105043f;
+  float base_wheel_track_recip = 1.0f/0.105043f;
+  uint8_t led_sys_gpio = UNDEFINED_GPIO;
+  uint8_t led_sys_invert = false;
+  uint8_t button_boot_gpio = UNDEFINED_GPIO;
+  uint8_t button_boot_invert = true;
+  uint8_t monitor_gpio_tx = UNDEFINED_GPIO;
+  String motor_driver_type = "IN1_IN2";
+  String motor_encoder_type = "AB_QUAD";
+  float motor_rpm_max = 200;
+  float motor_encoder_ppr = 1035;
+  float motor_driver_pid_period = 0.03f;
+  float motor_driver_pid_kp = 0.001f;
+  float motor_driver_pid_ki = 0.003f;
+  float motor_driver_pid_kd = 0;
+  float motor_driver_pid_kpm = 0;
+  bool mot_left_drv_reverse = false;
+  bool mot_right_drv_reverse = false;
+  bool mot_left_enc_reverse = false;
+  bool mot_right_enc_reverse = false;
+  //float base_diameter = 0.127f;
+  //String base_model = "makerspet_mini";
+  String lidar_model = "LDROBOT LD14P";
+  float adc_bat_atten = 3.7f;
+  float adc_bat_voltage_full = 9.6f;
+  float adc_bat_voltage_empty = 7.2f;
+  uint8_t adc_bat_gpio = 255;
+  uint8_t lidar_gpio_pwm = 255;
+  uint8_t lidar_gpio_en = 255;
+  uint8_t lidar_gpio_rx = 255;
+  uint8_t lidar_gpio_tx = 255;
+  float lidar_scan_freq_target = 0;
+  uint8_t mot_left_enc_gpio_a_fg = 255;
+  uint8_t mot_left_enc_gpio_b = 255;
+  uint8_t mot_right_enc_gpio_a_fg = 255;
+  uint8_t mot_right_enc_gpio_b = 255;
+  uint8_t mot_right_drv_gpio_in1 = 255;
+  uint8_t mot_left_drv_gpio_in1_pwm = 255;
+  uint8_t mot_left_drv_gpio_in2_cw = 255;
+  uint8_t mot_right_drv_gpio_in1_pwm = 255;
+  uint8_t mot_right_drv_gpio_in2_cw = 255;
+  uint32_t monitor_baud = 115200;
+
+  // Hack
   // Cache divisions
   float speed_diff_to_us;
-  float base_wheel_accel_max;
   float wheel_track_recip;
-  float wheel_track_radius;
   float wheel_radius;
   float wheel_perim_len_div60;
   float wheel_perim_len_div60_recip;
 
 public:
-  char* const* getParamNames() {
-    return PARAM_NAME;
+
+  String load(const char* file_path) {
+    File file = SPIFFS.open(file_path);
+    if (!file || file.isDirectory())
+      return String(file_path) + " not found";
+
+    int line = 0;
+    String s, field_name;
+    const uint8_t MAX_LEVEL = 10;
+    uint32_t level_ident[MAX_LEVEL] = {0};
+    String level_name[MAX_LEVEL];
+    uint8_t levels = 0;
+
+    while (file.available()) {
+      s = file.readStringUntil('\n');
+      line++;
+      String ws = s;
+      ws.trim();
+      if (s.startsWith("#") || (ws.length() == 0))
+        continue;
+
+      if (s.length() > 80)
+        return "Line too long";
+
+      int colon_idx = s.indexOf(':');
+      //Serial.println("colon_idx=" + String(colon_idx));
+      if (colon_idx < 0) {
+        //Serial.println("colon_idx<0");
+        return "Missing colon in line " + String(line);
+      }
+
+      uint32_t ident;
+      for(ident = 0; ident < s.length(); ident++) {
+        if (s[ident] != ' ')
+          break;
+      }
+
+      //Serial.println("ident=" + String(ident));
+      if (ident == colon_idx) {
+        //Serial.println("ident==colon_idx");
+        return "Missing field name in line " + String(line);
+      }
+
+      field_name = s.substring(ident, colon_idx);
+      //Serial.println("field_name=" + field_name);
+      // check field name valid
+
+      // find level
+      uint8_t level;
+      uint32_t id = 0;
+      //Serial.println("levels=" + String(levels));
+      if (levels > 0) {
+        for(level = 0; level < levels; level++) {
+          id = level_ident[level];
+          if (ident <= id)
+            break;
+        }
+        //Serial.println("id=" + String(id) + ", level=" + String(level));
+
+        if (ident > id) {
+          levels++;
+          //Serial.println("ident > id");
+          if (levels >= MAX_LEVEL) {
+            //Serial.println("levels >= MAX_LEVEL");
+            return "Max nesting level exceeded in line " + String(line);
+          }
+        } else
+          levels = level+1;
+      } else {
+        levels = 1;
+        //Serial.println("levels==0 -> levels:=1");
+      }
+
+      //Serial.println("levels=" + String(levels));
+      level_ident[levels-1] = ident;
+      level_name[levels-1] = field_name;
+
+      // zero out upper levels
+      //Serial.println("level_ident[" + String(levels) + "]:=0");
+      level_ident[levels] = 0;
+
+      if (s.length() > colon_idx + 2) {
+        //Serial.println("s.length() " + String(s.length()) + " > colon_idx+2");
+        if (s[colon_idx+1] != ' ') {
+          //Serial.println("s[colon_idx+1] " + String(s[colon_idx+1]) + " != space");
+          return "Space after colon expected in line " + String(line);
+        }
+        String param_value = s.substring(colon_idx+2);
+        //Serial.println("param_value=" + param_value);
+        set_param(level_name, param_value, levels);
+      }
+    }
+
+    return "";
   }
 
-  String * getParamValues() {
-    return param_value;
+  void set_param(String* lname, const String & pvalue, uint8_t nlevels) {
+
+    //for (uint8_t level = 0; level < nlevels; level++) {
+    //  Serial.print(lname[level]);    
+    //  Serial.print((level < nlevels-1) ? '.' : '=');
+    //}
+    //Serial.println(pvalue);
+
+    // TODO check for errors, return error as string
+    if (nlevels == 1) {
+      if (lname[0] == "ssid")
+        ssid = trimString(pvalue);
+      else if (lname[0] == "pass")
+        pass = trimString(pvalue);
+      else if (lname[0] == "dest_ip")
+        dest_ip = trimString(pvalue);
+      else if (lname[0] == "dest_port")
+        dest_port = (unsigned int) pvalue.toInt();
+      return;
+    }
+
+    if (nlevels == 2 && lname[0] == "board") {
+      if (lname[1] == "manufacturer")
+        board_manufacturer = trimString(pvalue);
+      else if (lname[1] == "model")
+        board_model = trimString(pvalue);
+      else if (lname[1] == "version")
+        board_version = trimString(pvalue);
+      return;
+    }
+
+    if (lname[0] == "lidar") {
+      switch(nlevels) {
+        case 2:
+          if (lname[1] == "model")
+            lidar_model = trimString(pvalue);
+          break;
+        case 3:
+          if (lname[1] == "gpio") {
+            if (lname[2] == "tx")
+              lidar_gpio_tx = (uint8_t) pvalue.toInt();
+            else if (lname[2] == "rx")
+              lidar_gpio_rx = (uint8_t) pvalue.toInt();
+            else if (lname[2] == "pwm")
+              lidar_gpio_pwm = (uint8_t) pvalue.toInt();
+            else if (lname[2] == "en")
+              lidar_gpio_en = (uint8_t) pvalue.toInt();
+          }
+          break;
+        case 4:
+          if (lname[1] == "scan" && lname[2] == "freq" && lname[3] == "target")
+            lidar_scan_freq_target = pvalue.toFloat();
+          break;
+        default:
+          break;
+      }
+      return;
+    }
+
+    if (lname[0] == "monitor") {
+      switch(nlevels) {
+        case 2:
+          if (lname[1] == "baud")
+            monitor_baud = (uint32_t) pvalue.toInt();
+          break;
+        case 3:
+          if (lname[1] == "gpio" && lname[2] == "tx")
+            monitor_gpio_tx = (uint8_t) pvalue.toInt();
+          break;
+      }
+      return;
+    }
+
+    if (nlevels >= 3 && lname[0] == "base") {
+      if (lname[1] == "wheel") {
+        if (nlevels == 3) {
+          if (lname[2] == "track")
+            setWheelTrack(pvalue.toFloat());
+          else if (lname[2] == "diameter")
+            setWheelDia(pvalue.toFloat());
+        } else if (nlevels == 4 && lname[2] == "accel" && lname[3] == "max")
+          setMaxWheelAccel(pvalue.toFloat());
+      }
+      return;
+    }
+
+    if (nlevels == 4 && lname[0] == "led") {
+      if (lname[1] == "system" && lname[2] == "driver") {
+        if (lname[3] == "gpio")
+          led_sys_gpio = (uint8_t) pvalue.toInt();
+        else if (lname[3] == "invert")
+          led_sys_invert = stringToBool(pvalue);
+      }
+      return;
+    }
+
+    if (nlevels == 3 && lname[0] == "button") {
+      if (lname[1] == "boot") {
+        if (lname[2] == "gpio")
+          button_boot_gpio = (uint8_t) pvalue.toInt();
+        else if (lname[2] == "invert")
+          button_boot_invert = stringToBool(pvalue);
+      }
+      return;
+    }
+
+    if (lname[0] == "motor") {
+      if (nlevels == 3 && lname[1] == "rpm" && lname[2] == "max")
+        motor_rpm_max = pvalue.toFloat();
+      else if (nlevels >= 3 && lname[1] == "driver") {
+        if (nlevels == 3 && lname[2] == "type")
+          motor_driver_type = trimString(pvalue);
+        else if (nlevels == 4 && lname[2] == "pid") {
+          if (lname[3] == "period")
+            motor_driver_pid_period = pvalue.toFloat();
+          else if (lname[3] == "kp")
+            motor_driver_pid_kp = pvalue.toFloat();
+          else if (lname[3] == "ki")
+            motor_driver_pid_ki = pvalue.toFloat();
+          else if (lname[3] == "kd")
+            motor_driver_pid_kd = pvalue.toFloat();
+          else if (lname[3] == "kpm")
+            motor_driver_pid_kpm = pvalue.toFloat();
+        }
+      } else if (nlevels == 3 && lname[1] == "encoder") {
+        if (lname[2] == "type")
+          motor_encoder_type = trimString(pvalue);
+        else if (lname[2] == "ppr")
+          motor_encoder_ppr = pvalue.toFloat();
+      } else {
+        bool left = lname[1] == "left";
+        if (nlevels >= 4 && (left || lname[1] == "right")) {
+          if (lname[2] == "encoder") {
+            if (nlevels == 4 && lname[3] == "reverse") {
+              bool val = stringToBool(pvalue);
+              if (left)
+                mot_left_enc_reverse = val;
+              else
+                mot_right_enc_reverse = val;
+            } else if (nlevels == 5 && (lname[3] == "gpio")) {
+              if (lname[4] == "a" || lname[3] == "fg") {
+                uint8_t gpio = (uint8_t) pvalue.toInt();
+                if (left)
+                  mot_left_enc_gpio_a_fg = gpio;
+                else
+                  mot_right_enc_gpio_a_fg = gpio;
+              } else if (lname[4] == "b") {
+                uint8_t gpio = (uint8_t) pvalue.toInt();
+                if (left)
+                  mot_left_enc_gpio_b = gpio;
+                else
+                  mot_right_enc_gpio_b = gpio;
+              }
+            }
+          } else if (lname[2] == "driver") {
+            if (nlevels == 4 && lname[3] == "reverse") {
+              bool val = stringToBool(pvalue);
+              if (left)
+                mot_left_drv_reverse = val;
+              else
+                mot_right_drv_reverse = val;
+            } else if (nlevels == 5 && (lname[3] == "gpio")) {
+              if (lname[4] == "in1" || lname[4] == "pwm") {
+                uint8_t gpio = (uint8_t) pvalue.toInt();
+                if (left)
+                  mot_left_drv_gpio_in1_pwm = gpio;
+                else
+                  mot_right_drv_gpio_in1_pwm = gpio;
+              } else if (lname[4] == "in2" || lname[4] == "cw") {
+                uint8_t gpio = (uint8_t) pvalue.toInt();
+                if (left)
+                  mot_left_drv_gpio_in2_cw = gpio;
+                else
+                  mot_right_drv_gpio_in2_cw = gpio;
+              }
+            }
+          }
+        }
+      }
+      return;
+    }
+
+    if (nlevels >= 3 && lname[0] == "adc" && lname[1] == "battery") {
+      if (nlevels == 3) {
+        if (lname[2] == "attenuation")
+          adc_bat_atten = pvalue.toFloat();
+        else if (lname[2] == "gpio")
+          adc_bat_gpio = (uint8_t) pvalue.toInt();
+      } else if (nlevels == 4 && lname[2] == "voltage") {
+        if (lname[3] == "full")
+          adc_bat_voltage_full = pvalue.toFloat();
+        if (lname[3] == "empty")
+          adc_bat_voltage_empty = pvalue.toFloat();
+      }
+      return;
+    }
   }
 
   // Hack
   void setWheelDia(float wheel_dia) {
+    base_wheel_dia = wheel_dia;
     wheel_radius = wheel_dia * 0.5;
     wheel_perim_len_div60 = PI * wheel_dia / 60;
     wheel_perim_len_div60_recip = 1/wheel_perim_len_div60;
@@ -220,8 +475,8 @@ public:
   }
   
   void setWheelTrack(float wheel_track) {
-    wheel_track_radius = wheel_track*0.5f;
-    wheel_track_recip = 1/wheel_track;
+    base_wheel_track = wheel_track;
+    base_wheel_track_recip = 1/wheel_track;
   }
   
   // Hack
@@ -235,8 +490,19 @@ public:
   
   void twistToWheelSpeeds(float speed_lin_x, float speed_ang_z,
     float *speed_right, float *speed_left) {
-    float ang_component = speed_ang_z*wheel_track_radius;
+    float ang_component = speed_ang_z*base_wheel_track*0.5f;
     *speed_right = speed_lin_x + ang_component;
     *speed_left  = speed_lin_x - ang_component;
+  }
+
+  String trimString(String s) {
+    s.trim();
+    return s;
+  }
+  
+  bool stringToBool(String s) {
+    s.trim();
+    s.toLowerCase();
+    return s == "true";
   }
 };

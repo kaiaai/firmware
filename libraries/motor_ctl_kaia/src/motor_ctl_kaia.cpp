@@ -34,8 +34,7 @@ void MotorController::init(encoder_type_t encoder_type, uint8_t ticks_per_pulse)
 
   float pidPeriod = 0.03;
   pidUpdatePeriodUs = (unsigned int) round(pidPeriod * 1e6);
-  pid.Init(&measuredRPM, &pidPWM, &targetRPM, 0.001, 0.001, 0,
-    pidPeriod, PID::P_ON_M, PID::DIRECT);
+  pid.Init(&measuredRPM, &pidPWM, &targetRPM, 0.001, 0.001, 0, pidPeriod, 0);
 
   pid.SetOutputLimits(-1, 1);
 
@@ -123,34 +122,38 @@ void MotorController::resetEncoders() {
   switchingCw = false;
 }
 
-void MotorController::setPIDConfig(float kp, float ki, float kd, float period, bool on_error) {
+void MotorController::setPIDConfig(float kp, float ki, float kd, float period, float kpm=0) {
   pidUpdatePeriodUs = (unsigned int) round(period * 1e6);
-  pid.SetTunings(kp, ki, kd, on_error ? PID::P_ON_E : PID::P_ON_M);
+  pid.SetTunings(kp, ki, kd, kpm);
   pid.SetReferenceSampleTime(period);
 }
 
 void MotorController::setPIDKp(float kp) {
-  setPIDConfig(kp, getPIDKi(), getPIDKd(), getPIDPeriod(), getPIDOnError());
+  setPIDConfig(kp, getPIDKi(), getPIDKd(), getPIDPeriod(), getPIDKpm());
 }
 
 void MotorController::setPIDKi(float ki) {
-  setPIDConfig(getPIDKp(), ki, getPIDKd(), getPIDPeriod(), getPIDOnError());
+  setPIDConfig(getPIDKp(), ki, getPIDKd(), getPIDPeriod(), getPIDKpm());
 }
 
 void MotorController::setPIDKd(float kd) {
-  setPIDConfig(getPIDKp(), getPIDKi(), kd, getPIDPeriod(), getPIDOnError());
+  setPIDConfig(getPIDKp(), getPIDKi(), kd, getPIDPeriod(), getPIDKpm());
 }
 
 void MotorController::setPIDPeriod(float period) {
-  setPIDConfig(getPIDKp(), getPIDKi(), getPIDKd(), period, getPIDOnError());
+  setPIDConfig(getPIDKp(), getPIDKi(), getPIDKd(), period, getPIDKpm());
 }
 
-void MotorController::setPIDOnError(bool on_error) {
-  setPIDConfig(getPIDKp(), getPIDKi(), getPIDKd(), getPIDPeriod(), on_error);
+void MotorController::setPIDKpm(float kpm) {
+  setPIDConfig(getPIDKp(), getPIDKi(), getPIDKd(), getPIDPeriod(), kpm);
 }
 
 float MotorController::getPIDKp() {
-  return pid.GetKp();
+  return pid.GetKpe();
+}
+
+float MotorController::getPIDKpm() {
+  return pid.GetKpm();
 }
 
 float MotorController::getPIDKi() {
@@ -163,10 +166,6 @@ float MotorController::getPIDKd() {
 
 float MotorController::getPIDPeriod() {
   return pid.GetReferenceSampleTime();
-}
-
-bool MotorController::getPIDOnError() {
-  return pid.isOnError();
 }
 
 bool MotorController::setTargetRPM(float rpm) {

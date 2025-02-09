@@ -107,10 +107,28 @@ This [blog post](https://kaia.ai/blog/arduino-platform-firmware-avaiable/) discu
 
 ## Change Log
 
+### v0.8.0
+- simplified web config GUI
+  - web config got too complicated, too many parameters to set manually
+  - copy-and-paste a YAML text file in the simplified web config
+  - added multiple board support: assign GPIO pins in config.yaml
+  - Kaia.ai-compatible boards will come with a GPIO assignment config file
+  - config.yaml stores board/robot config
+  - network.yaml stores network-only config portion for security reasons
+- cleaned up some micro-ROS parameters
+- simplified motor PID library
+  - removed ON_ERROR vs. ON_MEASUREMENT
+  - added Kpm proportional-on-measurement factor
+  - removed the direction setting (negate all PID factors to reverse control direction)
+  - fixed PID adjustment for sample timing
+- web config launches on BOOT button long-press without reboot
+- pulled updates into the micro_ros_kaia library
+
 ### v0.7.0
 - set Maker's Pet mini as the default robot
 - added more N20 motors
-- set/get LDROBOT LD14P rotation speed- MAKERSPET_MINI works
+- set/get LDROBOT LD14P rotation speed
+- MAKERSPET_MINI works
 - added YDLIDAR X4-PRO (not tested)
 
 ### v0.6.0

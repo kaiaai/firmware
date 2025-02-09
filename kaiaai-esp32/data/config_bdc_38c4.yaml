@@ -1,0 +1,100 @@
+#
+# Board-specific assignments
+#
+board:
+  manufacturer: makerspet.com
+  model: BDC-38C4
+  version: v1.1.0
+lidar:
+  gpio:
+    tx: 35
+    rx: 27
+    pwm: 13
+    en: 32
+led:
+  system:
+    driver:
+      type: direct
+      gpio: 2
+      invert: false
+button:
+  boot:
+    gpio: 0
+    invert: true
+monitor:
+  gpio:
+    tx: 1
+motor:
+  driver:
+    type: IN1_IN2
+  encoder:
+    type: AB_QUAD
+  left:
+    encoder:
+      gpio:
+        a: 39
+        b: 36
+    driver:
+      gpio:
+        in1: 26
+        in2: 25
+  right:
+    encoder:
+      gpio:
+        a: 17
+        b: 16
+    driver:
+      gpio:
+        in1: 23
+        in2: 22
+adc:
+  battery:
+    attenuation: 7.0
+    gpio: 33
+    voltage:
+      full: 9.9
+      empty: 7.2
+
+#
+# Peripherals configuration
+#
+lidar:
+  model: LDROBOT LD14P
+# model: NEATO XV11
+# model: SLAMTEC RPLIDAR A1
+# model: XIAOMI LDS02RR
+# model: YDLIDAR SCL
+# model: YDLIDAR X2
+# model: YDLIDAR X2L
+# model: YDLIDAR X3
+# model: YDLIDAR X3 PRO
+# model: 3IROBOTIX DELTA-2G
+# model: 3IROBOTIX DELTA-2A 115200
+# model: 3IROBOTIX DELTA-2A
+# model: 3IROBOTIX DELTA-2B
+# model: YDLIDAR X4 PRO
+# model: YDLIDAR X4
+  scan:
+    freq:
+      target: 5.0
+monitor:
+  baud: 115200
+base:
+  wheel:
+    track: 0.105043
+    diameter: 0.043
+    accel:
+      max: 2.0
+motor:
+  rpm:
+# derated
+    max: 180
+  driver:
+    pid:
+      period: 0.03
+      kp: 0.001
+      ki: 0.003
+      kd: 0
+      kpm: 0
+  encoder:
+    ppr: 1035
