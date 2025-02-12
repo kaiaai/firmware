@@ -3,17 +3,19 @@
 #
 board:
   manufacturer: makerspet.com
-  model: MINI-S3M
-  version: v3.4.0
+  model: BDC-30P
+  version: v1.1.1
 lidar:
   gpio:
-    tx: 14
-    rx: 21
+    tx: 35
+    rx: 27
+    pwm: 13
+    en: 32
 led:
-  system: 
+  system:
     driver:
       type: direct
-      gpio: 1
+      gpio: 2
       invert: false
 button:
   boot:
@@ -21,7 +23,7 @@ button:
     invert: true
 monitor:
   gpio:
-    tx: 43
+    tx: 1
 motor:
   driver:
     type: IN1_IN2
@@ -30,28 +32,27 @@ motor:
   left:
     encoder:
       gpio:
-        a: 11
-        b: 10
+        a: 39
+        b: 36
     driver:
       gpio:
-        in1: 13
-        in2: 12
+        in1: 26
+        in2: 25
   right:
     encoder:
       gpio:
-        a: 41
-        b: 40
+        a: 17
+        b: 16
     driver:
       gpio:
-        in1: 38
-        in2: 48
+        in1: 23
+        in2: 22
 adc:
   battery:
-    attenuation: 3.5
-    gpio: 6
+    attenuation: 7.0
+    gpio: 33
     voltage:
-# 12V motors, 6x AA/D/C (1.2-1.6V) batteries
-      full: 9.6
+      full: 9.9
       empty: 7.2
 
 #
