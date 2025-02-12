@@ -108,13 +108,15 @@ This [blog post](https://kaia.ai/blog/arduino-platform-firmware-avaiable/) discu
 ## Change Log
 
 ### v0.8.0
-- simplified web config GUI
-  - web config got too complicated, too many parameters to set manually
-  - copy-and-paste a YAML text file in the simplified web config
-  - added multiple board support: assign GPIO pins in config.yaml
-  - Kaia.ai-compatible boards will come with a GPIO assignment config file
+- moved board config from web to config.yaml
+- upload config.yaml as sketch data
   - config.yaml stores board/robot config
   - network.yaml stores network-only config portion for security reasons
+- web config GUI now only configures WiFi
+  - web config got too complicated, too many parameters to set manually
+- added multiple board support: assign GPIO pins in config.yaml
+  - Kaia.ai-compatible boards will come with a GPIO assignment config file
+  - config.yaml for Maker's Pet BDC-30P, BDC-38C4, MINI-32E, MINI-S3M boards
 - cleaned up some micro-ROS parameters
 - simplified motor PID library
   - removed ON_ERROR vs. ON_MEASUREMENT
@@ -123,6 +125,13 @@ This [blog post](https://kaia.ai/blog/arduino-platform-firmware-avaiable/) discu
   - fixed PID adjustment for sample timing
 - web config launches on BOOT button long-press without reboot
 - pulled updates into the micro_ros_kaia library
+- fixed library name conflict
+  - renamed motor_ctl.h to motor_ctl_kaia.h
+- updated LDS library
+- bugfix: pause motors on WiFi loss
+- Arduino ESP32 Nano builds, works
+- set GPIO slew for EMC
+- builds with Espressif 5.x, but issue with micro_ros communication
 
 ### v0.7.0
 - set Maker's Pet mini as the default robot
