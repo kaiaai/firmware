@@ -3,7 +3,7 @@
 #
 board:
   manufacturer: makerspet.com
-  model: BDC-30P
+  model: MINI-BDC30P-BODY with BDC-30P
   version: v1.1.1
 lidar:
   gpio:

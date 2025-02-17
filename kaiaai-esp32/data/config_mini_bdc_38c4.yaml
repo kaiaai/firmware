@@ -3,7 +3,7 @@
 #
 board:
   manufacturer: makerspet.com
-  model: BDC-38C4
+  model: Mini body with BDC-38C4
   version: v1.1.0
 lidar:
   gpio:

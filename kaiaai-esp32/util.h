@@ -169,6 +169,11 @@ void printNB(const String & s) { // non-blocking
     Serial.print(s);
 }
 
+void idle() {
+  while(true)
+    delay(0);
+}
+
 const String reset_reason_to_string(int reason, bool verbose=false) {
   if (verbose) {
     switch (reason) {

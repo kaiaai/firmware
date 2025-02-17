@@ -555,10 +555,14 @@ void setup() {
 
   if (spiffs_ok) {
     Serial.println("SPIFFS mounted successfully");
-    if (!html_exists)
+    if (!html_exists) {
       Serial.println("Sketch data not found. Please upload sketch data.");
-  } else
+      idle();
+    }
+  } else {
     Serial.println("Error mounting SPIFFS");
+    idle();
+  }
 
   if (wifi_yaml_exists) {
     Serial.print(cfg.NETWORK_YAML_PATH);
