@@ -229,6 +229,7 @@ static inline bool initWiFi(const String & ssid, const String & passw) {
   Serial.print(" connected, ");
   Serial.print("IP ");
   Serial.println(WiFi.localIP());
+  //printWiFiChannel();
   return true;
 }
 

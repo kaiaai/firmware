@@ -17,6 +17,7 @@
 #include <arduino.h>
 #include "robot_config.h"
 #include <SPIFFS.h>
+#include <esp_wifi.h>
 
 extern CONFIG cfg;
 
@@ -172,6 +173,52 @@ void printNB(const String & s) { // non-blocking
 void idle() {
   while(true)
     delay(0);
+}
+
+void printWiFiChannel() {
+  uint8_t primary_ch;
+  wifi_second_chan_t secondary_ch;
+  esp_err_t err = esp_wifi_get_channel(&primary_ch, &secondary_ch);
+  if (err == ESP_OK) {
+    Serial.print("Primary AP channel ");
+    Serial.println(primary_ch);
+
+    Serial.print("Secondary channel ");
+    switch(secondary_ch) {
+      case WIFI_SECOND_CHAN_NONE:
+        Serial.print("NONE/HT20");
+        break;
+      case WIFI_SECOND_CHAN_ABOVE:
+        Serial.print("ABOVE/HT40");
+        break;
+      case WIFI_SECOND_CHAN_BELOW:
+        Serial.print("BELOW/HT40");
+        break;
+      default:
+        Serial.print("Unknown");
+        break;
+    }
+    Serial.print(" ");
+  } else {
+    Serial.print("esp_wifi_get_channel() failed ");
+    switch(err) {
+      case ESP_ERR_WIFI_CONN:
+        Serial.println("ESP_ERR_WIFI_CONN");
+        break;
+      case ESP_ERR_WIFI_NOT_INIT:
+        Serial.println("ESP_ERR_WIFI_NOT_INIT");
+        break;
+      case ESP_ERR_INVALID_ARG:
+        Serial.println("ESP_ERR_INVALID_ARG");
+        break;
+      case ESP_ERR_WIFI_NOT_CONNECT:
+        Serial.println("ESP_ERR_WIFI_NOT_CONNECT");
+        break;
+      default:
+        Serial.println(err);
+        break;
+    }
+  }
 }
 
 const String reset_reason_to_string(int reason, bool verbose=false) {
