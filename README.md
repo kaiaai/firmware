@@ -107,6 +107,9 @@ This [blog post](https://kaia.ai/blog/arduino-platform-firmware-avaiable/) discu
 
 ## Change Log
 
+### v0.8.1
+- bugfix: sketch data filename too long causing SPIFFS upload to fail
+
 ### v0.8.0
 - moved board config from web to config.yaml
 - upload config.yaml as sketch data
