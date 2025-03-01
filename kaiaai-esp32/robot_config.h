@@ -116,7 +116,6 @@ public:
   float base_wheel_dia = 0.043f;
   float base_wheel_accel_max = 1.0;
   float base_wheel_track = 0.105043f;
-  float base_wheel_track_recip = 1.0f/0.105043f;
   uint8_t led_sys_gpio = UNDEFINED_GPIO;
   uint8_t led_sys_invert = false;
   uint8_t button_boot_gpio = UNDEFINED_GPIO;
@@ -158,10 +157,9 @@ public:
   uint8_t mot_right_drv_gpio_in2_cw = 255;
   uint32_t monitor_baud = 115200;
 
-  // Hack
   // Cache divisions
   float speed_diff_to_us;
-  float wheel_track_recip;
+  float base_wheel_track_recip = 1.0f / base_wheel_track;
   float wheel_radius;
   float wheel_perim_len_div60;
   float wheel_perim_len_div60_recip;

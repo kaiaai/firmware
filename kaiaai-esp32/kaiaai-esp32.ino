@@ -344,7 +344,7 @@ void calcOdometry(unsigned long step_time_us, float joint_pos_delta_right,
 
   // TODO use Runge-Kutta integration for better accuracy
   float average_distance = (distance_right + distance_left) * 0.5;
-  float d_yaw = (distance_left - distance_right)*cfg.wheel_track_recip;
+  float d_yaw = (distance_left - distance_right)*cfg.base_wheel_track_recip;
 //  if (abs(d_yaw) > 1) {
 //    printNB("WARNING: odometry asin() domain out of bounds. Check motor encoders.");
 //    d_yaw = d_yaw > 0 ? 1 : -1;
