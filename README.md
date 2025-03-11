@@ -109,6 +109,7 @@ This [blog post](https://kaia.ai/blog/arduino-platform-firmware-avaiable/) discu
 
 ### v0.8.1
 - bugfix: sketch data filename too long causing SPIFFS upload to fail
+- bugfix: Delta, Delta-2G LiDAR decoding
 
 ### v0.8.0
 - moved board config from web to config.yaml
