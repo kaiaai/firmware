@@ -17,7 +17,7 @@
 
 class CONFIG {
 public:
-  static constexpr char* FW_VERSION = (char*)"0.8.1-iron";
+  static constexpr char* FW_VERSION = (char*)"0.8.3-iron";
   static constexpr char* CONFIG_YAML_PATH = (char *)"/config.yaml";
   static constexpr char* NETWORK_YAML_PATH = (char *)"/network.yaml";
   static constexpr char* INDEX_HTML_PATH = (char *)"/index.html";
