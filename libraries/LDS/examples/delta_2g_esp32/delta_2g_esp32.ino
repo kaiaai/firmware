@@ -19,12 +19,9 @@
 // 1. CHANGE these to match your wiring
 // IGNORE pins absent from your Lidar model (often EN, PWM)
 const uint8_t LIDAR_GPIO_EN = 19; // ESP32 GPIO connected to Lidar EN pin
-//const uint8_t LIDAR_GPIO_RX = 16; // ESP32 GPIO connected to Lidar RX pin
-//const uint8_t LIDAR_GPIO_TX = 17; // ESP32 GPIO connected to Lidar TX pin
-//const uint8_t LIDAR_GPIO_PWM = 15;// ESP32 GPIO connected to Lidar PWM pin
-const uint8_t LIDAR_GPIO_RX = 27; // ESP32 GPIO connected to Lidar RX pin
-const uint8_t LIDAR_GPIO_TX = 35; // ESP32 GPIO connected to Lidar TX pin
-const uint8_t LIDAR_GPIO_PWM = 13;// ESP32 GPIO connected to Lidar PWM pin
+const uint8_t LIDAR_GPIO_RX = 27; //16; // ESP32 GPIO connected to Lidar RX pin
+const uint8_t LIDAR_GPIO_TX = 35; //17; // ESP32 GPIO connected to Lidar TX pin
+const uint8_t LIDAR_GPIO_PWM = 15;// ESP32 GPIO connected to Lidar PWM pin
 
 // 2. UNCOMMENT if using PWM pin and PWM LOW enables the motor
 //#define INVERT_PWM_PIN
@@ -32,13 +29,13 @@ const uint8_t LIDAR_GPIO_PWM = 13;// ESP32 GPIO connected to Lidar PWM pin
 // 3. UNCOMMENT your Lidar model
 //
 //#define NEATO_XV11
-#define SLAMTEC_RPLIDAR_A1
+//#define SLAMTEC_RPLIDAR_A1
 //#define XIAOMI_LDS02RR
 //#define YDLIDAR_SCL
 //#define YDLIDAR_X2_X2L
 //#define YDLIDAR_X3
 //#define YDLIDAR_X3_PRO
-//#define _3IROBOTIX_DELTA_2G
+#define _3IROBOTIX_DELTA_2G
 //#define _3IROBOTIX_DELTA_2A_115200
 //#define _3IROBOTIX_DELTA_2A
 //#define _3IROBOTIX_DELTA_2B
@@ -49,12 +46,12 @@ const uint8_t LIDAR_GPIO_PWM = 13;// ESP32 GPIO connected to Lidar PWM pin
 
 // 4. UNCOMMENT debug option(s)
 // and increase SERIAL_MONITOR_BAUD to MAX possible
-#define DEBUG_GPIO
-//#define DEBUG_PACKETS
-//#define DEBUG_SERIAL_IN
-#define DEBUG_SERIAL_OUT
+//#define DEBUG_GPIO
+#define DEBUG_PACKETS
+#define DEBUG_SERIAL_IN
+//#define DEBUG_SERIAL_OUT
 
-const uint32_t SERIAL_MONITOR_BAUD = 115200;
+const uint32_t SERIAL_MONITOR_BAUD = 921600; //115200;
 const uint32_t LIDAR_PWM_FREQ = 10000;
 const uint8_t LIDAR_PWM_BITS = 11;
 const uint8_t LIDAR_PWM_CHANNEL = 2;
@@ -112,11 +109,7 @@ void setupLidar() {
   lidar->setInfoCallback(lidar_info_callback);
   lidar->setErrorCallback(lidar_error_callback);
 
-  delay(200);
-
   LidarSerial.begin(lidar->getSerialBaudRate(), SERIAL_8N1, LIDAR_GPIO_TX, LIDAR_GPIO_RX);
-
-  delay(200);
 
   lidar->init();
   //lidar->stop();
@@ -130,8 +123,6 @@ void setup() {
   Serial.println(ESP_IDF_VERSION_MAJOR);
 
   setupLidar();
-
-  delay(200);
 
   Serial.print("LiDAR model ");
   Serial.print(lidar->getModelName());
@@ -195,12 +186,6 @@ void lidar_scan_point_callback(float angle_deg, float distance_mm, float quality
   bool scan_completed) {
   static int i=0;
   
-  if (scan_completed) {
-    i = 0;
-    Serial.print("Scan completed; scans-per-second ");
-    Serial.println(lidar->getCurrentScanFreqHz());
-  }
-
   if (i % PRINT_EVERY_NTH_POINT == 0) {
     Serial.print(i);
     Serial.print(' ');
@@ -209,6 +194,12 @@ void lidar_scan_point_callback(float angle_deg, float distance_mm, float quality
     Serial.println(angle_deg);
   }
   i++;
+
+  if (scan_completed) {
+    i = 0;
+    Serial.print("Scan completed; scans-per-second ");
+    Serial.println(lidar->getCurrentScanFreqHz());
+  }
 }
 
 void lidar_motor_pin_callback(float value, LDS::lds_pin_t lidar_pin) {
