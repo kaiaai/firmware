@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include <arduino.h>
+#include <Arduino.h>
 #include "robot_config.h"
 #include <SPIFFS.h>
 #include <esp_wifi.h>
