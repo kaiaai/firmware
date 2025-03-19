@@ -107,6 +107,9 @@ This [blog post](https://kaia.ai/blog/arduino-platform-firmware-avaiable/) discu
 
 ## Change Log
 
+### v0.8.4
+- bugfix: builds in Arduino for Ubuntu
+
 ### v0.8.3
 - bugfix: Delta, Delta-2G LiDAR decoding
 
