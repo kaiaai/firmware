@@ -2,12 +2,12 @@
 
 Use this open-source firmware to easily make (relatively advanced) self-driving Arduino/ROS2 robots equipped with a spinning Lidar distance sensor. Currently, I support out-of-the-box the differential (2-wheel) round base with a rear caster.
 
-[![My DIY Arduino robot loves self-driving](https://img.youtube.com/vi/RCPUQmvS37Q/0.jpg)](https://www.youtube.com/watch?v=RCPUQmvS37Q)
+[![My DIY Arduino robot loves self-driving](https://img.youtube.com/vi/RCPUQmvS37Q/0.jpg)](https://www.youtube.com/watch?v=RCPUQmvS37Q&list=PLOSXKDW70aR8uA1IFahSKVuk5ODDfjTZV)
 
 Complete build, setup, bring-up and operation instruction - [watch videos here](https://m.youtube.com/playlist?list=PLOSXKDW70aR8uA1IFahSKVuk5ODDfjTZV)
 and [read troubleshooting post here](https://makerspet.com/blog/BLD-120MM-PACK/).
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/RCPUQmvS37Q?si=WeSU949fw8wtioj9" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+[![My DIY Arduino robot loves self-driving](https://img.youtube.com/vi/6GtjAB19GP8/0.jpg)](https://www.youtube.com/watch?v=6GtjAB19GP8&list=PLOSXKDW70aR8uA1IFahSKVuk5ODDfjTZV)
 
 Technical support - visit the [support forum](https://github.com/makerspet/support/discussions/)
 
