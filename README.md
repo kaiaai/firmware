@@ -1,54 +1,19 @@
 # Kaia.ai platform robot firmware
-This repo contains:
-- Arduino [ESP32 robot firmware](/kaiaai-esp32/) for the ESP32 breakout board
-- Robot's [lower body extension module firmware](/kaiaai-pico-body/)
-- Robot's [head extension module firmware](/kaiaai-pico-head/)
-- all libraries necessary to build the sketch
-- ESP32 sketch [data upload tool](https://github.com/me-no-dev/arduino-esp32fs-plugin/)
 
-Please visit the [Support Forum](https://github.com/makerspet/support/discussions/)!
+Use this open-source firmware to easily make (relatively advanced) self-driving Arduino/ROS2 robots equipped with a spinning Lidar distance sensor. Currently, I support out-of-the-box the differential (2-wheel) round base with a rear caster.
 
-List of supported LiDAR/LDS sensors is here.
+[![My DIY Arduino robot loves self-driving](https://img.youtube.com/vi/RCPUQmvS37Q/0.jpg)](https://www.youtube.com/watch?v=RCPUQmvS37Q&list=PLOSXKDW70aR8uA1IFahSKVuk5ODDfjTZV)
 
-## Installation and setup
-- download the latest code by Code -> Download ZIP on this page
-  - alternatively, download the latest or an older release by clicking Releases on this page; click on Assets -> Source code to download the firmware
-- open the downloaded ZIP file
-  - navigate inside the "firmware-xxx" folder
-  - copy everything inside the "firmware-xxx" folder to your Arduino sketch folder. That includes both the Arduino sketch and the libraries folder.
-- watch the video below to
-  - install the ESP32 tool chain version 2.0.17 (NOT 3.0.x)
-  - ignore Arduino IDE library installation in the video
-  - build, upload firmware
-  - upload sketch data
-- follow the configuration instructions on this page
+Complete build, setup, bring-up and operation instruction - [watch videos here](https://m.youtube.com/playlist?list=PLOSXKDW70aR8uA1IFahSKVuk5ODDfjTZV)
+and [read troubleshooting post here](https://makerspet.com/blog/BLD-120MM-PACK/).
 
-<a href="http://www.youtube.com/watch?feature=player_embedded&v=XOc5kCE3MC0" target="_blank">
- <img src="http://img.youtube.com/vi/XOc5kCE3MC0/maxresdefault.jpg" alt="Watch the one-time PC setup, firmware upload instructions video" width="720" height="405" border="10" />
-</a>
+[![My DIY Arduino robot loves self-driving](https://img.youtube.com/vi/6GtjAB19GP8/0.jpg)](https://www.youtube.com/watch?v=6GtjAB19GP8&list=PLOSXKDW70aR8uA1IFahSKVuk5ODDfjTZV)
 
-## Configuration
-Once you have uploaded firmware and the sketch data) to your Kaia.ai-compatible robot:
-- wait for your robot to enter the AP (WiFi access point) mode
-  - the robot enters the AP (WiFi access point) mode whenever the robot fails to connect to WiFi
-- Alternatively, force your robot to enter the AP mode by performing a "factory reset":
-  - Press the "EN" (reset) button on your ESP32 board.
-  - Next, immediately after that (within 1 second) press the ESP32 "BOOT" button and hold it for 10+ seconds.
-  - The ESP32 board LED will blink fast.
-  - Release the "BOOT" button once the ESP32 board LED stops blinking.
-- connect to your robot's WiFi (MAKERSPET)
-- navigate your browser (PC or mobile handset) to 192.168.4.1
-- configure your robot and its WiFi connection:
-  - input your WiFi name, password
-  - select your robot's model
-  - select your robot's laser sensor from the [list of supported LiDAR/LDS](https://github.com/kaiaai/LDS)
-  - select your robot's motor model
-- press the "Configure and Connect" button
-  - disconnect from your robot's WiFi and reconnect back to your own WiFi
+Technical support - visit the [support forum](https://github.com/makerspet/support/discussions/)
 
-This [blog post](https://kaia.ai/blog/arduino-platform-firmware-avaiable/) discusses the configuration in more detail.
+## Compatible Lidars
 
-![kaiaai_robot_configurator](https://github.com/kaiaai/firmware/assets/33589365/5961c7df-7ed7-460d-80ae-b7148ed91a66)
+List of [supported Lidar models here](https://github.com/kaiaai/LDS). I wrote this Arduino Lidar library.
 
 ## Compatible Motors
 
@@ -106,6 +71,9 @@ This [blog post](https://kaia.ai/blog/arduino-platform-firmware-avaiable/) discu
   - However, some N20 motors with low RPM (e.g. <=100RPM) do offer sufficient torque
 
 ## Change Log
+
+### v0.8.4
+- bugfix: builds in Arduino for Ubuntu
 
 ### v0.8.3
 - bugfix: Delta, Delta-2G LiDAR decoding
