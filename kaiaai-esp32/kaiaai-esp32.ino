@@ -31,6 +31,12 @@ CONFIG cfg;
 kaiaai_msgs__msg__JointPosVel joint[MOTOR_COUNT];
 float joint_prev_pos[MOTOR_COUNT] = {0};
 uint8_t lidar_buf[cfg.LIDAR_BUF_LEN] = {0};
+float odom_target_d_dist = 0;
+float odom_target_d_yaw = 0;
+float odom_start_dist = 0;
+float odom_start_yaw = 0;
+float odom_dist = 0;
+float odom_yaw = 0;
 
 unsigned long telem_prev_pub_time_us = 0;
 unsigned long ping_prev_pub_time_us = 0;
@@ -51,6 +57,13 @@ unsigned long stat_max_spin_telem_period_us = 0;
   #error Espressif IDF v5 is not yet supported
 #endif
 
+inline void setOdomTarget(float d_dist, float d_yaw) {
+  odom_target_d_dist = d_dist;
+  odom_target_d_yaw = d_yaw;
+  odom_start_dist = odom_dist;
+  odom_start_yaw = odom_yaw;
+}
+
 void twist_sub_callback(const void *msgin) {
   const geometry_msgs__msg__Twist * msg = (const geometry_msgs__msg__Twist *)msgin;
 
@@ -60,6 +73,7 @@ void twist_sub_callback(const void *msgin) {
   //Serial.print(msg->linear.x);
   //Serial.print(", angular.z ");
   //Serial.println(msg->angular.z);
+  setOdomTarget(msg->linear.z, msg->angular.x);
 
   if (msg->linear.y != 0) {
     Serial.print("Warning: /cmd_vel linear.y = ");
@@ -366,6 +380,8 @@ void calcOdometry(unsigned long step_time_us, float joint_pos_delta_right,
   telem_msg.odom_pos_x += d_x;
   telem_msg.odom_pos_y += d_y;
   telem_msg.odom_pos_yaw += d_yaw;
+  odom_dist += average_distance;
+  odom_yaw += d_yaw;
 
   if (telem_msg.odom_pos_yaw > PI)
     telem_msg.odom_pos_yaw -= TWO_PI;
@@ -413,6 +429,29 @@ void updateROSParams() {
   }
 }
 
+inline void clearOdomTarget() {
+  odom_target_d_dist = 0;
+  odom_target_d_yaw = 0;
+}
+
+bool isOdomTargetReached() {
+  // Regular operation
+  if (odom_target_d_dist == 0 && odom_target_d_yaw == 0)
+    return false;
+
+  // Distance target reached
+  float d_dist = odom_dist - odom_start_dist;
+  if (abs(odom_target_d_dist) >= abs(d_dist))
+    return true;
+
+  // Yaw angle target reached
+  float d_yaw = odom_yaw - odom_start_yaw;
+  if (abs(odom_target_d_yaw) >= abs(d_yaw))
+    return true;
+
+  return false;
+}
+
 void loop() {
   static bool wifi_ok_prev = true;
 
@@ -447,6 +486,11 @@ void loop() {
 
   motorLeft.update();
   motorRight.update();
+
+  if (isOdomTargetReached()) {
+    clearOdomTarget();
+    setMotorSpeeds(0, 0);
+  }
 }
 
 bool isBootButtonPressed(uint8_t sec) {
@@ -474,6 +518,8 @@ void resetTelemMsg() {
   telem_msg.odom_pos_yaw = 0;
   telem_msg.odom_vel_x = 0;
   telem_msg.odom_vel_yaw = 0;
+  odom_dist = 0;
+  odom_yaw = 0;
   
   telem_msg.joint.data = joint;
   telem_msg.joint.capacity = MOTOR_COUNT;
@@ -526,12 +572,12 @@ void error_loop(int n_blinks){
 
 void setup() {
 
-  bool spiffs_ok = SPIFFS.begin(true);
-//  blink_error_code(cfg.ERR_SPIFFS_INIT);
-  bool html_exists = false;
-  if (spiffs_ok)
-    html_exists = SPIFFS.exists(cfg.INDEX_HTML_PATH);
-
+  if (!SPIFFS.begin(true)) {
+    Serial.println("Error mounting SPIFFS");
+    idle();
+  }
+  
+  bool html_exists = SPIFFS.exists(cfg.INDEX_HTML_PATH);
   bool wifi_yaml_exists = SPIFFS.exists(cfg.NETWORK_YAML_PATH);
   String wifi_yaml_err;
   if (wifi_yaml_exists)
@@ -554,14 +600,9 @@ void setup() {
   Serial.print("ESP IDF version ");
   Serial.println(esp_get_idf_version());
 
-  if (spiffs_ok) {
-    Serial.println("SPIFFS mounted successfully");
-    if (!html_exists) {
-      Serial.println("Sketch data not found. Please upload sketch data.");
-      idle();
-    }
-  } else {
-    Serial.println("Error mounting SPIFFS");
+  Serial.println("SPIFFS mounted successfully");
+  if (!html_exists) {
+    Serial.println("Sketch data not found. Please upload sketch data.");
     idle();
   }
 
@@ -652,9 +693,10 @@ void setup() {
   //Serial.print("Diagnostics pub ");
   //Serial.println(pubDiagnostics() ? "OK" : "FAILED");
 //  pubDiagnostics();
-  
+
   resetTelemMsg();
-  
+  clearOdomTarget();
+
   startLIDAR();
     //blink_error_code(cfg.ERR_LIDAR_START);
     //error_loop(cfg.ERR_LIDAR_START);
