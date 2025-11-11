@@ -3,7 +3,7 @@
 #
 board:
   manufacturer: makerspet.com
-  model: BLDC-30P
+  model: Vac using BLDC-30P
   version: v1.1.0
 lidar:
   gpio:
@@ -95,7 +95,7 @@ monitor:
   baud: 115200
 base:
   wheel:
-    track: 0.3
+    track: 0.286236
     diameter: 0.065
     accel:
       max: 3.0
