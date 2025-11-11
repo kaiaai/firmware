@@ -140,6 +140,11 @@ void setupEncoders(motor_encoder_t motor_encoder_type) {
     default:
       motorLeft.init(MotorController::ENCODER_UNSIGNED, 2);
       motorRight.init(MotorController::ENCODER_UNSIGNED, 2);
+
+      Serial.print("cfg.mot_left_enc_gpio_a_fg ");
+      Serial.print(cfg.mot_left_enc_gpio_a_fg);
+      Serial.print(", cfg.mot_right_enc_gpio_a_fg ");
+      Serial.println(cfg.mot_right_enc_gpio_a_fg);
    
       setPinMode(cfg.mot_left_enc_gpio_a_fg, INPUT);
       attachInterrupt(cfg.mot_left_enc_gpio_a_fg, unsignedEncoderLeftISR, CHANGE);

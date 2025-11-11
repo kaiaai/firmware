@@ -3,14 +3,14 @@
 #
 board:
   manufacturer: makerspet.com
-  model: MINI-BDC30P-BODY with BDC-30P
-  version: v1.1.1
+  model: BLDC-30P
+  version: v1.1.0
 lidar:
   gpio:
-    tx: 35
+    tx: 34
     rx: 27
     pwm: 13
-    en: 32
+    en: 26
 led:
   system:
     driver:
@@ -26,34 +26,48 @@ monitor:
     tx: 1
 motor:
   driver:
-    type: IN1_IN2
+    type: PWM_CW
   encoder:
-    type: AB_QUAD
+    type: FG
   left:
     encoder:
       gpio:
-        a: 39
-        b: 36
+        fg: 39
     driver:
       gpio:
-        in1: 26
-        in2: 25
+        pwm: 25
+        cw: 32
   right:
     encoder:
       gpio:
-        a: 17
-        b: 16
+        fg: 17
     driver:
       gpio:
-        in1: 23
-        in2: 22
+        pwm: 23
+        cw: 22
 adc:
   battery:
     attenuation: 7.0
-    gpio: 33
+    gpio: 35
     voltage:
-      full: 9.9
-      empty: 7.2
+# 24V motors, 8x AA/D/C (1.2-1.6V) batteries
+      full: 12.8
+      empty: 9.6
+# 24V motors, 12x AA/D/C (1.2-1.6V) batteries
+#     full: 19.2
+#     empty: 14.4
+# 24V motors, 5S (2x 3.0-4.2V) cells
+#     full: 21.0
+#     empty: 15.0
+# 24V motors, 4S (2x 3.0-4.2V) cells
+#     full: 16.8
+#     empty: 12.0
+# 12V motors, 6x AA/D/C (1.2-1.6V) batteries
+#     full: 9.9
+#     empty: 7.2
+# 12V motors, 2S (2x 3.0-4.2V) cells
+#     full: 8.4
+#     empty: 6.0
 
 #
 # Peripherals configuration
@@ -81,20 +95,20 @@ monitor:
   baud: 115200
 base:
   wheel:
-    track: 0.105043
-    diameter: 0.043
+    track: 0.3
+    diameter: 0.065
     accel:
-      max: 2.0
+      max: 3.0
 motor:
   rpm:
 # derated
-    max: 180
+    max: 405
   driver:
     pid:
-      period: 0.03
-      kp: 0.001
-      ki: 0.003
+      period: 0.01
+      kp: 0.0005
+      ki: 0.001
       kd: 0
       kpm: 0
   encoder:
-    ppr: 1035
+    ppr: 120

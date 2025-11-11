@@ -401,7 +401,7 @@ public:
               else
                 mot_right_enc_reverse = val;
             } else if (nlevels == 5 && (lname[3] == "gpio")) {
-              if (lname[4] == "a" || lname[3] == "fg") {
+              if (lname[4] == "a" || lname[4] == "fg") {
                 uint8_t gpio = (uint8_t) pvalue.toInt();
                 if (left)
                   mot_left_enc_gpio_a_fg = gpio;
