@@ -3,7 +3,7 @@
 #
 board:
   manufacturer: makerspet.com
-  model: Vac using BLDC-30P
+  model: makerspet_vac using BLDC-30P
   version: v1.1.0
 lidar:
   gpio:
@@ -98,11 +98,11 @@ base:
     track: 0.286236
     diameter: 0.065
     accel:
-      max: 3.0
+      max: 4.0
 motor:
   rpm:
 # derated
-    max: 405
+    max: 260
   driver:
     pid:
       period: 0.01
@@ -111,4 +111,4 @@ motor:
       kd: 0
       kpm: 0
   encoder:
-    ppr: 120
+    ppr: 204
