@@ -34,6 +34,7 @@ motor:
       gpio:
         fg: 39
     driver:
+      reverse: true
       gpio:
         pwm: 25
         cw: 32
@@ -42,6 +43,7 @@ motor:
       gpio:
         fg: 17
     driver:
+      reverse: true
       gpio:
         pwm: 23
         cw: 22
@@ -98,7 +100,7 @@ base:
     track: 0.286236
     diameter: 0.065
     accel:
-      max: 4.0
+      max: 3.0
 motor:
   rpm:
 # derated
