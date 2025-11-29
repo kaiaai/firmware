@@ -72,6 +72,12 @@ List of [supported Lidar models here](https://github.com/kaiaai/LDS). I wrote th
 
 ## Change Log
 
+### v0.8.5-iron
+- stop robot once it has traveled a certain distance or yaw since the last cmd_vel was received
+  - (hack) specified in cmd_vel linear.z and angular.x respectively
+  - simplifies robot app control when not using a navigation map
+- refactor SPIFFS error handling
+
 ### v0.8.4
 - bugfix: builds in Arduino for Ubuntu
 
