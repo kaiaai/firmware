@@ -199,58 +199,36 @@ void setupLIDAR() {
 
   if (cfg.lidar_model == "NEATO XV11") {
     lidar = new LDS_NEATO_XV11();
+  } else if (cfg.lidar_model == "SLAMTEC RPLIDAR A1") {
+    lidar = new LDS_RPLIDAR_A1();
+  } else if (cfg.lidar_model == "XIAOMI LDS02RR") {
+    lidar = new LDS_LDS02RR();
+  } else if (cfg.lidar_model == "YDLIDAR SCL") {
+    lidar = new LDS_YDLIDAR_SCL();
+  } else if (cfg.lidar_model == "YDLIDAR X2" || cfg.lidar_model == "YDLIDAR X2L") {
+    lidar = new LDS_YDLIDAR_X2_X2L();
+  } else if (cfg.lidar_model == "YDLIDAR X3") {
+    lidar = new LDS_YDLIDAR_X3();
+  } else if (cfg.lidar_model == "YDLIDAR X3 PRO") {
+    lidar = new LDS_YDLIDAR_X3_PRO();
+  } else if (cfg.lidar_model == "3IROBOTIX DELTA-2G") {
+    lidar = new LDS_DELTA_2G();
+  } else if (cfg.lidar_model == "3IROBOTIX DELTA-2A 115200") {
+    lidar = new LDS_DELTA_2A_115200();
+  } else if (cfg.lidar_model == "3IROBOTIX DELTA-2A") {
+    lidar = new LDS_DELTA_2A_230400();
+  } else if (cfg.lidar_model == "3IROBOTIX DELTA-2B") {
+    lidar = new LDS_DELTA_2B();
+  } else if (cfg.lidar_model == "LDROBOT LD14P") {
+    lidar = new LDS_LDROBOT_LD14P();
+  } else if (cfg.lidar_model == "LDROBOT LD19") {
+    lidar = new LDS_LDROBOT_LD19();    
+  } else if (cfg.lidar_model == "YDLIDAR X4 PRO") {
+    lidar = new LDS_YDLIDAR_X4_PRO();
   } else {
-    if (cfg.lidar_model == "SLAMTEC RPLIDAR A1") {
-      lidar = new LDS_RPLIDAR_A1();
-    } else {
-      if (cfg.lidar_model == "XIAOMI LDS02RR") {
-        lidar = new LDS_LDS02RR();
-      } else {
-        if (cfg.lidar_model == "YDLIDAR SCL") {
-          lidar = new LDS_YDLIDAR_SCL();
-        } else {
-          if (cfg.lidar_model == "YDLIDAR X2" || cfg.lidar_model == "YDLIDAR X2L") {
-            lidar = new LDS_YDLIDAR_X2_X2L();
-          } else {
-            if (cfg.lidar_model == "YDLIDAR X3") {
-              lidar = new LDS_YDLIDAR_X3();
-            } else {
-              if (cfg.lidar_model == "YDLIDAR X3 PRO") {
-                lidar = new LDS_YDLIDAR_X3_PRO();
-              } else {
-                if (cfg.lidar_model == "3IROBOTIX DELTA-2G") {
-                  lidar = new LDS_DELTA_2G();
-                } else {
-                  if (cfg.lidar_model == "3IROBOTIX DELTA-2A 115200") {
-                    lidar = new LDS_DELTA_2A_115200();
-                  } else {
-                    if (cfg.lidar_model == "3IROBOTIX DELTA-2A") {
-                      lidar = new LDS_DELTA_2A_230400();
-                    } else {
-                      if (cfg.lidar_model == "3IROBOTIX DELTA-2B") {
-                        lidar = new LDS_DELTA_2B();
-                      } else {
-                        if (cfg.lidar_model == "LDROBOT LD14P") {
-                          lidar = new LDS_LDROBOT_LD14P();
-                        } else {
-                          if (cfg.lidar_model == "YDLIDAR X4 PRO") {
-                            lidar = new LDS_YDLIDAR_X4_PRO();
-                          } else {
-                            if (cfg.lidar_model != "YDLIDAR X4")
-                              Serial.print(" not recognized, defaulting to YDLIDAR X4");
-                            lidar = new LDS_YDLIDAR_X4();
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+    if (cfg.lidar_model != "YDLIDAR X4")
+      Serial.print(" not recognized, defaulting to YDLIDAR X4");
+    lidar = new LDS_YDLIDAR_X4();
   }
   Serial.println();
 
