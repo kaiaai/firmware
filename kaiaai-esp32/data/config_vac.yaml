@@ -76,6 +76,7 @@ adc:
 #
 lidar:
   model: LDROBOT LD14P
+# model: LDROBOT LD19
 # model: NEATO XV11
 # model: SLAMTEC RPLIDAR A1
 # model: XIAOMI LDS02RR

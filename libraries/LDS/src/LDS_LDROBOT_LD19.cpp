@@ -82,7 +82,7 @@ LDS::result_t LDS_LDROBOT_LD19::setScanTargetFreqHz(float freq) {
   if (freq == target_scan_freq)
     return RESULT_OK;
 
-  uint16_t deg_per_sec = uint16_t(round(freq * 360));
+  //uint16_t deg_per_sec = uint16_t(round(freq * 360));
 //   SET_SCAN_SPEED_CMD[3] = uint8_t(deg_per_sec & 0xff);
 //   SET_SCAN_SPEED_CMD[4] = uint8_t((deg_per_sec >> 8) & 0xff);
 
