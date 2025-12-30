@@ -98,14 +98,14 @@ monitor:
   baud: 115200
 base:
   wheel:
-    track: 0.286236
-    diameter: 0.065
+    track: 0.282
+    diameter: 0.067
     accel:
       max: 3.0
 motor:
   rpm:
 # derated
-    max: 260
+    max: 234
   driver:
     pid:
       period: 0.01
@@ -114,4 +114,4 @@ motor:
       kd: 0
       kpm: 0
   encoder:
-    ppr: 204
+    ppr: 102
