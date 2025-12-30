@@ -74,6 +74,7 @@ List of [supported Lidar models here](https://github.com/kaiaai/LDS). I wrote th
 
 ### v0.8.6-iron
 - LDROBOT LD19 support
+- tested with [ROS2 Jazzy](https://blog.kaia.ai/kaiaai-ros2-jazzy-released/)
 
 ### v0.8.5-iron
 - stop robot once it has traveled a certain distance or yaw since the last cmd_vel was received
