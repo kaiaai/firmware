@@ -3,8 +3,8 @@
 #
 board:
   manufacturer: makerspet.com
-  model: makerspet_vac using BLDC-30P
-  version: v1.1.0
+  model: makerspet_vac using BLDC-30P, 450RPM
+  version: v1.1.1
 lidar:
   gpio:
     tx: 34
@@ -105,7 +105,7 @@ base:
 motor:
   rpm:
 # derated
-    max: 234
+    max: 450
   driver:
     pid:
       period: 0.01
