@@ -17,6 +17,7 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <ESPAsyncWebSrv.h>
+#include <DNSServer.h>
 #include <SPIFFS.h>
 #include "robot_config.h"
 
@@ -30,31 +31,67 @@ public:
       Serial.println("AP::obtainConfig() set_param_callback == NULL");
       return;
     }
-  
+
     static set_param_t param_callback = set_param_callback; // hack
     AsyncWebServer server(80);  // Create AsyncWebServer object on port 80
-  
+    DNSServer dnsServer;
+
     // Connect to Wi-Fi network with SSID and password
     Serial.print("Setting up WiFi ");
     Serial.print(SSID_AP);
     // NULL sets an open Access Point
     WiFi.softAP(SSID_AP);
-  
+
     IPAddress IP = WiFi.softAPIP();
     Serial.print("; browse to http://");
     Serial.println(IP);
-  
+
+    // Start DNS server for captive portal - redirect all domains to our IP
+    dnsServer.start(53, "*", IP);
+    Serial.println("Captive portal DNS started");
+
+    // Captive portal detection endpoints for different operating systems
+    // Android
+    server.on("/generate_204", HTTP_GET, [IP](AsyncWebServerRequest *request){
+      request->redirect("http://" + IP.toString() + "/");
+    });
+    server.on("/gen_204", HTTP_GET, [IP](AsyncWebServerRequest *request){
+      request->redirect("http://" + IP.toString() + "/");
+    });
+    // iOS/macOS
+    server.on("/hotspot-detect.html", HTTP_GET, [IP](AsyncWebServerRequest *request){
+      request->redirect("http://" + IP.toString() + "/");
+    });
+    server.on("/library/test/success.html", HTTP_GET, [IP](AsyncWebServerRequest *request){
+      request->redirect("http://" + IP.toString() + "/");
+    });
+    // Windows
+    server.on("/connecttest.txt", HTTP_GET, [IP](AsyncWebServerRequest *request){
+      request->redirect("http://" + IP.toString() + "/");
+    });
+    server.on("/ncsi.txt", HTTP_GET, [IP](AsyncWebServerRequest *request){
+      request->redirect("http://" + IP.toString() + "/");
+    });
+    // Firefox
+    server.on("/success.txt", HTTP_GET, [IP](AsyncWebServerRequest *request){
+      request->redirect("http://" + IP.toString() + "/");
+    });
+    // Generic fallback
+    server.on("/fwlink", HTTP_GET, [IP](AsyncWebServerRequest *request){
+      request->redirect("http://" + IP.toString() + "/");
+    });
+
     server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
       request->send(SPIFFS, cfg.INDEX_HTML_PATH, CHAR_ENCODING);
     });
-    
+
     //server.serveStatic("/", SPIFFS, "/www/");
     server.serveStatic("/", SPIFFS, "/");
-    
+
     server.on("/", HTTP_POST, [](AsyncWebServerRequest *request) {
       String resp = "<HTML><BODY>"
         "<center><h1><br>Connecting to WiFi...</h1><p><table>";
-  
+
       int params = request->params();
       for (int i=0; i < params; i++) {
         AsyncWebParameter* p = request->getParam(i);
@@ -68,22 +105,27 @@ public:
           resp += "</td></tr>";
         }
       }
-  
+
       resp += "</table></p></center></BODY></HTML>";
       request->send(200, CHAR_ENCODING, resp);
-  
+
       unsigned long ms = millis();
       while(millis() - ms < 500)
         yield();
       param_callback(NULL, NULL);
     });
-  
+
+    // Handle all other requests - redirect to captive portal
+    server.onNotFound([IP](AsyncWebServerRequest *request){
+      request->redirect("http://" + IP.toString() + "/");
+    });
+
     server.begin();
     while(true) {
-      //callback();
+      dnsServer.processNextRequest();  // Handle DNS requests
       yield();
     }
-  }    
+  }
 
 protected:
   static constexpr char * CHAR_ENCODING = (char *)"text/html; charset=utf-8";
